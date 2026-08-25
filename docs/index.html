@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+  <html lang="en" data-theme="light">
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vertex Computers — PC Parts & Components</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+  /* ============ DESIGN TOKENS ============ */
+  :root{
+    --bg:#F7F8FA; --surface:#FFFFFF; --surface-2:#EFF2F5;
+    --text-1:#12181F; --text-2:#5B6672; --border:#E2E6EA;
+    --accent:#2F6FED; --accent-hover:#2258c7; --accent-soft:#EAF1FE;
+    --success:#1E9E6B; --success-soft:#E4F5EE;
+    --warning:#D98E04; --warning-soft:#FBF1DC;
+    --danger:#D9432F; --danger-soft:#FBE6E3;
+    --shadow-sm:0 1px 2px rgba(16,21,27,.06);
+    --shadow-md:0 4px 16px rgba(16,21,27,.08);
+    --shadow-lg:0 12px 32px rgba(16,21,27,.14);
+    --radius:12px; --radius-sm:8px;
+    --hero-grad:linear-gradient(120deg,#12233f 0%,#1d3a6b 55%,#2F6FED 130%);
+  }
+  [data-theme="dark"]{
+    --bg:#10151B; --surface:#171E27; --surface-2:#1F2833;
+    --text-1:#EDF0F3; --text-2:#9AA5B1; --border:#2A323C;
+    --accent:#5B8DEF; --accent-hover:#79a2f3; --accent-soft:#1c2a44;
+    --success:#35C48C; --success-soft:#12352a;
+    --warning:#E8A83D; --warning-soft:#3a2e14;
+    --danger:#E85A47; --danger-soft:#3d1c17;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+    --shadow-md:0 4px 16px rgba(0,0,0,.45);
+    --shadow-lg:0 12px 32px rgba(0,0,0,.55);
+    --hero-grad:linear-gradient(120deg,#0c1524 0%,#152b52 55%,#2a58bb 130%);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text-1);font-size:15px;line-height:1.5;transition:background .25s,color .25s}
+  img{max-width:100%;display:block}
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer}
+  input,select,textarea{font-family:inherit;font-size:14px}
+  .container{max-width:1280px;margin:0 auto;padding:0 20px}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+  
+  /* ============ UI PRIMITIVES ============ */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:var(--radius-sm);font-weight:600;font-size:14px;padding:11px 20px;transition:all .18s;white-space:nowrap}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:var(--shadow-md)}
+  .btn-secondary{background:var(--surface);color:var(--text-1);border:1px solid var(--border)}
+  .btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+  .btn-ghost{background:transparent;color:var(--text-2)}
+  .btn-ghost:hover{color:var(--accent);background:var(--accent-soft)}
+  .btn-block{width:100%}
+  .btn-lg{padding:14px 26px;font-size:15px}
+  .btn-sm{padding:7px 14px;font-size:13px}
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:99px;letter-spacing:.02em}
+  .badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+  .badge-success{background:var(--success-soft);color:var(--success)}
+  .badge-warning{background:var(--warning-soft);color:var(--warning)}
+  .badge-danger{background:var(--danger-soft);color:var(--danger)}
+  .badge-spec{background:var(--surface-2);color:var(--text-2);font-size:11px;padding:3px 8px;border-radius:6px;font-weight:500}
+  .badge-spec::before{display:none}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-1)}
+  .field input,.field select{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-1);transition:border .15s,box-shadow .15s}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
+  .section-title{font-size:22px;font-weight:700;letter-spacing:-.01em}
+  .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .link{color:var(--accent);font-weight:600;font-size:14px}
+  .link:hover{text-decoration:underline}
+  .divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+  .muted{color:var(--text-2)}
+  
+  /* ============ HEADER ============ */
+  .topbar{background:var(--hero-grad);color:#dbe6ff;text-align:center;font-size:12.5px;padding:7px 12px;font-weight:500}
+  .topbar b{color:#fff}
+  header.site{position:sticky;top:0;z-index:60;background:var(--surface);border-bottom:1px solid var(--border);box-shadow:var(--shadow-sm)}
+  .header-main{display:flex;align-items:center;gap:20px;padding:14px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;letter-spacing:-.02em;flex-shrink:0}
+  .logo-mark{width:34px;height:34px;border-radius:9px;background:var(--hero-grad);display:grid;place-items:center;color:#fff;font-size:17px;font-weight:800}
+  .logo span small{display:block;font-size:9.5px;font-weight:600;color:var(--text-2);letter-spacing:.22em;text-transform:uppercase;line-height:1}
+  .searchbar{flex:1;display:flex;max-width:560px;position:relative}
+  .searchbar input{width:100%;padding:11px 16px 11px 42px;border:1px solid var(--border);border-radius:99px;background:var(--surface-2);color:var(--text-1)}
+  .searchbar input:focus{outline:none;border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px var(--accent-soft)}
+  .searchbar svg{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--text-2)}
+  .header-actions{display:flex;align-items:center;gap:6px;margin-left:auto}
+  .icon-btn{position:relative;width:42px;height:42px;border-radius:10px;border:none;background:transparent;color:var(--text-1);display:grid;place-items:center;transition:background .15s}
+  .icon-btn:hover{background:var(--surface-2)}
+  .cart-count{position:absolute;top:4px;right:3px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;min-width:17px;height:17px;border-radius:99px;display:grid;place-items:center;padding:0 4px}
+  nav.catnav{border-top:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+  nav.catnav::-webkit-scrollbar{display:none}
+  nav.catnav ul{display:flex;gap:4px;list-style:none;padding:6px 0}
+  nav.catnav a{display:block;padding:8px 13px;font-size:13.5px;font-weight:500;color:var(--text-2);border-radius:8px;white-space:nowrap;transition:all .15s}
+  nav.catnav a:hover,nav.catnav a.active{color:var(--accent);background:var(--accent-soft)}
+  .hamburger{display:none}
+  
+  /* ============ VIEWS ============ */
+  .view{display:none;animation:fadeUp .35s ease}
+  .view.active{display:block}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  main{min-height:65vh;padding-bottom:64px}
+  
+  /* ============ HOME ============ */
+  .hero{background:var(--hero-grad);border-radius:20px;margin-top:24px;color:#fff;overflow:hidden;position:relative;display:grid;grid-template-columns:1.15fr .85fr;min-height:340px}
+  .hero::after{content:"";position:absolute;inset:0;background:radial-gradient(700px 300px at 85% 20%,rgba(255,255,255,.14),transparent 60%)}
+  .hero-copy{padding:52px 48px;position:relative;z-index:1;align-self:center}
+  .hero-eyebrow{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;background:rgba(255,255,255,.14);padding:6px 12px;border-radius:99px;margin-bottom:18px;backdrop-filter:blur(4px)}
+  .hero h1{font-size:clamp(28px,4vw,44px);font-weight:800;line-height:1.12;letter-spacing:-.02em;margin-bottom:14px}
+  .hero p{color:#c6d4f5;max-width:44ch;margin-bottom:26px}
+  .hero-art{position:relative;display:grid;place-items:center}
+  .gpu-visual{width:78%;aspect-ratio:16/9;border-radius:14px;background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(6px);display:grid;place-items:center;box-shadow:0 24px 60px rgba(0,0,0,.35);transform:rotate(-4deg)}
+  .gpu-visual svg{width:58%;opacity:.92}
+  .hero-chips{position:absolute;bottom:26px;display:flex;gap:8px;z-index:1}
+  .hero-chips span{font-size:11.5px;font-weight:600;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);padding:5px 11px;border-radius:99px;backdrop-filter:blur(4px)}
+  .home-section{margin-top:52px}
+  .cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px}
+  .cat-tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 14px;text-align:center;font-weight:600;font-size:13.5px;transition:all .18s;cursor:pointer;box-shadow:var(--shadow-sm)}
+  .cat-tile:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:var(--accent)}
+  .cat-tile .cat-ic{width:52px;height:52px;margin:0 auto 12px;border-radius:14px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center}
+  .promo-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:52px}
+  .promo{border-radius:var(--radius);padding:20px;display:flex;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+  .promo .p-ic{width:44px;height:44px;flex-shrink:0;border-radius:12px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}
+  .promo b{font-size:14px;display:block}
+  .promo small{color:var(--text-2);font-size:12.5px}
+  
+  /* ============ PRODUCT CARD / GRID ============ */
+  .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:18px}
+  .pcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;transition:all .18s;box-shadow:var(--shadow-sm);cursor:pointer}
+  .pcard:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--accent)}
+  .pcard-img{aspect-ratio:4/3;background:var(--surface-2);display:grid;place-items:center;color:var(--text-2);position:relative}
+  .pcard-img svg{width:44%;opacity:.7}
+  .pcard-tag{position:absolute;top:10px;left:10px}
+  .pcard-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .pcard-brand{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2)}
+  .pcard-name{font-weight:600;font-size:14.5px;line-height:1.35}
+  .pcard-specs{display:flex;flex-wrap:wrap;gap:5px}
+  .stars{color:#f3a712;font-size:12px;letter-spacing:1px}
+  .stars small{color:var(--text-2);letter-spacing:0;margin-left:4px}
+  .pcard-foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:8px}
+  .price{font-weight:800;font-size:18px;letter-spacing:-.01em}
+  .price s{font-size:12.5px;color:var(--text-2);font-weight:500;margin-right:6px}
+  .add-btn{width:38px;height:38px;border-radius:10px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);display:grid;place-items:center;transition:all .15s}
+  .add-btn:hover{background:var(--accent);color:#fff;transform:scale(1.06)}
+  
+  /* ============ CATEGORY / SHOP ============ */
+  .breadcrumbs{font-size:13px;color:var(--text-2);margin:22px 0 16px;display:flex;gap:8px;flex-wrap:wrap}
+  .breadcrumbs a:hover{color:var(--accent)}
+  .shop-layout{display:grid;grid-template-columns:250px 1fr;gap:28px;align-items:start}
+  .filters{position:sticky;top:132px;padding:20px}
+  .filters h3{font-size:15px;margin-bottom:4px}
+  .fgroup{padding:16px 0;border-bottom:1px solid var(--border)}
+  .fgroup:last-of-type{border-bottom:none}
+  .fgroup>b{display:flex;justify-content:space-between;font-size:13px;margin-bottom:10px;cursor:pointer}
+  .fopt{display:flex;align-items:center;gap:9px;padding:5px 0;font-size:13.5px;color:var(--text-2);cursor:pointer}
+  .fopt:hover{color:var(--text-1)}
+  .fopt input{accent-color:var(--accent);width:15px;height:15px;cursor:pointer}
+  .fopt .cnt{margin-left:auto;font-size:11.5px;background:var(--surface-2);padding:1px 7px;border-radius:99px}
+  .price-inputs{display:flex;gap:8px;align-items:center}
+  .price-inputs input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text-1);font-size:13px}
+  .shop-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+  .shop-toolbar select{padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-1);font-weight:500}
+  .filter-toggle{display:none}
+  .pagination{display:flex;gap:6px;justify-content:center;margin-top:34px}
+  .pagination button{min-width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text-2);font-weight:600;transition:all .15s}
+  .pagination button:hover{border-color:var(--accent);color:var(--accent)}
+  .pagination button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  
+  /* ============ PRODUCT DETAIL ============ */
+  .pdp{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;margin-top:8px}
+  .pdp-gallery .main-img{aspect-ratio:4/3;border-radius:var(--radius);background:var(--surface-2);border:1px solid var(--border);display:grid;place-items:center}
+  .pdp-gallery .main-img svg{width:46%;opacity:.75;color:var(--text-2)}
+  .thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+  .thumbs button{aspect-ratio:4/3;border-radius:10px;background:var(--surface-2);border:1.5px solid var(--border);display:grid;place-items:center;color:var(--text-2);transition:border .15s}
+  .thumbs button.on,.thumbs button:hover{border-color:var(--accent)}
+  .thumbs svg{width:46%;opacity:.6}
+  .pdp-info h1{font-size:clamp(22px,3vw,30px);font-weight:800;letter-spacing:-.02em;line-height:1.2;margin:8px 0 10px}
+  .pdp-price{font-size:32px;font-weight:800;margin:16px 0 4px}
+  .pdp-price s{font-size:17px;color:var(--text-2);font-weight:500;margin-right:10px}
+  .save-note{color:var(--success);font-weight:600;font-size:13.5px}
+  .pdp-buy{display:flex;gap:12px;margin:22px 0 14px;flex-wrap:wrap}
+  .qty{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);height:48px}
+  .qty button{width:42px;height:100%;border:none;background:transparent;color:var(--text-1);font-size:17px;font-weight:600}
+  .qty button:hover{color:var(--accent)}
+  .qty span{min-width:36px;text-align:center;font-weight:700}
+  .trust{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+  .trust div{display:flex;gap:10px;align-items:center;font-size:13px;color:var(--text-2);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 13px}
+  .trust svg{color:var(--accent);flex-shrink:0}
+  .spec-section{margin-top:48px}
+  .spec-table{width:100%;border-collapse:collapse;font-size:14px}
+  .spec-table tr{border-bottom:1px solid var(--border)}
+  .spec-table tr:last-child{border-bottom:none}
+  .spec-table td{padding:12px 16px}
+  .spec-table td:first-child{color:var(--text-2);font-weight:500;width:38%}
+  .spec-table tr:nth-child(odd){background:var(--surface-2)}
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:0}
+  .tabs button{padding:12px 18px;border:none;background:none;font-weight:600;font-size:14px;color:var(--text-2);border-bottom:2px solid transparent;margin-bottom:-1px}
+  .tabs button.on{color:var(--accent);border-color:var(--accent)}
+  
+  /* ============ CART ============ */
+  .cart-layout{display:grid;grid-template-columns:1fr 360px;gap:28px;align-items:start;margin-top:8px}
+  .cart-item{display:grid;grid-template-columns:96px 1fr auto;gap:16px;padding:18px;align-items:center}
+  .cart-item + .cart-item{border-top:1px solid var(--border)}
+  .ci-img{width:96px;height:76px;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;color:var(--text-2)}
+  .ci-img svg{width:50%;opacity:.7}
+  .ci-name{font-weight:600;font-size:14.5px}
+  .ci-meta{font-size:12.5px;color:var(--text-2);margin-top:2px}
+  .ci-remove{background:none;border:none;color:var(--text-2);font-size:12.5px;font-weight:600;padding:0;margin-top:8px}
+  .ci-remove:hover{color:var(--danger)}
+  .ci-right{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+  .ci-right .qty{height:38px}
+  .ci-right .qty button{width:34px}
+  .summary{position:sticky;top:132px;padding:22px}
+  .summary h3{font-size:17px;margin-bottom:16px}
+  .sumrow{display:flex;justify-content:space-between;font-size:14px;color:var(--text-2);padding:5px 0}
+  .sumrow.total{color:var(--text-1);font-weight:800;font-size:18px;border-top:1px solid var(--border);margin-top:12px;padding-top:14px}
+  .promo-row{display:flex;gap:8px;margin:14px 0}
+  .promo-row input{flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-1)}
+  .empty-state{text-align:center;padding:70px 20px;color:var(--text-2)}
+  .empty-state .big{font-size:52px;margin-bottom:12px}
+  
+  /* ============ CHECKOUT ============ */
+  .steps{display:flex;justify-content:center;gap:0;margin:30px auto 34px;max-width:640px}
+  .step{flex:1;text-align:center;position:relative;font-size:13px;font-weight:600;color:var(--text-2)}
+  .step .dot{width:32px;height:32px;border-radius:50%;background:var(--surface);border:2px solid var(--border);color:var(--text-2);display:grid;place-items:center;margin:0 auto 8px;font-size:13px;font-weight:700;position:relative;z-index:1;transition:all .2s}
+  .step::before{content:"";position:absolute;top:16px;left:-50%;width:100%;height:2px;background:var(--border)}
+  .step:first-child::before{display:none}
+  .step.done .dot,.step.on .dot{background:var(--accent);border-color:var(--accent);color:#fff}
+  .step.done::before,.step.on::before{background:var(--accent)}
+  .step.on{color:var(--accent)}
+  .checkout-layout{display:grid;grid-template-columns:1fr 360px;gap:28px;align-items:start}
+  .co-panel{padding:26px}
+  .co-panel h2{font-size:19px;margin-bottom:20px}
+  .ship-option{display:flex;align-items:center;gap:12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:border .15s}
+  .ship-option:hover{border-color:var(--accent)}
+  .ship-option input{accent-color:var(--accent);width:17px;height:17px}
+  .ship-option b{font-size:14px;display:block}
+  .ship-option small{color:var(--text-2)}
+  .ship-option .sp{margin-left:auto;font-weight:700}
+  .mini-item{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13.5px}
+  .mini-item:last-of-type{border-bottom:none}
+  .mini-img{width:48px;height:40px;border-radius:8px;background:var(--surface-2);display:grid;place-items:center;color:var(--text-2);flex-shrink:0}
+  .mini-img svg{width:55%;opacity:.7}
+  .review-block{border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 18px;margin-bottom:14px;position:relative}
+  .review-block h4{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-2);margin-bottom:8px}
+  .review-block .edit{position:absolute;top:14px;right:16px}
+  .confirm-hero{text-align:center;padding:56px 20px 30px}
+  .check-ring{width:84px;height:84px;border-radius:50%;background:var(--success-soft);color:var(--success);display:grid;place-items:center;margin:0 auto 22px;animation:pop .5s cubic-bezier(.3,1.6,.5,1)}
+  @keyframes pop{from{transform:scale(.4);opacity:0}}
+  .confirm-hero h1{font-size:clamp(24px,3.4vw,32px);font-weight:800;letter-spacing:-.02em}
+  .order-num{display:inline-block;background:var(--surface-2);padding:7px 16px;border-radius:99px;font-weight:700;font-size:14px;margin-top:12px}
+  .confirm-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:20px;max-width:900px;margin:26px auto 0}
+  
+  /* ============ AUTH ============ */
+  .auth-wrap{max-width:440px;margin:44px auto;padding:34px 34px 30px}
+  .auth-wrap h1{font-size:24px;font-weight:800;letter-spacing:-.01em}
+  .auth-wrap>p{color:var(--text-2);font-size:14px;margin:6px 0 24px}
+  .social-btns{display:grid;gap:10px;margin-top:18px}
+  .or-sep{display:flex;align-items:center;gap:14px;color:var(--text-2);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin:20px 0}
+  .or-sep::before,.or-sep::after{content:"";flex:1;height:1px;background:var(--border)}
+  .auth-foot{text-align:center;font-size:14px;color:var(--text-2);margin-top:20px}
+  .remember-row{display:flex;justify-content:space-between;align-items:center;margin:-4px 0 18px;font-size:13.5px}
+  .remember-row label{display:flex;gap:8px;align-items:center;color:var(--text-2);cursor:pointer}
+  .remember-row input{accent-color:var(--accent)}
+  
+  /* ============ ACCOUNT ============ */
+  .account-layout{display:grid;grid-template-columns:250px 1fr;gap:28px;align-items:start;margin-top:8px}
+  .acc-side{padding:22px;position:sticky;top:132px}
+  .acc-user{display:flex;gap:12px;align-items:center;padding-bottom:18px;border-bottom:1px solid var(--border);margin-bottom:12px}
+  .avatar{width:48px;height:48px;border-radius:50%;background:var(--hero-grad);color:#fff;display:grid;place-items:center;font-weight:700;font-size:17px}
+  .acc-nav{list-style:none}
+  .acc-nav a{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:9px;font-size:14px;font-weight:500;color:var(--text-2);transition:all .15s;cursor:pointer}
+  .acc-nav a:hover,.acc-nav a.on{background:var(--accent-soft);color:var(--accent)}
+  .order-row{display:grid;grid-template-columns:1fr auto auto auto;gap:16px;align-items:center;padding:16px 20px;font-size:14px}
+  .order-row + .order-row{border-top:1px solid var(--border)}
+  .order-row b{display:block}
+  .order-row small{color:var(--text-2)}
+  
+  /* ============ FOOTER / MISC ============ */
+  footer.site{background:var(--surface);border-top:1px solid var(--border);margin-top:20px}
+  .foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1.4fr;gap:28px;padding:44px 0 34px}
+  .foot-grid h4{font-size:13px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;color:var(--text-1)}
+  .foot-grid ul{list-style:none;display:grid;gap:9px;font-size:13.5px;color:var(--text-2)}
+  .foot-grid a:hover{color:var(--accent)}
+  .foot-about p{color:var(--text-2);font-size:13.5px;margin-top:12px;max-width:34ch}
+  .nl-row{display:flex;gap:8px;margin-top:12px}
+  .nl-row input{flex:1;padding:10px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text-1);min-width:0}
+  .foot-bottom{border-top:1px solid var(--border);padding:18px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12.5px;color:var(--text-2);flex-wrap:wrap}
+  .toast{position:fixed;bottom:26px;left:50%;transform:translate(-50%,20px);background:var(--text-1);color:var(--bg);padding:12px 22px;border-radius:99px;font-size:14px;font-weight:600;box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:all .3s;z-index:99}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .drawer-backdrop{position:fixed;inset:0;background:rgba(10,14,20,.5);z-index:70;opacity:0;pointer-events:none;transition:opacity .25s}
+  .drawer-backdrop.show{opacity:1;pointer-events:auto}
+  .mobile-drawer{position:fixed;top:0;left:0;bottom:0;width:min(320px,86vw);background:var(--surface);z-index:80;transform:translateX(-105%);transition:transform .28s ease;padding:22px;overflow-y:auto}
+  .mobile-drawer.show{transform:none}
+  .mobile-drawer ul{list-style:none;margin-top:18px}
+  .mobile-drawer li a{display:block;padding:12px 10px;font-weight:600;border-radius:8px;cursor:pointer}
+  .mobile-drawer li a:hover{background:var(--surface-2);color:var(--accent)}
+  .filter-drawer{position:fixed;top:0;right:0;bottom:0;width:min(340px,90vw);background:var(--surface);z-index:80;transform:translateX(105%);transition:transform .28s ease;padding:22px;overflow-y:auto}
+  .filter-drawer.show{transform:none}
+  .drawer-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:1024px){
+    .hero{grid-template-columns:1fr;min-height:0}
+    .hero-art{display:none}
+    .hero-copy{padding:42px 34px}
+    .shop-layout{grid-template-columns:1fr}
+    .filters.card{display:none}
+    .filter-toggle{display:inline-flex}
+    .pdp{grid-template-columns:1fr;gap:28px}
+    .cart-layout,.checkout-layout{grid-template-columns:1fr}
+    .summary{position:static}
+    .account-layout{grid-template-columns:1fr}
+    .acc-side{position:static}
+    .promo-strip{grid-template-columns:1fr 1fr}
+    .foot-grid{grid-template-columns:1fr 1fr;gap:26px}
+    .confirm-grid{grid-template-columns:1fr}
+  }
+  @media (max-width:640px){
+    .container{padding:0 16px}
+    .header-main{gap:10px;flex-wrap:wrap}
+    .searchbar{order:3;max-width:none;flex-basis:100%}
+    nav.catnav{display:none}
+    .hamburger{display:grid}
+    .promo-strip{grid-template-columns:1fr}
+    .field-row{grid-template-columns:1fr}
+    .cart-item{grid-template-columns:72px 1fr;row-gap:12px}
+    .ci-img{width:72px;height:58px}
+    .ci-right{grid-column:1/-1;flex-direction:row;justify-content:space-between;align-items:center}
+    .order-row{grid-template-columns:1fr auto;row-gap:8px}
+    .trust{grid-template-columns:1fr}
+    .steps{margin:24px auto 26px}
+    .step{font-size:11px}
+    .product-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+    .pcard-name{font-size:13.5px}
+    .auth-wrap{padding:26px 20px;margin:24px auto}
+    .foot-bottom{justify-content:center;text-align:center}
+  }
+  </style>
+  </head>
+  <body>
+  
+  <!-- ======= SVG ICON DEFS ======= -->
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <symbol id="i-gpu" viewBox="0 0 64 40"><rect x="2" y="6" width="54" height="24" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="20" cy="18" r="7" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="40" cy="18" r="7" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M8 30v6M16 30v6M56 12h6M56 22h6" stroke="currentColor" stroke-width="2.5"/></symbol>
+      <symbol id="i-cpu" viewBox="0 0 48 48"><rect x="10" y="10" width="28" height="28" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="19" y="19" width="10" height="10" fill="currentColor"/><path d="M17 10V3M24 10V3M31 10V3M17 45v-7M24 45v-7M31 45v-7M10 17H3M10 24H3M10 31H3M45 17h-7M45 24h-7M45 31h-7" stroke="currentColor" stroke-width="2.5"/></symbol>
+      <symbol id="i-mobo" viewBox="0 0 48 48"><rect x="4" y="4" width="40" height="40" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="11" y="11" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M30 11h8M30 17h8M30 23h8M11 31h26M11 37h18" stroke="currentColor" stroke-width="2.5"/></symbol>
+      <symbol id="i-ram" viewBox="0 0 56 32"><rect x="3" y="6" width="50" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M10 22v6M20 22v6M30 22v6M40 22v6M48 22v6M11 10v8M20 10v8M29 10v8M38 10v8M46 10v8" stroke="currentColor" stroke-width="2"/></symbol>
+      <symbol id="i-psu" viewBox="0 0 48 40"><rect x="3" y="5" width="42" height="30" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="18" cy="20" r="8" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M18 14v6l4 3M32 12h8M32 19h8M32 26h8" stroke="currentColor" stroke-width="2.5"/></symbol>
+      <symbol id="i-ssd" viewBox="0 0 48 40"><rect x="4" y="8" width="40" height="24" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="10" y="14" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M32 14v12M38 14v12" stroke="currentColor" stroke-width="2.5"/></symbol>
+      <symbol id="i-fan" viewBox="0 0 48 48"><rect x="4" y="4" width="40" height="40" rx="6" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="24" cy="24" r="3.5" fill="currentColor"/><path d="M24 20c-1-6 2-11 8-11-1 6-4 9-8 11ZM28 24c6-1 11 2 11 8-6-1-9-4-11-8ZM24 28c1 6-2 11-8 11 1-6 4-9 8-11ZM20 24c-6 1-11-2-11-8 6 1 9 4 11 8Z" fill="currentColor"/></symbol>
+      <symbol id="i-case" viewBox="0 0 36 48"><rect x="5" y="3" width="26" height="42" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="18" cy="16" r="6" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="18" cy="32" r="6" fill="none" stroke="currentColor" stroke-width="2.5"/></symbol>
+      <symbol id="i-periph" viewBox="0 0 48 40"><rect x="4" y="10" width="40" height="20" rx="5" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M12 17h4M20 17h4M28 17h4M12 24h24" stroke="currentColor" stroke-width="2.5"/></symbol>
+    </defs>
+  </svg>
+  
+  <div class="topbar">🚚 <b>Free shipping</b> over $99 &nbsp;•&nbsp; 30-day easy returns &nbsp;•&nbsp; Expert build support 7 days a week</div>
+  
+  <!-- ======= HEADER ======= -->
+  <header class="site">
+    <div class="container header-main">
+      <button class="icon-btn hamburger" aria-label="Menu" onclick="toggleDrawer('mobileDrawer')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <a class="logo" onclick="go('home')" href="#" aria-label="Vertex Computers home">
+        <span class="logo-mark">V</span>
+        <span>VERTEX<small>Computers</small></span>
+      </a>
+      <div class="searchbar" role="search">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" placeholder="Search GPUs, CPUs, RAM…" aria-label="Search products" onkeydown="if(event.key==='Enter')go('category')">
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" aria-label="Toggle theme" onclick="toggleTheme()" id="themeBtn">
+          <svg id="sunIc" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+          <svg id="moonIc" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg>
+        </button>
+        <button class="icon-btn" aria-label="Account" onclick="go('login')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-5.5 8-5.5S18.5 17 20 21"/></svg>
+        </button>
+        <button class="icon-btn" aria-label="Cart" onclick="go('cart')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.6"/><circle cx="17" cy="20" r="1.6"/><path d="M2 3h3l2.6 12.5a1.5 1.5 0 0 0 1.5 1.2h8.4a1.5 1.5 0 0 0 1.5-1.2L21 7H6"/></svg>
+          <span class="cart-count" id="cartCount">3</span>
+        </button>
+      </div>
+    </div>
+    <nav class="catnav container" aria-label="Categories">
+      <ul id="catNav"></ul>
+    </nav>
+  </header>
+  
+  <!-- ======= MOBILE DRAWER ======= -->
+  <div class="drawer-backdrop" id="backdrop" onclick="closeDrawers()"></div>
+  <aside class="mobile-drawer" id="mobileDrawer" aria-label="Mobile navigation">
+    <div class="drawer-head">
+      <span class="logo"><span class="logo-mark">V</span><span>VERTEX</span></span>
+      <button class="icon-btn" onclick="closeDrawers()" aria-label="Close">✕</button>
+    </div>
+    <ul id="mobileNav"></ul>
+  </aside>
+  
+  <!-- ======= FILTER DRAWER (mobile) ======= -->
+  <aside class="filter-drawer" id="filterDrawer" aria-label="Filters">
+    <div class="drawer-head"><h3>Filters</h3><button class="icon-btn" onclick="closeDrawers()" aria-label="Close">✕</button></div>
+    <div id="filterDrawerBody"></div>
+    <button class="btn btn-primary btn-block" style="margin-top:16px" onclick="closeDrawers()">Apply filters</button>
+  </aside>
+  
+  <main>
+  <!-- ================= HOME ================= -->
+  <section class="view active" id="view-home">
+    <div class="container">
+      <div class="hero">
+        <div class="hero-copy">
+          <span class="hero-eyebrow">New — Nova RTX 9090 Series</span>
+          <h1>Build Your Dream Rig,<br>Part by Part.</h1>
+          <p>Premium PC components with transparent specs, honest stock levels, and expert support — from first build to full custom loop.</p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-lg" style="background:#fff;color:#12233f" onclick="go('category')">Shop the Sale →</button>
+            <button class="btn btn-lg" style="background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3)" onclick="go('product')">View Flagship GPU</button>
+          </div>
+        </div>
+        <div class="hero-art">
+          <div class="gpu-visual"><svg><use href="#i-gpu"/></svg></div>
+          <div class="hero-chips"><span>⚡ 16GB GDDR7</span><span>❄ Triple-Fan OC</span><span>🎮 4K Ready</span></div>
+        </div>
+      </div>
+  
+      <div class="promo-strip">
+        <div class="promo"><span class="p-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12l4 4L19 6"/></svg></span><div><b>Compatibility Checked</b><small>We flag socket &amp; wattage mismatches</small></div></div>
+        <div class="promo"><span class="p-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7l-9-5Z"/></svg></span><div><b>2-Year Warranty</b><small>On every component we sell</small></div></div>
+        <div class="promo"><span class="p-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.3 8.7 8.7 0 0 1-3.8-.9L3 21l2.1-5.6a8 8 0 0 1-1-3.9A8.4 8.4 0 0 1 12.6 3.2 8.4 8.4 0 0 1 21 11.5Z"/></svg></span><div><b>Live Expert Chat</b><small>Real builders, 7 days a week</small></div></div>
+      </div>
+  
+      <div class="home-section">
+        <div class="section-head"><h2 class="section-title">Shop by Category</h2><a class="link" onclick="go('category')" href="#">Browse all →</a></div>
+        <div class="cat-grid" id="catGrid"></div>
+      </div>
+  
+      <div class="home-section">
+        <div class="section-head"><h2 class="section-title">Featured This Week</h2><a class="link" onclick="go('category')" href="#">View all →</a></div>
+        <div class="product-grid" id="featuredGrid"></div>
+      </div>
+  
+      <div class="home-section">
+        <div class="section-head"><h2 class="section-title">Hot Deals 🔥</h2><a class="link" onclick="go('category')" href="#">All deals →</a></div>
+        <div class="product-grid" id="dealsGrid"></div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- ================= CATEGORY / SHOP ================= -->
+  <section class="view" id="view-category">
+    <div class="container">
+      <div class="breadcrumbs"><a href="#" onclick="go('home')">Home</a> / <a href="#">Components</a> / <b style="color:var(--text-1)">Graphics Cards</b></div>
+      <div class="shop-layout">
+        <aside class="filters card" id="filterSidebar"></aside>
+        <div>
+          <div class="shop-toolbar">
+            <span class="muted" style="font-size:13.5px"><b style="color:var(--text-1)" id="resultCount">12</b> of 148 results</span>
+            <div style="display:flex;gap:10px">
+              <button class="btn btn-secondary btn-sm filter-toggle" onclick="toggleDrawer('filterDrawer')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5h18M6 12h12M10 19h4"/></svg> Filters
+              </button>
+              <select aria-label="Sort by" onchange="sortProducts(this.value)">
+                <option value="pop">Sort: Popularity</option>
+                <option value="lo">Price: Low → High</option>
+                <option value="hi">Price: High → Low</option>
+                <option value="new">Newest</option>
+              </select>
+            </div>
+          </div>
+          <div class="product-grid" id="shopGrid"></div>
+          <div class="pagination">
+            <button aria-label="Previous">‹</button><button class="on">1</button><button>2</button><button>3</button><button>…</button><button>13</button><button aria-label="Next">›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- ================= PRODUCT DETAIL ================= -->
+  <section class="view" id="view-product">
+    <div class="container">
+      <div class="breadcrumbs"><a href="#" onclick="go('home')">Home</a> / <a href="#" onclick="go('category')">Graphics Cards</a> / <b style="color:var(--text-1)">Nova RTX 9090 16GB</b></div>
+      <div class="pdp">
+        <div class="pdp-gallery">
+          <div class="main-img"><svg><use href="#i-gpu"/></svg></div>
+          <div class="thumbs">
+            <button class="on" aria-label="Image 1"><svg><use href="#i-gpu"/></svg></button>
+            <button aria-label="Image 2"><svg><use href="#i-fan"/></svg></button>
+            <button aria-label="Image 3"><svg><use href="#i-mobo"/></svg></button>
+            <button aria-label="Image 4"><svg><use href="#i-case"/></svg></button>
+          </div>
+        </div>
+        <div class="pdp-info">
+          <span class="pcard-brand">Nova · SKU NV-9090-OC16</span>
+          <h1>Nova RTX 9090 16GB Graphics Card — Triple-Fan OC Edition</h1>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <span class="stars">★★★★★ <small>4.8 · 231 reviews</small></span>
+            <span class="badge badge-success">In Stock — ships today</span>
+          </div>
+          <div class="pdp-price"><s>$999.00</s>$899.00</div>
+          <span class="save-note">You save $100 (10%) · Ends Sunday</span>
+          <p class="muted" style="margin-top:14px">Blistering 4K performance meets whisper-quiet triple-fan cooling. 16GB of GDDR7, PCIe 5.0 ×16, and a factory overclock out of the box.</p>
+          <div class="pdp-buy">
+            <div class="qty" role="group" aria-label="Quantity">
+              <button onclick="pdpQty(-1)" aria-label="Decrease">−</button><span id="pdpQty">1</span><button onclick="pdpQty(1)" aria-label="Increase">+</button>
+            </div>
+            <button class="btn btn-primary btn-lg" style="flex:1;min-width:180px" onclick="addToCart(0,+document.getElementById('pdpQty').textContent)">Add to Cart</button>
+            <button class="btn btn-secondary btn-lg" aria-label="Add to wishlist" onclick="toast('Saved to wishlist ♡')">♡</button>
+          </div>
+          <div class="trust">
+            <div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7h13v10H3zM16 10h4l1 3v4h-5M6 20a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 6 20ZM18 20a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 18 20Z"/></svg> Free shipping over $99 — arrives Aug 27–29</div>
+            <div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7l-9-5Z"/></svg> 2-year warranty &amp; 30-day returns</div>
+            <div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12l4 4L19 6"/></svg> Compatibility-checked with your cart</div>
+            <div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg> Secure checkout · all major cards</div>
+          </div>
+        </div>
+      </div>
+  
+      <div class="spec-section">
+        <div class="tabs">
+          <button class="on">Full Specifications</button><button onclick="toast('Reviews — coming in the live build')">Reviews (231)</button><button onclick="toast('Q&A — coming in the live build')">Q&amp;A</button>
+        </div>
+        <div class="card" style="border-top-left-radius:0;overflow:hidden">
+          <table class="spec-table">
+            <tr><td>GPU Chipset</td><td>Nova RTX 9090</td></tr>
+            <tr><td>VRAM</td><td>16GB GDDR7</td></tr>
+            <tr><td>Boost Clock</td><td>2,610 MHz (OC mode)</td></tr>
+            <tr><td>Memory Bus</td><td>256-bit</td></tr>
+            <tr><td>Interface</td><td>PCIe 5.0 ×16</td></tr>
+            <tr><td>Power Draw (TDP)</td><td>320W</td></tr>
+            <tr><td>Recommended PSU</td><td>750W</td></tr>
+            <tr><td>Outputs</td><td>3× DisplayPort 2.1 · 1× HDMI 2.1</td></tr>
+            <tr><td>Dimensions</td><td>306 × 137 × 61 mm (2.8-slot)</td></tr>
+            <tr><td>Warranty</td><td>2 years, extendable</td></tr>
+          </table>
+        </div>
+      </div>
+  
+      <div class="spec-section">
+        <div class="section-head"><h2 class="section-title">Frequently Bought Together</h2></div>
+        <div class="product-grid" id="relatedGrid"></div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- ================= CART ================= -->
+  <section class="view" id="view-cart">
+    <div class="container">
+      <div class="breadcrumbs"><a href="#" onclick="go('home')">Home</a> / <b style="color:var(--text-1)">Cart</b></div>
+      <h1 class="section-title" style="font-size:26px;margin-bottom:20px">Your Cart <span class="muted" style="font-weight:500;font-size:16px" id="cartTitleCount">(3 items)</span></h1>
+      <div class="cart-layout" id="cartLayout">
+        <div class="card" id="cartItems"></div>
+        <aside class="summary card">
+          <h3>Order Summary</h3>
+          <div class="sumrow"><span>Subtotal</span><span id="sumSub">$0.00</span></div>
+          <div class="sumrow"><span>Shipping</span><span style="color:var(--success);font-weight:600">FREE</span></div>
+          <div class="sumrow"><span>Est. tax</span><span id="sumTax">$0.00</span></div>
+          <div class="promo-row"><input placeholder="Promo code" aria-label="Promo code"><button class="btn btn-secondary btn-sm" onclick="toast('Code applied — nice try 😄')">Apply</button></div>
+          <div class="sumrow total"><span>Total</span><span id="sumTotal">$0.00</span></div>
+          <button class="btn btn-primary btn-block btn-lg" style="margin-top:16px" onclick="go('checkout-shipping')">Proceed to Checkout →</button>
+          <p class="muted" style="font-size:12px;text-align:center;margin-top:10px">🔒 Secure 256-bit encrypted checkout</p>
+        </aside>
+      </div>
+      <div style="margin-top:18px"><a class="link" href="#" onclick="go('category')">← Continue shopping</a></div>
+    </div>
+  </section>
+  
+  <!-- ================= CHECKOUT: SHIPPING ================= -->
+  <section class="view" id="view-checkout-shipping">
+    <div class="container">
+      <div class="steps">
+        <div class="step on"><span class="dot">1</span>Shipping</div>
+        <div class="step"><span class="dot">2</span>Review</div>
+        <div class="step"><span class="dot">3</span>Confirmation</div>
+      </div>
+      <div class="checkout-layout">
+        <div class="card co-panel">
+          <h2>Shipping Address</h2>
+          <div class="field-row">
+            <div class="field"><label for="fn">First name</label><input id="fn" value="John" autocomplete="given-name"></div>
+            <div class="field"><label for="ln">Last name</label><input id="ln" value="Doe" autocomplete="family-name"></div>
+          </div>
+          <div class="field"><label for="em">Email</label><input id="em" type="email" value="name@example.com" autocomplete="email"></div>
+          <div class="field"><label for="ph">Phone</label><input id="ph" type="tel" placeholder="+1 (555) 000-0000" autocomplete="tel"></div>
+          <div class="field"><label for="ad">Street address</label><input id="ad" value="123 Example St" autocomplete="street-address"></div>
+          <div class="field"><label for="ad2">Apt / suite <span class="muted" style="font-weight:400">(optional)</span></label><input id="ad2" placeholder="Apt 4B"></div>
+          <div class="field-row">
+            <div class="field"><label for="ct">City</label><input id="ct" value="Springfield"></div>
+            <div class="field"><label for="st">State / Province</label><input id="st" value="IL"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="zip">ZIP / Postal code</label><input id="zip" value="62704"></div>
+            <div class="field"><label for="cy">Country</label><select id="cy"><option>United States</option><option>Canada</option><option>United Kingdom</option><option>Sri Lanka</option><option>Australia</option></select></div>
+          </div>
+          <hr class="divider">
+          <h2 style="font-size:16px">Shipping Method</h2>
+          <label class="ship-option"><input type="radio" name="ship" checked><div><b>Standard Shipping</b><small>5–7 business days</small></div><span class="sp" style="color:var(--success)">FREE</span></label>
+          <label class="ship-option"><input type="radio" name="ship"><div><b>Express Shipping</b><small>2 business days</small></div><span class="sp">$24.90</span></label>
+          <button class="btn btn-primary btn-lg btn-block" style="margin-top:18px" onclick="go('checkout-review')">Continue to Review →</button>
+        </div>
+        <aside class="summary card">
+          <h3>Order Summary</h3>
+          <div id="miniCart1"></div>
+          <div class="sumrow" style="margin-top:12px"><span>Subtotal</span><span class="co-sub">$0.00</span></div>
+          <div class="sumrow"><span>Shipping</span><span style="color:var(--success);font-weight:600">FREE</span></div>
+          <div class="sumrow"><span>Est. tax</span><span class="co-tax">$0.00</span></div>
+          <div class="sumrow total"><span>Total</span><span class="co-total">$0.00</span></div>
+        </aside>
+      </div>
+    </div>
+  </section>
+  
+  <!-- ================= CHECKOUT: REVIEW ================= -->
+  <section class="view" id="view-checkout-review">
+    <div class="container">
+      <div class="steps">
+        <div class="step done"><span class="dot">✓</span>Shipping</div>
+        <div class="step on"><span class="dot">2</span>Review</div>
+        <div class="step"><span class="dot">3</span>Confirmation</div>
+      </div>
+      <div class="checkout-layout">
+        <div class="card co-panel">
+          <h2>Review Your Order</h2>
+          <div class="review-block">
+            <h4>Shipping to</h4><a class="link edit" href="#" onclick="go('checkout-shipping')">Edit</a>
+            <b>John Doe</b><br><span class="muted">123 Example St, Springfield, IL 62704, United States<br>name@example.com · +1 (555) 000-0000</span>
+            <div style="margin-top:8px"><span class="badge badge-success">Standard Shipping — FREE · 5–7 days</span></div>
+          </div>
+          <div class="review-block">
+            <h4>Payment</h4><a class="link edit" href="#">Edit</a>
+            <div class="field" style="margin-top:6px"><label for="cc">Card number</label><input id="cc" placeholder="4242 4242 4242 4242" inputmode="numeric"></div>
+            <div class="field-row">
+              <div class="field"><label for="exp">Expiry</label><input id="exp" placeholder="MM / YY"></div>
+              <div class="field"><label for="cvc">CVC</label><input id="cvc" placeholder="•••" inputmode="numeric"></div>
+            </div>
+            <div class="field" style="margin-bottom:4px"><label for="nc">Name on card</label><input id="nc" value="John Doe"></div>
+            <label class="fopt" style="margin-top:8px"><input type="checkbox" checked> Billing address same as shipping</label>
+          </div>
+          <div class="review-block">
+            <h4>Items (<span class="cart-n">3</span>)</h4><a class="link edit" href="#" onclick="go('cart')">Edit</a>
+            <div id="miniCart2"></div>
+          </div>
+          <button class="btn btn-primary btn-lg btn-block" onclick="go('checkout-confirm')">Place Order — <span class="co-total">$0.00</span></button>
+          <p class="muted" style="font-size:12px;text-align:center;margin-top:10px">By placing your order you agree to our Terms &amp; Conditions.</p>
+        </div>
+        <aside class="summary card">
+          <h3>Order Summary</h3>
+          <div class="sumrow"><span>Subtotal</span><span class="co-sub">$0.00</span></div>
+          <div class="sumrow"><span>Shipping</span><span style="color:var(--success);font-weight:600">FREE</span></div>
+          <div class="sumrow"><span>Est. tax</span><span class="co-tax">$0.00</span></div>
+          <div class="sumrow total"><span>Total</span><span class="co-total">$0.00</span></div>
+          <p class="muted" style="font-size:12px;margin-top:14px">🔒 Your payment details are encrypted and never stored on our servers.</p>
+        </aside>
+      </div>
+    </div>
+  </section>
+  
+  <!-- ================= CHECKOUT: CONFIRMATION ================= -->
+  <section class="view" id="view-checkout-confirm">
+    <div class="container">
+      <div class="steps">
+        <div class="step done"><span class="dot">✓</span>Shipping</div>
+        <div class="step done"><span class="dot">✓</span>Review</div>
+        <div class="step on"><span class="dot">✓</span>Confirmation</div>
+      </div>
+      <div class="confirm-hero">
+        <div class="check-ring"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></div>
+        <h1>Order Confirmed — Thank You! 🎉</h1>
+        <p class="muted" style="margin-top:8px">A confirmation email has been sent to <b style="color:var(--text-1)">name@example.com</b></p>
+        <span class="order-num">Order #VX-2026081617</span>
+      </div>
+      <div class="confirm-grid">
+        <div class="card co-panel">
+          <h2 style="font-size:16px">Order Details</h2>
+          <div id="miniCart3"></div>
+          <div class="sumrow total"><span>Total Paid</span><span class="co-total">$0.00</span></div>
+        </div>
+        <div>
+          <div class="card co-panel" style="margin-bottom:14px">
+            <h2 style="font-size:16px">Delivery Address</h2>
+            <b>John Doe</b><br><span class="muted" style="font-size:13.5px">123 Example St, Springfield, IL 62704<br>United States</span>
+            <hr class="divider">
+            <h2 style="font-size:16px">Estimated Delivery</h2>
+            <b style="color:var(--accent)">Aug 27 – Aug 29, 2026</b><br><span class="muted" style="font-size:13.5px">Standard Shipping · FREE</span>
+          </div>
+          <button class="btn btn-primary btn-block" onclick="go('account')">Track Order</button>
+          <button class="btn btn-secondary btn-block" style="margin-top:10px" onclick="go('account')">View Order Details</button>
+          <button class="btn btn-ghost btn-block" style="margin-top:6px" onclick="go('home')">Continue Shopping</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- ================= LOGIN ================= -->
+  <section class="view" id="view-login">
+    <div class="container">
+      <div class="card auth-wrap">
+        <h1>Welcome back 👋</h1>
+        <p>Log in to track orders, save builds, and check out faster.</p>
+        <div class="field"><label for="lemail">Email</label><input id="lemail" type="email" placeholder="name@example.com" autocomplete="email"></div>
+        <div class="field"><label for="lpass">Password</label><input id="lpass" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+        <div class="remember-row">
+          <label><input type="checkbox" checked> Remember me</label>
+          <a class="link" href="#" onclick="toast('Password reset link sent (demo)')">Forgot password?</a>
+        </div>
+        <button class="btn btn-primary btn-block btn-lg" onclick="go('account')">Log In</button>
+        <div class="or-sep">or continue with</div>
+        <div class="social-btns">
+          <button class="btn btn-secondary btn-block" onclick="toast('Google sign-in (demo)')">
+            <svg width="17" height="17" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.6 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h5.9a5 5 0 0 1-2.2 3.3v2.8h3.6c2.1-2 3.3-4.9 3.3-8.2Z"/><path fill="#34A853" d="M12 23c3 0 5.5-1 7.3-2.6l-3.6-2.8c-1 .7-2.2 1.1-3.7 1.1-2.9 0-5.3-1.9-6.2-4.6H2.1v2.9A11 11 0 0 0 12 23Z"/><path fill="#FBBC05" d="M5.8 14.1a6.6 6.6 0 0 1 0-4.2V7H2.1a11 11 0 0 0 0 9.9l3.7-2.8Z"/><path fill="#EA4335" d="M12 6.4c1.6 0 3.1.6 4.2 1.7l3.2-3.2A11 11 0 0 0 2.1 7l3.7 2.9c.9-2.7 3.3-4.6 6.2-4.6Z"/></svg>
+            Continue with Google
+          </button>
+          <button class="btn btn-secondary btn-block" onclick="toast('Facebook sign-in (demo)')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12a12 12 0 1 0-13.9 11.9v-8.4h-3V12h3V9.4c0-3 1.8-4.7 4.6-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9V12h3.3l-.5 3.5h-2.8v8.4A12 12 0 0 0 24 12Z"/></svg>
+            Continue with Facebook
+          </button>
+        </div>
+        <p class="auth-foot">Don't have an account? <a class="link" href="#" onclick="go('register')">Sign up</a></p>
+      </div>
+    </div>
+  </section>
+  
+  <!-- ================= REGISTER ================= -->
+  <section class="view" id="view-register">
+    <div class="container">
+      <div class="card auth-wrap">
+        <h1>Create Account</h1>
+        <p>Join Vertex Computers for faster checkout and order tracking.</p>
+        <div class="field-row">
+          <div class="field"><label for="rfn">First name</label><input id="rfn" placeholder="John"></div>
+          <div class="field"><label for="rln">Last name</label><input id="rln" placeholder="Doe"></div>
+        </div>
+        <div class="field"><label for="remail">Email</label><input id="remail" type="email" placeholder="name@example.com"></div>
+        <div class="field"><label for="rpass">Password</label><input id="rpass" type="password" placeholder="Min. 8 characters"></div>
+        <div class="field"><label for="rpass2">Confirm password</label><input id="rpass2" type="password" placeholder="Repeat password"></div>
+        <label class="fopt" style="margin-bottom:16px"><input type="checkbox"> I agree to the <a class="link" href="#">Terms</a> &amp; <a class="link" href="#">Privacy Policy</a></label>
+        <button class="btn btn-primary btn-block btn-lg" onclick="go('account')">Create Account</button>
+        <div class="or-sep">or sign up with</div>
+        <div class="social-btns">
+          <button class="btn btn-secondary btn-block" onclick="toast('Google sign-up (demo)')">
+            <svg width="17" height="17" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.6 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h5.9a5 5 0 0 1-2.2 3.3v2.8h3.6c2.1-2 3.3-4.9 3.3-8.2Z"/><path fill="#34A853" d="M12 23c3 0 5.5-1 7.3-2.6l-3.6-2.8c-1 .7-2.2 1.1-3.7 1.1-2.9 0-5.3-1.9-6.2-4.6H2.1v2.9A11 11 0 0 0 12 23Z"/><path fill="#FBBC05" d="M5.8 14.1a6.6 6.6 0 0 1 0-4.2V7H2.1a11 11 0 0 0 0 9.9l3.7-2.8Z"/><path fill="#EA4335" d="M12 6.4c1.6 0 3.1.6 4.2 1.7l3.2-3.2A11 11 0 0 0 2.1 7l3.7 2.9c.9-2.7 3.3-4.6 6.2-4.6Z"/></svg>
+            Sign up with Google
+          </button>
+          <button class="btn btn-secondary btn-block" onclick="toast('Facebook sign-up (demo)')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12a12 12 0 1 0-13.9 11.9v-8.4h-3V12h3V9.4c0-3 1.8-4.7 4.6-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9V12h3.3l-.5 3.5h-2.8v8.4A12 12 0 0 0 24 12Z"/></svg>
+            Sign up with Facebook
+          </button>
+        </div>
+        <p class="auth-foot">Already have an account? <a class="link" href="#" onclick="go('login')">Log in</a></p>
+      </div>
+    </div>
+  </section>
+  
+  <!-- ================= ACCOUNT ================= -->
+  <section class="view" id="view-account">
+    <div class="container">
+      <div class="breadcrumbs"><a href="#" onclick="go('home')">Home</a> / <b style="color:var(--text-1)">My Account</b></div>
+      <div class="account-layout">
+        <aside class="card acc-side">
+          <div class="acc-user">
+            <div class="avatar">JD</div>
+            <div><b style="font-size:15px">John Doe</b><br><small class="muted">name@example.com</small></div>
+          </div>
+          <ul class="acc-nav">
+            <li><a class="on">👤 Profile</a></li>
+            <li><a onclick="toast('Order history is below ↓')">📦 Order History</a></li>
+            <li><a onclick="toast('Saved addresses (demo)')">🏠 Addresses</a></li>
+            <li><a onclick="toast('Wishlist (demo)')">♡ Wishlist</a></li>
+            <li><a onclick="toast('Payment methods (demo)')">💳 Payment Methods</a></li>
+            <li><a onclick="go('login')" style="color:var(--danger)">↩ Log Out</a></li>
+          </ul>
+        </aside>
+        <div>
+          <div class="card co-panel" style="margin-bottom:22px">
+            <h2 style="font-size:18px;margin-bottom:18px">Profile Details</h2>
+            <div class="field-row">
+              <div class="field"><label for="pfn">First name</label><input id="pfn" value="John"></div>
+              <div class="field"><label for="pln">Last name</label><input id="pln" value="Doe"></div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label for="pem">Email</label><input id="pem" value="name@example.com"></div>
+              <div class="field"><label for="pph">Phone</label><input id="pph" value="+1 (555) 000-0000"></div>
+            </div>
+            <button class="btn btn-primary" onclick="toast('Changes saved ✓')">Save Changes</button>
+          </div>
+          <div class="card" style="overflow:hidden">
+            <h2 style="font-size:18px;padding:20px 20px 6px">Order History</h2>
+            <div class="order-row">
+              <div><b>#VX-2026081617</b><small>Aug 16, 2026 · 3 items</small></div>
+              <span class="badge badge-warning">In Transit</span>
+              <b>$1,485.76</b>
+              <a class="link" href="#" onclick="go('checkout-confirm')">View</a>
+            </div>
+            <div class="order-row">
+              <div><b>#VX-2026070204</b><small>Jul 2, 2026 · 1 item</small></div>
+              <span class="badge badge-success">Delivered</span>
+              <b>$449.00</b>
+              <a class="link" href="#" onclick="toast('Order details (demo)')">View</a>
+            </div>
+            <div class="order-row">
+              <div><b>#VX-2026051411</b><small>May 14, 2026 · 2 items</small></div>
+              <span class="badge badge-success">Delivered</span>
+              <b>$328.90</b>
+              <a class="link" href="#" onclick="toast('Order details (demo)')">View</a>
+            </div>
+            <div class="order-row">
+              <div><b>#VX-2026032808</b><small>Mar 28, 2026 · 1 item</small></div>
+              <span class="badge badge-danger">Cancelled</span>
+              <b>$179.00</b>
+              <a class="link" href="#" onclick="toast('Order details (demo)')">View</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  </main>
+  
+  <!-- ======= FOOTER ======= -->
+  <footer class="site">
+    <div class="container">
+      <div class="foot-grid">
+        <div class="foot-about">
+          <span class="logo"><span class="logo-mark">V</span><span>VERTEX<small>Computers</small></span></span>
+          <p>Premium PC components for builders, gamers, and businesses. Build with confidence.</p>
+        </div>
+        <div><h4>Shop</h4><ul>
+          <li><a href="#" onclick="go('category')">Graphics Cards</a></li>
+          <li><a href="#" onclick="go('category')">Processors</a></li>
+          <li><a href="#" onclick="go('category')">Motherboards</a></li>
+          <li><a href="#" onclick="go('category')">Deals</a></li>
+        </ul></div>
+        <div><h4>Support</h4><ul>
+          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">Shipping &amp; Returns</a></li>
+          <li><a href="#">Warranty</a></li>
+          <li><a href="#">FAQ</a></li>
+        </ul></div>
+        <div><h4>Company</h4><ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Press</a></li>
+        </ul></div>
+        <div><h4>Newsletter</h4>
+          <p class="muted" style="font-size:13.5px">Deals, restocks &amp; build guides. No spam.</p>
+          <div class="nl-row"><input type="email" placeholder="Email address" aria-label="Email for newsletter"><button class="btn btn-primary btn-sm" onclick="toast('Subscribed! 📬')">Subscribe</button></div>
+        </div>
+      </div>
+      <div class="foot-bottom">
+        <span>© 2026 Vertex Computers. All rights reserved.</span>
+        <span><a href="#">Terms</a> · <a href="#">Privacy</a> · <a href="#">Payment Icons: 💳 VISA · MC · AMEX · PayPal</a></span>
+      </div>
+    </div>
+  </footer>
+  
+  <div class="toast" id="toast" role="status"></div>
+  
+  <script>
+  /* ============ DATA ============ */
+  const CATS = [
+    {n:'GPUs', ic:'i-gpu'},{n:'CPUs', ic:'i-cpu'},{n:'Motherboards', ic:'i-mobo'},
+    {n:'RAM', ic:'i-ram'},{n:'PSUs', ic:'i-psu'},{n:'Storage', ic:'i-ssd'},
+    {n:'Cooling', ic:'i-fan'},{n:'Cases', ic:'i-case'},{n:'Peripherals', ic:'i-periph'}
+  ];
+  const P = [
+    {id:0, brand:'Nova',   name:'Nova RTX 9090 16GB Graphics Card', ic:'i-gpu',  price:899,   old:999,  rating:'4.8', rev:231, stock:'in',  specs:['16GB GDDR7','PCIe 5.0','320W'], tag:'Sale'},
+    {id:1, brand:'Apex',   name:'Apex R9 9800X 12-Core Processor',  ic:'i-cpu',  price:449,   old:null, rating:'4.9', rev:412, stock:'in',  specs:['12C / 24T','5.4 GHz','AM6']},
+    {id:2, brand:'Nova',   name:'Nova RTX 9070 12GB Graphics Card', ic:'i-gpu',  price:649,   old:699,  rating:'4.7', rev:188, stock:'in',  specs:['12GB GDDR7','PCIe 5.0','250W'], tag:'Sale'},
+    {id:3, brand:'Volt',   name:'Volt 64GB DDR5 6000MHz Kit (2×32)',ic:'i-ram',  price:219,   old:null, rating:'4.8', rev:96,  stock:'in',  specs:['64GB','6000 MT/s','CL30']},
+    {id:4, brand:'Surge',  name:'Surge 1000W Platinum Modular PSU', ic:'i-psu',  price:179,   old:209,  rating:'4.6', rev:143, stock:'low', specs:['1000W','80+ Platinum','ATX 3.1'], tag:'Deal'},
+    {id:5, brand:'Apex',   name:'Apex X9 6900 XT Motherboard',      ic:'i-mobo', price:379,   old:null, rating:'4.5', rev:77,  stock:'in',  specs:['AM6','DDR5','WiFi 7']},
+    {id:6, brand:'Frost',  name:'Frost 360 AIO Liquid Cooler RGB',  ic:'i-fan',  price:149,   old:169,  rating:'4.7', rev:205, stock:'in',  specs:['360mm','ARGB','LGA/AM6'], tag:'Deal'},
+    {id:7, brand:'Bolt',   name:'Bolt 4TB NVMe Gen5 SSD',           ic:'i-ssd',  price:329,   old:null, rating:'4.9', rev:164, stock:'in',  specs:['4TB','12,400 MB/s','Gen5']},
+    {id:8, brand:'Titan',  name:'Titan RTX Mid-Tower Case — Glass', ic:'i-case', price:129,   old:null, rating:'4.6', rev:88,  stock:'in',  specs:['ATX','Tempered Glass','USB-C']},
+    {id:9, brand:'Nova',   name:'Nova RTX 9060 8GB Graphics Card',  ic:'i-gpu',  price:379,   old:null, rating:'4.4', rev:59,  stock:'low', specs:['8GB GDDR6','PCIe 4.0','170W']},
+    {id:10,brand:'Volt',   name:'Volt 32GB DDR5 5600MHz Kit (2×16)',ic:'i-ram',  price:99,    old:119,  rating:'4.7', rev:301, stock:'in',  specs:['32GB','5600 MT/s','CL36'], tag:'Sale'},
+    {id:11,brand:'Apex',   name:'Apex R5 9600 6-Core Processor',    ic:'i-cpu',  price:229,   old:null, rating:'4.6', rev:154, stock:'out', specs:['6C / 12T','5.0 GHz','AM6']},
+  ];
+  const fmt = n => '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const STOCK = {in:['badge-success','In Stock'], low:['badge-warning','Low Stock'], out:['badge-danger','Out of Stock']};
+  
+  /* ============ CART STATE ============ */
+  let cart = [{id:0,q:1},{id:3,q:1},{id:4,q:1}];
+  
+  /* ============ RENDER HELPERS ============ */
+  function pcardHTML(p){
+    const s = STOCK[p.stock];
+    return `<article class="pcard" onclick="go('product')" tabindex="0" onkeydown="if(event.key==='Enter')go('product')">
+      <div class="pcard-img"><svg><use href="#${p.ic}"/></svg>
+        ${p.tag?`<span class="badge badge-danger pcard-tag" style="background:var(--danger);color:#fff">${p.tag}</span>`:''}
+      </div>
+      <div class="pcard-body">
+        <span class="pcard-brand">${p.brand}</span>
+        <span class="pcard-name">${p.name}</span>
+        <span class="stars">★★★★★ <small>${p.rating} (${p.rev})</small></span>
+        <div class="pcard-specs">${p.specs.map(x=>`<span class="badge-spec">${x}</span>`).join('')}</div>
+        <span class="badge ${s[0]}" style="align-self:flex-start">${s[1]}</span>
+        <div class="pcard-foot">
+          <span class="price">${p.old?`<s>${fmt(p.old)}</s>`:''}${fmt(p.price)}</span>
+          <button class="add-btn" aria-label="Add ${p.name} to cart" ${p.stock==='out'?'disabled style="opacity:.35;cursor:not-allowed"':''}
+            onclick="event.stopPropagation();addToCart(${p.id},1)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+        </div>
+      </div>
+    </article>`;
+  }
+  function renderGrid(el, items){ document.getElementById(el).innerHTML = items.map(pcardHTML).join(''); }
+  
+  /* home */
+  document.getElementById('catGrid').innerHTML = CATS.map(c=>
+    `<div class="cat-tile" onclick="go('category')" tabindex="0" onkeydown="if(event.key==='Enter')go('category')">
+       <span class="cat-ic"><svg width="30" height="30"><use href="#${c.ic}"/></svg></span>${c.n}</div>`).join('');
+  document.getElementById('catNav').innerHTML = CATS.map((c,i)=>
+    `<li><a href="#" class="${i===0?'':''}" onclick="go('category')">${c.n}</a></li>`).join('') + `<li><a href="#" onclick="go('category')" style="color:var(--danger);font-weight:600">🔥 Deals</a></li>`;
+  document.getElementById('mobileNav').innerHTML =
+    `<li><a onclick="go('home');closeDrawers()">🏠 Home</a></li>` +
+    CATS.map(c=>`<li><a onclick="go('category');closeDrawers()">${c.n}</a></li>`).join('') +
+    `<li><a onclick="go('login');closeDrawers()">👤 Account</a></li><li><a onclick="go('cart');closeDrawers()">🛒 Cart</a></li>`;
+  renderGrid('featuredGrid', [P[0],P[1],P[3],P[4]]);
+  renderGrid('dealsGrid', [P[2],P[6],P[10],P[4]]);
+  renderGrid('relatedGrid', [P[4],P[6],P[8],P[3]]);
+  
+  /* shop */
+  let shopItems = [...P];
+  function renderShop(){ renderGrid('shopGrid', shopItems); document.getElementById('resultCount').textContent = shopItems.length; }
+  function sortProducts(v){
+    if(v==='lo') shopItems.sort((a,b)=>a.price-b.price);
+    else if(v==='hi') shopItems.sort((a,b)=>b.price-a.price);
+    else if(v==='new') shopItems.sort((a,b)=>b.id-a.id);
+    else shopItems.sort((a,b)=>b.rev-a.rev);
+    renderShop();
+  }
+  const FILTER_HTML = `
+    <h3>Filters</h3><span class="muted" style="font-size:12.5px">148 products</span>
+    <div class="fgroup"><b>Category</b>
+      ${['GPUs (42)','CPUs (28)','Motherboards (25)','RAM (19)','PSUs (34)'].map((c,i)=>{const[n,k]=c.split(' (');return `<label class="fopt"><input type="checkbox" ${i===0?'checked':''}> ${n}<span class="cnt">${k.replace(')','')}</span></label>`;}).join('')}
+    </div>
+    <div class="fgroup"><b>Brand</b>
+      ${['Nova (36)','Apex (29)','Volt (18)','Surge (14)','Frost (11)'].map(c=>{const[n,k]=c.split(' (');return `<label class="fopt"><input type="checkbox"> ${n}<span class="cnt">${k.replace(')','')}</span></label>`;}).join('')}
+    </div>
+    <div class="fgroup"><b>Price Range</b>
+      <div class="price-inputs"><input placeholder="$ Min" inputmode="numeric" aria-label="Min price"> — <input placeholder="$ Max" inputmode="numeric" aria-label="Max price"></div>
+    </div>
+    <div class="fgroup"><b>VRAM</b>
+      ${['8GB (12)','12GB (9)','16GB (14)','24GB+ (7)'].map(c=>{const[n,k]=c.split(' (');return `<label class="fopt"><input type="checkbox"> ${n}<span class="cnt">${k.replace(')','')}</span></label>`;}).join('')}
+    </div>
+    <div class="fgroup"><b>Availability</b>
+      <label class="fopt"><input type="checkbox" checked> In stock only</label>
+      <label class="fopt"><input type="checkbox"> On sale</label>
+    </div>
+    <button class="btn btn-primary btn-block btn-sm" style="margin-top:10px" onclick="toast('Filters applied ✓')">Apply Filters</button>
+    <button class="btn btn-ghost btn-block btn-sm" style="margin-top:6px" onclick="toast('Filters cleared')">Clear all</button>`;
+  document.getElementById('filterSidebar').innerHTML = FILTER_HTML;
+  document.getElementById('filterDrawerBody').innerHTML = FILTER_HTML;
+  renderShop();
+  
+  /* ============ CART ============ */
+  function cartTotals(){
+    const sub = cart.reduce((s,c)=>s+P[c.id].price*c.q,0);
+    const tax = sub*.0725;
+    return {sub, tax, total:sub+tax, n:cart.reduce((s,c)=>s+c.q,0)};
+  }
+  function renderCart(){
+    const t = cartTotals();
+    document.getElementById('cartCount').textContent = t.n;
+    document.getElementById('cartCount').style.display = t.n ? 'grid':'none';
+    document.getElementById('cartTitleCount').textContent = `(${t.n} item${t.n===1?'':'s'})`;
+    const box = document.getElementById('cartItems');
+    if(!cart.length){
+      box.innerHTML = `<div class="empty-state"><div class="big">🛒</div><h3 style="color:var(--text-1);margin-bottom:6px">Your cart is empty</h3><p>Time to spec out something legendary.</p><button class="btn btn-primary" style="margin-top:18px" onclick="go('category')">Start Shopping</button></div>`;
+    } else {
+      box.innerHTML = cart.map((c,i)=>{const p=P[c.id];return `
+        <div class="cart-item">
+          <div class="ci-img"><svg><use href="#${p.ic}"/></svg></div>
+          <div>
+            <div class="ci-name">${p.name}</div>
+            <div class="ci-meta">${p.brand} · ${p.specs[0]} · <span class="badge ${STOCK[p.stock][0]}" style="font-size:10.5px;padding:2px 8px">${STOCK[p.stock][1]}</span></div>
+            <button class="ci-remove" onclick="removeItem(${i})">✕ Remove</button>
+          </div>
+          <div class="ci-right">
+            <div class="qty"><button onclick="chgQty(${i},-1)" aria-label="Decrease">−</button><span>${c.q}</span><button onclick="chgQty(${i},1)" aria-label="Increase">+</button></div>
+            <span class="price" style="font-size:16px">${fmt(p.price*c.q)}</span>
+          </div>
+        </div>`;}).join('');
+    }
+    document.getElementById('sumSub').textContent = fmt(t.sub);
+    document.getElementById('sumTax').textContent = fmt(t.tax);
+    document.getElementById('sumTotal').textContent = fmt(t.total);
+    document.querySelectorAll('.co-sub').forEach(e=>e.textContent=fmt(t.sub));
+    document.querySelectorAll('.co-tax').forEach(e=>e.textContent=fmt(t.tax));
+    document.querySelectorAll('.co-total').forEach(e=>e.textContent=fmt(t.total));
+    document.querySelectorAll('.cart-n').forEach(e=>e.textContent=t.n);
+    const mini = cart.map(c=>{const p=P[c.id];return `
+      <div class="mini-item"><div class="mini-img"><svg><use href="#${p.ic}"/></svg></div>
+      <div style="flex:1"><b style="font-size:13px">${p.name}</b><br><small class="muted">Qty ${c.q}</small></div>
+      <b>${fmt(p.price*c.q)}</b></div>`;}).join('');
+    ['miniCart1','miniCart2','miniCart3'].forEach(id=>document.getElementById(id).innerHTML = mini || '<p class="muted">No items</p>');
+  }
+  function addToCart(id,q){
+    const line = cart.find(c=>c.id===id);
+    line ? line.q+=q : cart.push({id,q});
+    renderCart();
+    toast(`Added to cart — ${P[id].name.split(' ').slice(0,3).join(' ')} ✓`);
+  }
+  function chgQty(i,d){ cart[i].q = Math.max(1, cart[i].q+d); renderCart(); }
+  function removeItem(i){ cart.splice(i,1); renderCart(); toast('Item removed'); }
+  function pdpQty(d){ const el=document.getElementById('pdpQty'); el.textContent = Math.max(1,+el.textContent+d); }
+  
+  /* ============ ROUTER / UI ============ */
+  function go(view){
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+view).classList.add('active');
+    closeDrawers();
+    window.scrollTo({top:0,behavior:'instant'});
+    if(view==='checkout-confirm') setTimeout(()=>toast('Order placed — thank you! 🎉'),350);
+  }
+  function toggleTheme(){
+    const h = document.documentElement;
+    const dark = h.getAttribute('data-theme')==='dark';
+    h.setAttribute('data-theme', dark?'light':'dark');
+    document.getElementById('sunIc').style.display = dark?'':'none';
+    document.getElementById('moonIc').style.display = dark?'none':'';
+  }
+  function toggleDrawer(id){
+    document.getElementById(id).classList.add('show');
+    document.getElementById('backdrop').classList.add('show');
+  }
+  function closeDrawers(){
+    document.querySelectorAll('.mobile-drawer,.filter-drawer').forEach(d=>d.classList.remove('show'));
+    document.getElementById('backdrop').classList.remove('show');
+  }
+  let toastTimer;
+  function toast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>t.classList.remove('show'), 2400);
+  }
+  renderCart();
+  </script>
+  </body>
+  </html>
