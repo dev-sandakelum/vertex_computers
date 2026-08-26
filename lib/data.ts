@@ -55,3 +55,36 @@ export const STOCK_MAP: Record<StockLevel, [string, string]> = {
 export function fmt(n: number): string {
   return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+
+/** Generate a URL-safe slug from a product name */
+export function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+/** Get the URL path for a product */
+export function productPath(id: number): string {
+  const p = PRODUCTS[id];
+  if (!p) return '/shop';
+  return `/product/${id}/${slugify(p.name)}`;
+}
+
+/** Category slug map */
+export const CATEGORY_SLUGS: Record<string, string> = {
+  gpus:         'GPUs',
+  cpus:         'CPUs',
+  motherboards: 'Motherboards',
+  ram:          'RAM',
+  psus:         'PSUs',
+  storage:      'Storage',
+  cooling:      'Cooling',
+  cases:        'Cases',
+  peripherals:  'Peripherals',
+};
+
+/** Get URL slug for a category name */
+export function categorySlug(name: string): string {
+  return name.toLowerCase().replace(/\s+/g, '-');
+}
