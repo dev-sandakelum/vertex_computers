@@ -1,33 +1,30 @@
 'use client';
 
+import Link from 'next/link';
 import { useApp } from '@/app/components/providers/AppProvider';
 
 export default function MobileTopBar() {
-  const { theme, toggleTheme, toggleMobileDrawer, setSearchOpen, setView } = useApp();
+  const { theme, toggleTheme, toggleMobileDrawer, setSearchOpen } = useApp();
 
   return (
     <div className="topbar-app" aria-label="Top app bar">
-      {/* Hamburger → bottom sheet */}
       <button className="icon-btn" aria-label="Open menu" onClick={toggleMobileDrawer}>
         <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <path d="M4 6h16M4 12h16M4 18h16"/>
         </svg>
       </button>
 
-      {/* Logo */}
-      <a className="app-logo" href="#" aria-label="Vertex Computers" onClick={(e) => { e.preventDefault(); setView('home'); }}>
+      <Link href="/" className="app-logo" aria-label="Vertex Computers">
         <span className="logo-mark">V</span>
         <span>VERTEX<small>Computers</small></span>
-      </a>
+      </Link>
 
-      {/* Search */}
       <button className="icon-btn" aria-label="Search" onClick={() => setSearchOpen(true)}>
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
         </svg>
       </button>
 
-      {/* Theme toggle */}
       <button className="icon-btn" aria-label="Toggle theme" onClick={toggleTheme}>
         {theme === 'light' ? (
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">

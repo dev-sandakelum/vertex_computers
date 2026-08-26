@@ -1,19 +1,21 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useApp } from '@/app/components/providers/AppProvider';
-import { CATS } from '@/lib/data';
+import { CATS, categorySlug } from '@/lib/data';
 import SearchSuggestions, { useSearchKeyboard } from '@/app/components/ui/SearchSuggestions';
 
 export default function Header() {
-  const { theme, toggleTheme, cartCount, setView, toggleMobileDrawer } = useApp();
+  const { theme, toggleTheme, cartCount, toggleMobileDrawer } = useApp();
+  const router = useRouter();
 
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
-  /* Close dropdown on outside click */
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
@@ -27,13 +29,13 @@ export default function Header() {
   function handleSelect(label: string) {
     setQuery(label);
     setFocused(false);
-    setView('category');
+    router.push(`/shop?q=${encodeURIComponent(label)}`);
     inputRef.current?.blur();
   }
 
   function handleSubmit(q: string) {
     setFocused(false);
-    setView('category');
+    router.push(q.trim() ? `/shop?q=${encodeURIComponent(q.trim())}` : '/shop');
     inputRef.current?.blur();
   }
 
@@ -44,8 +46,6 @@ export default function Header() {
     onClose: () => setFocused(false),
   });
 
-  const showSuggestions = focused;
-
   return (
     <>
       <div className="topbar">
@@ -54,7 +54,7 @@ export default function Header() {
 
       <header className="site-header">
         <div className="container header-main">
-          {/* Hamburger */}
+          {/* Hamburger (mobile) */}
           <button className="icon-btn hamburger" aria-label="Open menu" onClick={toggleMobileDrawer}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M4 6h16M4 12h16M4 18h16"/>
@@ -62,12 +62,12 @@ export default function Header() {
           </button>
 
           {/* Logo */}
-          <a className="logo" onClick={() => setView('home')} href="#" aria-label="Vertex Computers home">
+          <Link href="/" className="logo" aria-label="Vertex Computers home">
             <span className="logo-mark">V</span>
             <span>VERTEX<small>Computers</small></span>
-          </a>
+          </Link>
 
-          {/* Search with suggestions dropdown */}
+          {/* Search */}
           <div className="searchbar-wrap" ref={wrapRef} role="search">
             <div className="searchbar" style={{ maxWidth: 'none', flex: 1 }}>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -79,7 +79,7 @@ export default function Header() {
                 placeholder="Search GPUs, CPUs, RAM…"
                 aria-label="Search products"
                 aria-autocomplete="list"
-                aria-expanded={showSuggestions}
+                aria-expanded={focused}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onFocus={() => setFocused(true)}
@@ -87,7 +87,7 @@ export default function Header() {
                 autoComplete="off"
               />
             </div>
-            {showSuggestions && (
+            {focused && (
               <SearchSuggestions
                 query={query}
                 onSelect={handleSelect}
@@ -111,38 +111,36 @@ export default function Header() {
                 </svg>
               )}
             </button>
-            <button className="icon-btn" aria-label="Account" onClick={() => setView('login')}>
+            <Link href="/account/login" className="icon-btn" aria-label="Account">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-5.5 8-5.5S18.5 17 20 21"/>
               </svg>
-            </button>
-            <button className="icon-btn" aria-label="Cart" onClick={() => setView('cart')}>
+            </Link>
+            <Link href="/cart" className="icon-btn" aria-label={`Cart${cartCount > 0 ? `, ${cartCount} items` : ''}`}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="9" cy="20" r="1.6"/>
                 <circle cx="17" cy="20" r="1.6"/>
                 <path d="M2 3h3l2.6 12.5a1.5 1.5 0 0 0 1.5 1.2h8.4a1.5 1.5 0 0 0 1.5-1.2L21 7H6"/>
               </svg>
               {cartCount > 0 && (
-                <span className="cart-count" aria-label={`${cartCount} items in cart`}>{cartCount}</span>
+                <span className="cart-count">{cartCount}</span>
               )}
-            </button>
+            </Link>
           </div>
         </div>
 
         {/* Category nav */}
         <nav className="catnav container" aria-label="Categories">
           <ul>
-            {CATS.map((c, i) => (
+            {CATS.map((c) => (
               <li key={c.n}>
-                <a href="#" className={i === 0 ? 'active' : ''} onClick={(e) => { e.preventDefault(); setView('category'); }}>
-                  {c.n}
-                </a>
+                <Link href={`/shop/${categorySlug(c.n)}`}>{c.n}</Link>
               </li>
             ))}
             <li>
-              <a href="#" onClick={(e) => { e.preventDefault(); setView('category'); }} style={{ color: 'var(--danger)', fontWeight: 600 }}>
+              <Link href="/shop?tag=deal" style={{ color: 'var(--danger)', fontWeight: 600 }}>
                 🔥 Deals
-              </a>
+              </Link>
             </li>
           </ul>
         </nav>

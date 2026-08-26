@@ -1,9 +1,11 @@
 'use client';
 
+import Link from 'next/link';
 import { useApp } from '@/app/components/providers/AppProvider';
+import { categorySlug } from '@/lib/data';
 
 export default function MobileFooter() {
-  const { setView, showToast } = useApp();
+  const { showToast } = useApp();
 
   return (
     <footer className="footer-m">
@@ -16,10 +18,10 @@ export default function MobileFooter() {
       <details className="facc">
         <summary>Shop <span>▾</span></summary>
         <ul>
-          <li><a href="#" onClick={(e) => { e.preventDefault(); setView('category'); }}>Graphics Cards</a></li>
-          <li><a href="#" onClick={(e) => { e.preventDefault(); setView('category'); }}>Processors</a></li>
-          <li><a href="#" onClick={(e) => { e.preventDefault(); setView('category'); }}>Motherboards</a></li>
-          <li><a href="#" onClick={(e) => { e.preventDefault(); setView('category'); }}>Deals</a></li>
+          <li><Link href={`/shop/${categorySlug('GPUs')}`}>Graphics Cards</Link></li>
+          <li><Link href={`/shop/${categorySlug('CPUs')}`}>Processors</Link></li>
+          <li><Link href={`/shop/${categorySlug('Motherboards')}`}>Motherboards</Link></li>
+          <li><Link href="/shop?tag=deal">Deals</Link></li>
         </ul>
       </details>
 
@@ -45,9 +47,7 @@ export default function MobileFooter() {
 
       <div className="facc" style={{ padding: '14px 0' }}>
         <b style={{ fontSize: '13.5px' }}>Newsletter</b>
-        <p style={{ margin: '6px 0 0', color: 'var(--text-2)', fontSize: '12.5px' }}>
-          Deals, restocks &amp; build guides. No spam.
-        </p>
+        <p style={{ margin: '6px 0 0', color: 'var(--text-2)', fontSize: '12.5px' }}>Deals, restocks &amp; build guides. No spam.</p>
         <div className="nl-row">
           <input type="email" placeholder="Email address" aria-label="Email for newsletter" />
           <button className="btn btn-primary btn-sm" onClick={() => showToast('Subscribed! 📬')}>Go</button>
