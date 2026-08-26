@@ -1,13 +1,50 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import { useApp } from '@/app/components/providers/AppProvider';
 import { CATS } from '@/lib/data';
+import SearchSuggestions, { useSearchKeyboard } from '@/app/components/ui/SearchSuggestions';
 
 export default function Header() {
-  const {
-    theme, toggleTheme, cartCount,
-    setView, toggleMobileDrawer, toggleFilterDrawer,
-  } = useApp();
+  const { theme, toggleTheme, cartCount, setView, toggleMobileDrawer } = useApp();
+
+  const [query, setQuery] = useState('');
+  const [focused, setFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  /* Close dropdown on outside click */
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+        setFocused(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  function handleSelect(label: string) {
+    setQuery(label);
+    setFocused(false);
+    setView('category');
+    inputRef.current?.blur();
+  }
+
+  function handleSubmit(q: string) {
+    setFocused(false);
+    setView('category');
+    inputRef.current?.blur();
+  }
+
+  const { handleKeyDown } = useSearchKeyboard({
+    query,
+    onSelect: handleSelect,
+    onSubmit: handleSubmit,
+    onClose: () => setFocused(false),
+  });
+
+  const showSuggestions = focused;
 
   return (
     <>
@@ -18,11 +55,7 @@ export default function Header() {
       <header className="site-header">
         <div className="container header-main">
           {/* Hamburger */}
-          <button
-            className="icon-btn hamburger"
-            aria-label="Open menu"
-            onClick={toggleMobileDrawer}
-          >
+          <button className="icon-btn hamburger" aria-label="Open menu" onClick={toggleMobileDrawer}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
@@ -34,22 +67,38 @@ export default function Header() {
             <span>VERTEX<small>Computers</small></span>
           </a>
 
-          {/* Search */}
-          <div className="searchbar" role="search">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
-            </svg>
-            <input
-              type="search"
-              placeholder="Search GPUs, CPUs, RAM…"
-              aria-label="Search products"
-              onKeyDown={(e) => e.key === 'Enter' && setView('category')}
-            />
+          {/* Search with suggestions dropdown */}
+          <div className="searchbar-wrap" ref={wrapRef} role="search">
+            <div className="searchbar" style={{ maxWidth: 'none', flex: 1 }}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
+              </svg>
+              <input
+                ref={inputRef}
+                type="search"
+                placeholder="Search GPUs, CPUs, RAM…"
+                aria-label="Search products"
+                aria-autocomplete="list"
+                aria-expanded={showSuggestions}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onFocus={() => setFocused(true)}
+                onKeyDown={handleKeyDown}
+                autoComplete="off"
+              />
+            </div>
+            {showSuggestions && (
+              <SearchSuggestions
+                query={query}
+                onSelect={handleSelect}
+                onSubmit={handleSubmit}
+                variant="dropdown"
+              />
+            )}
           </div>
 
           {/* Actions */}
           <div className="header-actions">
-            {/* Theme toggle */}
             <button className="icon-btn" aria-label="Toggle theme" onClick={toggleTheme}>
               {theme === 'light' ? (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -62,15 +111,11 @@ export default function Header() {
                 </svg>
               )}
             </button>
-
-            {/* Account */}
             <button className="icon-btn" aria-label="Account" onClick={() => setView('login')}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-5.5 8-5.5S18.5 17 20 21"/>
               </svg>
             </button>
-
-            {/* Cart */}
             <button className="icon-btn" aria-label="Cart" onClick={() => setView('cart')}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="9" cy="20" r="1.6"/>
@@ -78,9 +123,7 @@ export default function Header() {
                 <path d="M2 3h3l2.6 12.5a1.5 1.5 0 0 0 1.5 1.2h8.4a1.5 1.5 0 0 0 1.5-1.2L21 7H6"/>
               </svg>
               {cartCount > 0 && (
-                <span className="cart-count" aria-label={`${cartCount} items in cart`}>
-                  {cartCount}
-                </span>
+                <span className="cart-count" aria-label={`${cartCount} items in cart`}>{cartCount}</span>
               )}
             </button>
           </div>
@@ -91,21 +134,13 @@ export default function Header() {
           <ul>
             {CATS.map((c, i) => (
               <li key={c.n}>
-                <a
-                  href="#"
-                  className={i === 0 ? 'active' : ''}
-                  onClick={(e) => { e.preventDefault(); setView('category'); }}
-                >
+                <a href="#" className={i === 0 ? 'active' : ''} onClick={(e) => { e.preventDefault(); setView('category'); }}>
                   {c.n}
                 </a>
               </li>
             ))}
             <li>
-              <a
-                href="#"
-                onClick={(e) => { e.preventDefault(); setView('category'); }}
-                style={{ color: 'var(--danger)', fontWeight: 600 }}
-              >
+              <a href="#" onClick={(e) => { e.preventDefault(); setView('category'); }} style={{ color: 'var(--danger)', fontWeight: 600 }}>
                 🔥 Deals
               </a>
             </li>
