@@ -1,16 +1,19 @@
 'use client';
 
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useApp } from '@/app/components/providers/AppProvider';
 import { PRODUCTS, STOCK_MAP, fmt } from '@/lib/data';
 
 export default function CartView() {
-  const { cart, cartSubtotal, cartTax, cartTotal, cartCount, setView, changeQty, removeItem, showToast } = useApp();
+  const { cart, cartSubtotal, cartTax, cartTotal, cartCount, changeQty, removeItem, showToast } = useApp();
+  const router = useRouter();
 
   return (
     <div>
       <div className="container">
         <div className="breadcrumbs">
-          <a href="#" onClick={(e) => { e.preventDefault(); setView('home'); }}>Home</a> /
+          <Link href="/">Home</Link> /
           <b style={{ color: 'var(--text-1)' }}>Cart</b>
         </div>
         <h1 className="section-title px" style={{ fontSize: '22px', marginBottom: '16px' }}>
@@ -21,51 +24,41 @@ export default function CartView() {
         </h1>
 
         <div className="cart-layout">
-          {/* ── Desktop cart items ─── */}
+          {/* Desktop cart items */}
           <div className="card">
             {cart.length === 0 ? (
               <div className="empty-state">
                 <div className="big">🛒</div>
                 <h3 style={{ color: 'var(--text-1)', marginBottom: '6px' }}>Your cart is empty</h3>
-                <p style={{ fontSize: '13px' }}>Time to spec out something legendary.</p>
-                <button className="btn btn-primary" style={{ marginTop: '18px' }} onClick={() => setView('category')}>
-                  Start Shopping
-                </button>
+                <p>Time to spec out something legendary.</p>
+                <Link href="/shop" className="btn btn-primary" style={{ marginTop: '18px', display: 'inline-flex' }}>Start Shopping</Link>
               </div>
             ) : (
-              <>
-                {cart.map((item, i) => {
-                  const p = PRODUCTS[item.id];
-                  const [badgeClass, stockLabel] = STOCK_MAP[p.stock];
-                  return (
-                    <div key={`${item.id}-${i}`} className="cart-item">
-                      <div className="ci-img">
-                        <svg width="48" height="36"><use href={`#${p.ic}`} /></svg>
+              cart.map((item, i) => {
+                const p = PRODUCTS[item.id];
+                const [badgeClass, stockLabel] = STOCK_MAP[p.stock];
+                return (
+                  <div key={`${item.id}-${i}`} className="cart-item">
+                    <div className="ci-img"><svg width="48" height="36"><use href={`#${p.ic}`} /></svg></div>
+                    <div>
+                      <div className="ci-name">{p.name}</div>
+                      <div className="ci-meta">
+                        {p.brand} · {p.specs[0]} ·{' '}
+                        <span className={`badge ${badgeClass}`} style={{ fontSize: '10.5px', padding: '2px 8px' }}>{stockLabel}</span>
                       </div>
-                      <div>
-                        <div className="ci-name">{p.name}</div>
-                        <div className="ci-meta">
-                          {p.brand} · {p.specs[0]} ·{' '}
-                          <span className={`badge ${badgeClass}`} style={{ fontSize: '10.5px', padding: '2px 8px' }}>
-                            {stockLabel}
-                          </span>
-                        </div>
-                        <button className="ci-remove" onClick={() => { removeItem(i); showToast('Item removed'); }}>
-                          ✕ Remove
-                        </button>
-                      </div>
-                      <div className="ci-right">
-                        <div className="qty">
-                          <button onClick={() => changeQty(i, -1)} aria-label="Decrease">−</button>
-                          <span>{item.q}</span>
-                          <button onClick={() => changeQty(i, 1)} aria-label="Increase">+</button>
-                        </div>
-                        <span className="price" style={{ fontSize: '16px' }}>{fmt(p.price * item.q)}</span>
-                      </div>
+                      <button className="ci-remove" onClick={() => { removeItem(i); showToast('Item removed'); }}>✕ Remove</button>
                     </div>
-                  );
-                })}
-              </>
+                    <div className="ci-right">
+                      <div className="qty">
+                        <button onClick={() => changeQty(i, -1)} aria-label="Decrease">−</button>
+                        <span>{item.q}</span>
+                        <button onClick={() => changeQty(i, 1)} aria-label="Increase">+</button>
+                      </div>
+                      <span className="price" style={{ fontSize: '16px' }}>{fmt(p.price * item.q)}</span>
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
 
@@ -80,36 +73,26 @@ export default function CartView() {
               <button className="btn btn-secondary btn-sm" onClick={() => showToast('Code applied — nice try 😄')}>Apply</button>
             </div>
             <div className="sumrow total"><span>Total</span><span>{fmt(cartTotal)}</span></div>
-            <button
-              className="btn btn-primary btn-block btn-lg"
-              style={{ marginTop: '16px' }}
-              onClick={() => setView('checkout-shipping')}
-            >
+            <Link href="/checkout/shipping" className="btn btn-primary btn-block btn-lg" style={{ marginTop: '16px' }}>
               Proceed to Checkout →
-            </button>
-            <p className="muted" style={{ fontSize: '12px', textAlign: 'center', marginTop: '10px' }}>
-              🔒 Secure 256-bit encrypted checkout
-            </p>
+            </Link>
+            <p className="muted" style={{ fontSize: '12px', textAlign: 'center', marginTop: '10px' }}>🔒 Secure 256-bit encrypted checkout</p>
           </aside>
         </div>
 
         <div style={{ marginTop: '12px', paddingBottom: '8px' }}>
-          <a className="link" href="#" onClick={(e) => { e.preventDefault(); setView('category'); }}>
-            ← Continue shopping
-          </a>
+          <Link href="/shop" className="link">← Continue shopping</Link>
         </div>
       </div>
 
-      {/* ── Mobile cart items (replaces desktop cart-item at ≤640px) ── */}
+      {/* Mobile cart items */}
       <div className="card px" style={{ margin: '0 16px' }}>
         {cart.length === 0 ? (
           <div className="empty-state">
             <div className="big">🛒</div>
             <h3 style={{ color: 'var(--text-1)', marginBottom: '6px' }}>Your cart is empty</h3>
             <p style={{ fontSize: '13px' }}>Time to spec out something legendary.</p>
-            <button className="btn btn-primary" style={{ marginTop: '16px' }} onClick={() => setView('category')}>
-              Start Shopping
-            </button>
+            <Link href="/shop" className="btn btn-primary" style={{ marginTop: '16px', display: 'inline-flex' }}>Start Shopping</Link>
           </div>
         ) : (
           cart.map((item, i) => {
@@ -130,9 +113,7 @@ export default function CartView() {
                     </div>
                     <span className="price" style={{ fontSize: '14px' }}>{fmt(p.price * item.q)}</span>
                   </div>
-                  <button className="ci-remove" onClick={() => { removeItem(i); showToast('Item removed'); }}>
-                    ✕ Remove
-                  </button>
+                  <button className="ci-remove" onClick={() => { removeItem(i); showToast('Item removed'); }}>✕ Remove</button>
                 </div>
               </div>
             );
@@ -152,18 +133,16 @@ export default function CartView() {
         </div>
         <div className="sumrow total"><span>Total</span><span>{fmt(cartTotal)}</span></div>
       </div>
-      <p className="muted px" style={{ fontSize: '12px', textAlign: 'center', marginTop: '10px' }}>
-        🔒 Secure 256-bit encrypted checkout
-      </p>
+      <p className="muted px" style={{ fontSize: '12px', textAlign: 'center', marginTop: '10px' }}>🔒 Secure 256-bit encrypted checkout</p>
       <div className="px" style={{ marginTop: '6px', textAlign: 'center', paddingBottom: '6px' }}>
-        <a className="link" href="#" onClick={(e) => { e.preventDefault(); setView('category'); }}>← Continue shopping</a>
+        <Link href="/shop" className="link">← Continue shopping</Link>
       </div>
 
       {/* Mobile sticky checkout */}
       <div className="sticky-checkout">
-        <button className="btn btn-primary btn-block btn-lg" onClick={() => setView('checkout-shipping')}>
+        <Link href="/checkout/shipping" className="btn btn-primary btn-block btn-lg">
           Checkout — {fmt(cartTotal)}
-        </button>
+        </Link>
       </div>
     </div>
   );

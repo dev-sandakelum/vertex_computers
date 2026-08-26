@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useApp } from '@/app/components/providers/AppProvider';
 import { PRODUCTS, fmt } from '@/lib/data';
 
@@ -16,7 +18,6 @@ function Steps({ s, r, c }: { s: S; r: S; c: S }) {
   );
 }
 
-/* ── Mini cart ── */
 function MiniCart() {
   const { cart } = useApp();
   if (!cart.length) return <p className="muted">No items</p>;
@@ -27,10 +28,7 @@ function MiniCart() {
         return (
           <div key={i} className="mini-item">
             <div className="mini-img"><svg width="24" height="20"><use href={`#${p.ic}`} /></svg></div>
-            <div style={{ flex: 1 }}>
-              <b style={{ fontSize: '12.5px' }}>{p.name}</b>
-              <br /><small className="muted">Qty {item.q}</small>
-            </div>
+            <div style={{ flex: 1 }}><b style={{ fontSize: '12.5px' }}>{p.name}</b><br /><small className="muted">Qty {item.q}</small></div>
             <b>{fmt(p.price * item.q)}</b>
           </div>
         );
@@ -39,7 +37,6 @@ function MiniCart() {
   );
 }
 
-/* ── Order summary aside ── */
 function OrderSummaryAside() {
   const { cartSubtotal, cartTax, cartTotal } = useApp();
   return (
@@ -54,11 +51,9 @@ function OrderSummaryAside() {
   );
 }
 
-/* ═══════════════════════════════════════════
-   SHIPPING
-═══════════════════════════════════════════ */
+/* ═══ SHIPPING ═══ */
 export function CheckoutShippingView() {
-  const { setView } = useApp();
+  const router = useRouter();
   return (
     <div>
       <div className="container">
@@ -80,8 +75,7 @@ export function CheckoutShippingView() {
             </div>
             <div className="field-row">
               <div className="field"><label htmlFor="zip">ZIP</label><input id="zip" defaultValue="62704" /></div>
-              <div className="field">
-                <label htmlFor="cy">Country</label>
+              <div className="field"><label htmlFor="cy">Country</label>
                 <select id="cy"><option>United States</option><option>Canada</option><option>United Kingdom</option><option>Sri Lanka</option><option>Australia</option></select>
               </div>
             </div>
@@ -89,29 +83,21 @@ export function CheckoutShippingView() {
             <h2 style={{ fontSize: '14.5px' }}>Shipping Method</h2>
             <label className="ship-option"><input type="radio" name="ship" defaultChecked /><div><b>Standard Shipping</b><small>5–7 business days</small></div><span className="sp" style={{ color: 'var(--success)' }}>FREE</span></label>
             <label className="ship-option"><input type="radio" name="ship" /><div><b>Express Shipping</b><small>2 business days</small></div><span className="sp">$24.90</span></label>
-            {/* Desktop CTA */}
-            <button className="btn btn-primary btn-lg btn-block desktop-only" style={{ marginTop: '18px' }} onClick={() => setView('checkout-review')}>
-              Continue to Review →
-            </button>
+            <Link href="/checkout/review" className="btn btn-primary btn-lg btn-block desktop-only" style={{ marginTop: '18px' }}>Continue to Review →</Link>
           </div>
           <OrderSummaryAside />
         </div>
       </div>
-      {/* Mobile sticky CTA */}
       <div className="sticky-checkout">
-        <button className="btn btn-primary btn-lg btn-block" onClick={() => setView('checkout-review')}>
-          Continue to Review →
-        </button>
+        <Link href="/checkout/review" className="btn btn-primary btn-lg btn-block">Continue to Review →</Link>
       </div>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════
-   REVIEW
-═══════════════════════════════════════════ */
+/* ═══ REVIEW ═══ */
 export function CheckoutReviewView() {
-  const { setView, cartTotal, cart } = useApp();
+  const { cartTotal, cart } = useApp();
   return (
     <div>
       <div className="container">
@@ -121,7 +107,7 @@ export function CheckoutReviewView() {
             <h2>Review Your Order</h2>
             <div className="review-block">
               <h4>Shipping to</h4>
-              <a className="link edit" href="#" onClick={(e) => { e.preventDefault(); setView('checkout-shipping'); }}>Edit</a>
+              <Link href="/checkout/shipping" className="link edit">Edit</Link>
               <b>John Doe</b><br />
               <span className="muted" style={{ fontSize: '13px' }}>123 Example St, Springfield, IL 62704<br />name@example.com · +1 (555) 000-0000</span>
               <div style={{ marginTop: '8px' }}><span className="badge badge-success">Standard — FREE · 5–7 days</span></div>
@@ -134,41 +120,37 @@ export function CheckoutReviewView() {
                 <div className="field"><label htmlFor="cvc">CVC</label><input id="cvc" placeholder="•••" inputMode="numeric" /></div>
               </div>
               <div className="field" style={{ marginBottom: '4px' }}><label htmlFor="nc">Name on card</label><input id="nc" defaultValue="John Doe" /></div>
-              <label className="fopt" style={{ marginTop: '6px' }}>
-                <input type="checkbox" defaultChecked style={{ accentColor: 'var(--accent)' }} /> Billing same as shipping
-              </label>
+              <label className="fopt" style={{ marginTop: '6px' }}><input type="checkbox" defaultChecked style={{ accentColor: 'var(--accent)' }} /> Billing same as shipping</label>
             </div>
             <div className="review-block">
               <h4>Items ({cart.reduce((s, c) => s + c.q, 0)})</h4>
-              <a className="link edit" href="#" onClick={(e) => { e.preventDefault(); setView('cart'); }}>Edit</a>
+              <Link href="/cart" className="link edit">Edit</Link>
               <MiniCart />
             </div>
-            <p className="muted" style={{ fontSize: '11.5px', textAlign: 'center', marginTop: '6px' }}>
-              By placing your order you agree to our Terms &amp; Conditions.
-            </p>
-            {/* Desktop CTA */}
-            <button className="btn btn-primary btn-lg btn-block desktop-only" style={{ marginTop: '12px' }} onClick={() => setView('checkout-confirm')}>
+            <p className="muted" style={{ fontSize: '11.5px', textAlign: 'center', marginTop: '6px' }}>By placing your order you agree to our Terms &amp; Conditions.</p>
+            <Link href="/checkout/confirm" className="btn btn-primary btn-lg btn-block desktop-only" style={{ marginTop: '12px' }}>
               Place Order — {fmt(cartTotal)}
-            </button>
+            </Link>
           </div>
-          <OrderSummaryAside />
+          <aside className="summary card" style={{ padding: '22px' }}>
+            <h3>Order Summary</h3>
+            <MiniCart />
+            <p className="muted" style={{ fontSize: '12px', marginTop: '14px' }}>🔒 Your payment details are encrypted and never stored on our servers.</p>
+          </aside>
         </div>
       </div>
-      {/* Mobile sticky CTA */}
       <div className="sticky-checkout">
-        <button className="btn btn-primary btn-lg btn-block" onClick={() => setView('checkout-confirm')}>
+        <Link href="/checkout/confirm" className="btn btn-primary btn-lg btn-block">
           Place Order — {fmt(cartTotal)}
-        </button>
+        </Link>
       </div>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════
-   CONFIRMATION
-═══════════════════════════════════════════ */
+/* ═══ CONFIRMATION ═══ */
 export function CheckoutConfirmView() {
-  const { setView, cartTotal } = useApp();
+  const { cartTotal } = useApp();
   return (
     <div className="container">
       <Steps s="done" r="done" c="on" />
@@ -201,9 +183,9 @@ export function CheckoutConfirmView() {
             <b style={{ color: 'var(--accent)' }}>Aug 27 – Aug 29, 2026</b><br />
             <span className="muted" style={{ fontSize: '13px' }}>Standard Shipping · FREE</span>
           </div>
-          <button className="btn btn-primary btn-block" onClick={() => setView('account')}>Track Order</button>
-          <button className="btn btn-secondary btn-block" style={{ marginTop: '10px' }} onClick={() => setView('account')}>View Order Details</button>
-          <button className="btn btn-ghost btn-block" style={{ marginTop: '6px' }} onClick={() => setView('home')}>Continue Shopping</button>
+          <Link href="/account" className="btn btn-primary btn-block">Track Order</Link>
+          <Link href="/account" className="btn btn-secondary btn-block" style={{ marginTop: '10px' }}>View Order Details</Link>
+          <Link href="/" className="btn btn-ghost btn-block" style={{ marginTop: '6px' }}>Continue Shopping</Link>
         </div>
       </div>
       <div style={{ height: '12px' }} />

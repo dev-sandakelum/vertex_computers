@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useApp } from '@/app/components/providers/AppProvider';
 
 const GoogleIcon = () => (
@@ -10,16 +12,15 @@ const GoogleIcon = () => (
     <path fill="#EA4335" d="M12 6.4c1.6 0 3.1.6 4.2 1.7l3.2-3.2A11 11 0 0 0 2.1 7l3.7 2.9c.9-2.7 3.3-4.6 6.2-4.6Z"/>
   </svg>
 );
-
 const FacebookIcon = () => (
   <svg width="17" height="17" viewBox="0 0 24 24" fill="#1877F2">
     <path d="M24 12a12 12 0 1 0-13.9 11.9v-8.4h-3V12h3V9.4c0-3 1.8-4.7 4.6-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9V12h3.3l-.5 3.5h-2.8v8.4A12 12 0 0 0 24 12Z"/>
   </svg>
 );
 
-/* ── LOGIN ── */
 export function LoginView() {
-  const { setView, showToast } = useApp();
+  const { showToast } = useApp();
+  const router = useRouter();
   return (
     <div className="container">
       <div className="card auth-wrap">
@@ -31,28 +32,24 @@ export function LoginView() {
           <label><input type="checkbox" defaultChecked style={{ accentColor: 'var(--accent)' }} /> Remember me</label>
           <a className="link" href="#" onClick={(e) => { e.preventDefault(); showToast('Password reset link sent (demo)'); }}>Forgot password?</a>
         </div>
-        <button className="btn btn-primary btn-block btn-lg" onClick={() => setView('account')}>Log In</button>
+        <button className="btn btn-primary btn-block btn-lg" onClick={() => router.push('/account')}>Log In</button>
         <div className="or-sep">or continue with</div>
         <div className="social-btns">
-          <button className="btn btn-secondary btn-block" onClick={() => showToast('Google sign-in (demo)')}>
-            <GoogleIcon /> Continue with Google
-          </button>
-          <button className="btn btn-secondary btn-block" onClick={() => showToast('Facebook sign-in (demo)')}>
-            <FacebookIcon /> Continue with Facebook
-          </button>
+          <button className="btn btn-secondary btn-block" onClick={() => showToast('Google sign-in (demo)')}><GoogleIcon /> Continue with Google</button>
+          <button className="btn btn-secondary btn-block" onClick={() => showToast('Facebook sign-in (demo)')}><FacebookIcon /> Continue with Facebook</button>
         </div>
         <p className="auth-foot">
           Don&apos;t have an account?{' '}
-          <a className="link" href="#" onClick={(e) => { e.preventDefault(); setView('register'); }}>Sign up</a>
+          <Link href="/account/register" className="link">Sign up</Link>
         </p>
       </div>
     </div>
   );
 }
 
-/* ── REGISTER ── */
 export function RegisterView() {
-  const { setView, showToast } = useApp();
+  const { showToast } = useApp();
+  const router = useRouter();
   return (
     <div className="container">
       <div className="card auth-wrap">
@@ -67,21 +64,17 @@ export function RegisterView() {
         <div className="field"><label htmlFor="rpass2">Confirm password</label><input id="rpass2" type="password" placeholder="Repeat password" /></div>
         <label className="fopt" style={{ marginBottom: '16px' }}>
           <input type="checkbox" style={{ accentColor: 'var(--accent)' }} />
-          I agree to the <a className="link" href="#">Terms</a> &amp; <a className="link" href="#">Privacy Policy</a>
+          I agree to the <Link href="#" className="link">Terms</Link> &amp; <Link href="#" className="link">Privacy Policy</Link>
         </label>
-        <button className="btn btn-primary btn-block btn-lg" onClick={() => setView('account')}>Create Account</button>
+        <button className="btn btn-primary btn-block btn-lg" onClick={() => router.push('/account')}>Create Account</button>
         <div className="or-sep">or sign up with</div>
         <div className="social-btns">
-          <button className="btn btn-secondary btn-block" onClick={() => showToast('Google sign-up (demo)')}>
-            <GoogleIcon /> Sign up with Google
-          </button>
-          <button className="btn btn-secondary btn-block" onClick={() => showToast('Facebook sign-up (demo)')}>
-            <FacebookIcon /> Sign up with Facebook
-          </button>
+          <button className="btn btn-secondary btn-block" onClick={() => showToast('Google sign-up (demo)')}><GoogleIcon /> Sign up with Google</button>
+          <button className="btn btn-secondary btn-block" onClick={() => showToast('Facebook sign-up (demo)')}><FacebookIcon /> Sign up with Facebook</button>
         </div>
         <p className="auth-foot">
           Already have an account?{' '}
-          <a className="link" href="#" onClick={(e) => { e.preventDefault(); setView('login'); }}>Log in</a>
+          <Link href="/account/login" className="link">Log in</Link>
         </p>
       </div>
     </div>

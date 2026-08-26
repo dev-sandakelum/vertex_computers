@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useApp } from '@/app/components/providers/AppProvider';
 import { PRODUCTS } from '@/lib/data';
 import ProductCard from '@/app/components/ui/ProductCard';
@@ -15,10 +16,16 @@ function sortProducts(products: typeof PRODUCTS, key: SortKey) {
   return arr.sort((a, b) => b.rev - a.rev);
 }
 
-export default function CategoryView() {
-  const { setView, toggleFilterDrawer, showToast } = useApp();
+interface Props {
+  /** Category name passed from the route (e.g. "GPUs"). Omit to show all. */
+  activeCategory?: string;
+}
+
+export default function CategoryView({ activeCategory }: Props) {
+  const { toggleFilterDrawer, showToast } = useApp();
   const [sortKey, setSortKey] = useState<SortKey>('pop');
   const sorted = sortProducts(PRODUCTS, sortKey);
+  const title = activeCategory ?? 'All Components';
 
   return (
     <div>
@@ -50,13 +57,13 @@ export default function CategoryView() {
 
       <div className="container">
         <div className="breadcrumbs">
-          <a href="#" onClick={(e) => { e.preventDefault(); setView('home'); }}>Home</a> /
-          <a href="#">Components</a> /
-          <b style={{ color: 'var(--text-1)' }}>Graphics Cards</b>
+          <Link href="/">Home</Link> /
+          <Link href="/shop">Components</Link> /
+          <b style={{ color: 'var(--text-1)' }}>{title}</b>
         </div>
 
         <div className="shop-layout">
-          {/* Desktop sidebar filters */}
+          {/* Sidebar filters */}
           <aside className="filters card">
             <h3>Filters</h3>
             <span className="muted" style={{ fontSize: '12.5px' }}>148 products</span>
@@ -132,8 +139,7 @@ function FilterGroups({ showToast }: { showToast: (msg: string) => void }) {
       <div className="fgroup">
         <b>Price Range</b>
         <div className="price-inputs">
-          <input placeholder="$ Min" inputMode="numeric" aria-label="Min price" />
-          —
+          <input placeholder="$ Min" inputMode="numeric" aria-label="Min price" /> —
           <input placeholder="$ Max" inputMode="numeric" aria-label="Max price" />
         </div>
       </div>
@@ -148,19 +154,11 @@ function FilterGroups({ showToast }: { showToast: (msg: string) => void }) {
       </div>
       <div className="fgroup">
         <b>Availability</b>
-        <label className="fopt">
-          <input type="checkbox" defaultChecked style={{ accentColor: 'var(--accent)' }} /> In stock only
-        </label>
-        <label className="fopt">
-          <input type="checkbox" style={{ accentColor: 'var(--accent)' }} /> On sale
-        </label>
+        <label className="fopt"><input type="checkbox" defaultChecked style={{ accentColor: 'var(--accent)' }} /> In stock only</label>
+        <label className="fopt"><input type="checkbox" style={{ accentColor: 'var(--accent)' }} /> On sale</label>
       </div>
-      <button className="btn btn-primary btn-block btn-sm" style={{ marginTop: '10px' }} onClick={() => showToast('Filters applied ✓')}>
-        Apply Filters
-      </button>
-      <button className="btn btn-ghost btn-block btn-sm" style={{ marginTop: '6px' }} onClick={() => showToast('Filters cleared')}>
-        Clear all
-      </button>
+      <button className="btn btn-primary btn-block btn-sm" style={{ marginTop: '10px' }} onClick={() => showToast('Filters applied ✓')}>Apply Filters</button>
+      <button className="btn btn-ghost btn-block btn-sm" style={{ marginTop: '6px' }} onClick={() => showToast('Filters cleared')}>Clear all</button>
     </>
   );
 }
