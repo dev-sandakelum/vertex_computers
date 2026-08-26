@@ -1,30 +1,27 @@
 'use client';
 
+import Link from 'next/link';
 import { useApp } from '@/app/components/providers/AppProvider';
-import { STOCK_MAP, fmt, type Product } from '@/lib/data';
+import { STOCK_MAP, fmt, productPath, type Product } from '@/lib/data';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export default function ProductCard({ product: p }: ProductCardProps) {
-  const { openProduct, addToCart, showToast } = useApp();
+  const { addToCart, showToast } = useApp();
   const [badgeClass, stockLabel] = STOCK_MAP[p.stock];
+  const href = productPath(p.id);
 
   function handleAddToCart(e: React.MouseEvent) {
+    e.preventDefault();
     e.stopPropagation();
     addToCart(p.id, 1);
     showToast(`Added to cart — ${p.name.split(' ').slice(0, 3).join(' ')} ✓`);
   }
 
   return (
-    <article
-      className="pcard"
-      onClick={() => openProduct(p.id)}
-      tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && openProduct(p.id)}
-      aria-label={`${p.name} — ${fmt(p.price)}`}
-    >
+    <Link href={href} className="pcard" aria-label={`${p.name} — ${fmt(p.price)}`}>
       <div className="pcard-img">
         <svg width="44" height="44"><use href={`#${p.ic}`} /></svg>
         {p.tag && (
@@ -63,6 +60,6 @@ export default function ProductCard({ product: p }: ProductCardProps) {
           </button>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }
