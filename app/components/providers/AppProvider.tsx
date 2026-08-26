@@ -9,15 +9,14 @@ import React, {
   useRef,
   type ReactNode,
 } from 'react';
-import type { CartItem, AppView } from '@/lib/store';
+import type { CartItem } from '@/lib/store';
 import { PRODUCTS } from '@/lib/data';
+import { loadCart, saveCart } from '@/lib/cartStorage';
 
-/* ─── State ─── */
+/* ─── State ─────────────────────────────────────────────────── */
 interface AppState {
   cart: CartItem[];
   theme: 'light' | 'dark';
-  view: AppView;
-  currentProductId: number;
   toast: string;
   toastVisible: boolean;
   mobileDrawerOpen: boolean;
@@ -25,26 +24,25 @@ interface AppState {
   searchOpen: boolean;
 }
 
-const INITIAL: AppState = {
-  cart: [{ id: 0, q: 1 }, { id: 3, q: 1 }, { id: 4, q: 1 }],
-  theme: 'light',
-  view: 'home',
-  currentProductId: 0,
-  toast: '',
-  toastVisible: false,
-  mobileDrawerOpen: false,
-  filterDrawerOpen: false,
-  searchOpen: false,
-};
+function makeInitial(): AppState {
+  return {
+    cart: loadCart(),
+    theme: 'light',
+    toast: '',
+    toastVisible: false,
+    mobileDrawerOpen: false,
+    filterDrawerOpen: false,
+    searchOpen: false,
+  };
+}
 
-/* ─── Actions ─── */
+/* ─── Actions ───────────────────────────────────────────────── */
 type Action =
-  | { type: 'SET_VIEW'; view: AppView }
-  | { type: 'OPEN_PRODUCT'; id: number }
   | { type: 'SET_THEME'; theme: 'light' | 'dark' }
   | { type: 'ADD_TO_CART'; id: number; q: number }
   | { type: 'CHANGE_QTY'; index: number; delta: number }
   | { type: 'REMOVE_ITEM'; index: number }
+  | { type: 'CLEAR_CART' }
   | { type: 'SHOW_TOAST'; msg: string }
   | { type: 'HIDE_TOAST' }
   | { type: 'TOGGLE_MOBILE_DRAWER' }
@@ -54,26 +52,26 @@ type Action =
 
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
-    case 'SET_VIEW':
-      return { ...state, view: action.view, mobileDrawerOpen: false, filterDrawerOpen: false, searchOpen: false };
-    case 'OPEN_PRODUCT':
-      return { ...state, view: 'product', currentProductId: action.id, mobileDrawerOpen: false, filterDrawerOpen: false, searchOpen: false };
     case 'SET_THEME':
       return { ...state, theme: action.theme };
     case 'ADD_TO_CART': {
       const existing = state.cart.find((c) => c.id === action.id);
-      if (existing) {
-        return { ...state, cart: state.cart.map((c) => c.id === action.id ? { ...c, q: c.q + action.q } : c) };
-      }
-      return { ...state, cart: [...state.cart, { id: action.id, q: action.q }] };
+      const cart = existing
+        ? state.cart.map((c) => c.id === action.id ? { ...c, q: c.q + action.q } : c)
+        : [...state.cart, { id: action.id, q: action.q }];
+      return { ...state, cart };
     }
     case 'CHANGE_QTY':
       return {
         ...state,
-        cart: state.cart.map((c, i) => i === action.index ? { ...c, q: Math.max(1, c.q + action.delta) } : c),
+        cart: state.cart.map((c, i) =>
+          i === action.index ? { ...c, q: Math.max(1, c.q + action.delta) } : c
+        ),
       };
     case 'REMOVE_ITEM':
       return { ...state, cart: state.cart.filter((_, i) => i !== action.index) };
+    case 'CLEAR_CART':
+      return { ...state, cart: [] };
     case 'SHOW_TOAST':
       return { ...state, toast: action.msg, toastVisible: true };
     case 'HIDE_TOAST':
@@ -91,14 +89,13 @@ function reducer(state: AppState, action: Action): AppState {
   }
 }
 
-/* ─── Context ─── */
+/* ─── Context value ─────────────────────────────────────────── */
 interface AppContextValue extends AppState {
-  setView: (view: AppView) => void;
-  openProduct: (id: number) => void;
   toggleTheme: () => void;
   addToCart: (id: number, q: number) => void;
   changeQty: (index: number, delta: number) => void;
   removeItem: (index: number) => void;
+  clearCart: () => void;
   showToast: (msg: string) => void;
   toggleMobileDrawer: () => void;
   toggleFilterDrawer: () => void;
@@ -113,24 +110,18 @@ interface AppContextValue extends AppState {
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, INITIAL);
+  const [state, dispatch] = useReducer(reducer, undefined, makeInitial);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  /* sync theme to <html data-theme> */
+  /* Sync theme to <html data-theme> */
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', state.theme);
   }, [state.theme]);
 
-  /* scroll on view change */
-  const setView = useCallback((view: AppView) => {
-    dispatch({ type: 'SET_VIEW', view });
-    window.scrollTo({ top: 0, behavior: 'instant' });
-  }, []);
-
-  const openProduct = useCallback((id: number) => {
-    dispatch({ type: 'OPEN_PRODUCT', id });
-    window.scrollTo({ top: 0, behavior: 'instant' });
-  }, []);
+  /* Persist cart to localStorage on every change */
+  useEffect(() => {
+    saveCart(state.cart);
+  }, [state.cart]);
 
   const toggleTheme = useCallback(() => {
     dispatch({ type: 'SET_THEME', theme: state.theme === 'dark' ? 'light' : 'dark' });
@@ -148,6 +139,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'REMOVE_ITEM', index });
   }, []);
 
+  const clearCart = useCallback(() => {
+    dispatch({ type: 'CLEAR_CART' });
+  }, []);
+
   const showToast = useCallback((msg: string) => {
     dispatch({ type: 'SHOW_TOAST', msg });
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -159,7 +154,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const closeDrawers = useCallback(() => dispatch({ type: 'CLOSE_DRAWERS' }), []);
   const setSearchOpen = useCallback((open: boolean) => dispatch({ type: 'SET_SEARCH', open }), []);
 
-  /* cart derived */
+  /* Derived cart values */
   const cartCount = state.cart.reduce((s, c) => s + c.q, 0);
   const cartSubtotal = state.cart.reduce((s, c) => s + PRODUCTS[c.id].price * c.q, 0);
   const cartTax = cartSubtotal * 0.0725;
@@ -168,12 +163,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider value={{
       ...state,
-      setView,
-      openProduct,
       toggleTheme,
       addToCart,
       changeQty,
       removeItem,
+      clearCart,
       showToast,
       toggleMobileDrawer,
       toggleFilterDrawer,
