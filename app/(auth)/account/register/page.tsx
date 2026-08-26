@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { RegisterView } from '@/app/components/views/AuthViews';
+import RegisterForm from '../_components/RegisterForm';
 
 export const metadata: Metadata = {
   title: 'Create Account',
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function RegisterPage() {
-  return <RegisterView />;
+  return <RegisterForm />;
 }
