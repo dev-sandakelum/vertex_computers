@@ -174,23 +174,56 @@ nav.catnav a:hover, nav.catnav a.active { color: var(--accent); background: var(
 .promo-list-mobile .promo .p-ic { width: 38px; height: 38px; border-radius: 10px; }
 
 /* ============ PRODUCT CARD / GRID ============ */
-.product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px,1fr)); gap: 18px; }
-.pcard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transition: all .18s; box-shadow: var(--shadow-sm); cursor: pointer; }
-.pcard:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--accent); }
+.product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr)); gap: 16px; }
+.pcard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform .18s, box-shadow .18s, border-color .18s;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  height: 100%;
+}
+.pcard:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--accent); }
 .pcard:active { transform: scale(.98); }
-.pcard-img { aspect-ratio: 4/3; background: var(--surface-2); display: grid; place-items: center; color: var(--text-2); position: relative; }
+
+/* Image area — fixed height, not ratio-based, so tall photos don't balloon the card */
+.pcard-img {
+  height: 160px;
+  background: var(--surface-2);
+  display: grid;
+  place-items: center;
+  color: var(--text-2);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.pcard-img img { width: 100%; height: 100%; object-fit: contain; padding: 12px; }
 .pcard-img svg { width: 44%; opacity: .7; }
-.pcard-tag { position: absolute; top: 10px; left: 10px; }
-.pcard-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.pcard-brand { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-2); }
-.pcard-name { font-weight: 600; font-size: 14.5px; line-height: 1.35; }
-.pcard-specs { display: flex; flex-wrap: wrap; gap: 5px; }
+.pcard-tag { position: absolute; top: 8px; left: 8px; }
+
+.pcard-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.pcard-brand { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-2); }
+.pcard-name { font-weight: 600; font-size: 13.5px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pcard-specs { display: flex; flex-wrap: wrap; gap: 4px; }
 .stars { color: #f3a712; font-size: 12px; letter-spacing: 1px; }
-.stars small { color: var(--text-2); letter-spacing: 0; margin-left: 4px; }
+.stars small { color: var(--text-2); letter-spacing: 0; margin-left: 3px; }
 .pcard-foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 8px; }
-.price { font-weight: 800; font-size: 18px; letter-spacing: -.01em; }
-.price s { font-size: 12.5px; color: var(--text-2); font-weight: 500; margin-right: 6px; }
-.add-btn { width: 38px; height: 38px; border-radius: 10px; border: 1.5px solid var(--accent); background: transparent; color: var(--accent); display: grid; place-items: center; transition: all .15s; }
+.price { font-weight: 800; font-size: 17px; letter-spacing: -.01em; }
+.price s { font-size: 12px; color: var(--text-2); font-weight: 500; margin-right: 5px; }
+.add-btn {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  border: 1.5px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  display: grid; place-items: center;
+  transition: all .15s;
+  flex-shrink: 0;
+}
 .add-btn:hover { background: var(--accent); color: #fff; transform: scale(1.06); }
 .add-btn:active { background: var(--accent); color: #fff; }
 
@@ -512,10 +545,14 @@ main { min-height: 65vh; padding-bottom: 64px; }
   .desktop-cat-section { display: none !important; }
 
   /* product grids */
-  .product-grid       { grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
-  .pcard-name         { font-size: 12.5px !important; min-height: 32px; }
-  .pcard-body         { padding: 10px 12px 12px !important; gap: 6px !important; }
-  .add-btn            { width: 32px !important; height: 32px !important; border-radius: 9px !important; }
+  .product-grid       { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+  .pcard-img          { height: 130px !important; }
+  .pcard-img img      { padding: 8px !important; }
+  .pcard-name         { font-size: 12.5px !important; -webkit-line-clamp: 2; }
+  .pcard-body         { padding: 9px 10px 11px !important; gap: 5px !important; }
+  .pcard-specs        { gap: 3px !important; }
+  .badge-spec         { font-size: 10px !important; padding: 2px 6px !important; }
+  .add-btn            { width: 32px !important; height: 32px !important; border-radius: 8px !important; }
   .price              { font-size: 14px !important; }
 
   /* shop / category */

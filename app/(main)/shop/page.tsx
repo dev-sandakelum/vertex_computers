@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import CategoryView from '@/app/components/views/CategoryView';
 
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function ShopPage() {
-  return <CategoryView />;
+  return (
+    <Suspense fallback={<div style={{ padding: '40px', textAlign: 'center' }} className="muted">Loading products…</div>}>
+      <CategoryView />
+    </Suspense>
+  );
 }

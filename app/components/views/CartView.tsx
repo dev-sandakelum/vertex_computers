@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/app/components/providers/AppProvider';
-import { PRODUCTS, STOCK_MAP, fmt } from '@/lib/data';
+import { PRODUCTS, STOCK_MAP, fmt, productIc, productSpecList, type StockLevel } from '@/lib/data';
 
 export default function CartView() {
   const { cart, cartSubtotal, cartTax, cartTotal, cartCount, changeQty, removeItem, showToast } = useApp();
@@ -35,15 +35,17 @@ export default function CartView() {
               </div>
             ) : (
               cart.map((item, i) => {
-                const p = PRODUCTS[item.id];
-                const [badgeClass, stockLabel] = STOCK_MAP[p.stock];
+                const p = PRODUCTS.find(prod => prod.id === item.id)!;
+                const [badgeClass, stockLabel] = STOCK_MAP[p.stock as StockLevel];
+                const ic = productIc(p);
+                const specs = productSpecList(p);
                 return (
                   <div key={`${item.id}-${i}`} className="cart-item">
-                    <div className="ci-img"><svg width="48" height="36"><use href={`#${p.ic}`} /></svg></div>
+                    <div className="ci-img"><svg width="48" height="36"><use href={`#${ic}`} /></svg></div>
                     <div>
                       <div className="ci-name">{p.name}</div>
                       <div className="ci-meta">
-                        {p.brand} · {p.specs[0]} ·{' '}
+                        {p.brand} · {specs[0]} ·{' '}
                         <span className={`badge ${badgeClass}`} style={{ fontSize: '10.5px', padding: '2px 8px' }}>{stockLabel}</span>
                       </div>
                       <button className="ci-remove" onClick={() => { removeItem(i); showToast('Item removed'); }}>✕ Remove</button>
@@ -96,15 +98,17 @@ export default function CartView() {
           </div>
         ) : (
           cart.map((item, i) => {
-            const p = PRODUCTS[item.id];
+            const p = PRODUCTS.find(prod => prod.id === item.id)!;
+            const ic = productIc(p);
+            const specs = productSpecList(p);
             return (
               <div key={`m-${item.id}-${i}`} className="cart-item-m">
                 <div className="ci-img" style={{ width: '64px', height: '52px' }}>
-                  <svg width="32" height="28"><use href={`#${p.ic}`} /></svg>
+                  <svg width="32" height="28"><use href={`#${ic}`} /></svg>
                 </div>
                 <div>
                   <div className="ci-name" style={{ fontSize: '13.5px' }}>{p.name}</div>
-                  <div className="ci-meta">{p.brand} · {p.specs[0]}</div>
+                  <div className="ci-meta">{p.brand} · {specs[0]}</div>
                   <div className="ci-bottom">
                     <div className="qty">
                       <button onClick={() => changeQty(i, -1)} aria-label="Decrease">−</button>

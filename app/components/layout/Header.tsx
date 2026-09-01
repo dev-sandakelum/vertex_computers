@@ -63,7 +63,7 @@ export default function Header() {
 
           {/* Logo */}
           <Link href="/" className="logo" aria-label="Vertex Computers home">
-            <span className="logo-mark">V</span>
+            <img src="/logo.png" alt="Vertex Computers" height={34} width={34} style={{ borderRadius: '9px', objectFit: 'contain' }} />
             <span>VERTEX<small>Computers</small></span>
           </Link>
 

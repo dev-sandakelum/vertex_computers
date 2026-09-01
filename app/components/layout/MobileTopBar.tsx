@@ -15,7 +15,7 @@ export default function MobileTopBar() {
       </button>
 
       <Link href="/" className="app-logo" aria-label="Vertex Computers">
-        <span className="logo-mark">V</span>
+        <img src="/logo.png" alt="Vertex Computers" height={30} width={30} style={{ borderRadius: '8px', objectFit: 'contain' }} />
         <span>VERTEX<small>Computers</small></span>
       </Link>
 

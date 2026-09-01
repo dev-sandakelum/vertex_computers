@@ -156,7 +156,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   /* Derived cart values */
   const cartCount = state.cart.reduce((s, c) => s + c.q, 0);
-  const cartSubtotal = state.cart.reduce((s, c) => s + PRODUCTS[c.id].price * c.q, 0);
+  const cartSubtotal = state.cart.reduce((s, c) => {
+    const prod = PRODUCTS.find(p => p.id === c.id);
+    return s + (prod ? prod.price * c.q : 0);
+  }, 0);
   const cartTax = cartSubtotal * 0.0725;
   const cartTotal = cartSubtotal + cartTax;
 

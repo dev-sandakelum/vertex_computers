@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/app/components/providers/AppProvider';
-import { PRODUCTS, fmt } from '@/lib/data';
+import { PRODUCTS, fmt, productIc, productImg } from '@/lib/data';
 
 /* ── Step indicator ── */
 type S = 'on' | 'done' | 'pending';
@@ -24,10 +24,18 @@ function MiniCart() {
   return (
     <>
       {cart.map((item, i) => {
-        const p = PRODUCTS[item.id];
+        const p = PRODUCTS.find(prod => prod.id === item.id);
+        if (!p) return null;
+        const ic = productIc(p);
+        const img = productImg(p);
         return (
           <div key={i} className="mini-item">
-            <div className="mini-img"><svg width="24" height="20"><use href={`#${p.ic}`} /></svg></div>
+            <div className="mini-img">
+              {img
+                ? <img src={img} alt={p.name} style={{ width: '24px', height: '20px', objectFit: 'contain' }} />
+                : <svg width="24" height="20"><use href={`#${ic}`} /></svg>
+              }
+            </div>
             <div style={{ flex: 1 }}><b style={{ fontSize: '12.5px' }}>{p.name}</b><br /><small className="muted">Qty {item.q}</small></div>
             <b>{fmt(p.price * item.q)}</b>
           </div>
