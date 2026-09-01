@@ -1,0 +1,204 @@
+{
+  "id": 1,
+  "brand": "Apex",
+  "name": "Apex R9 9800X 12-Core Processor",
+  "slug": "apex-r9-9800x-12-core-processor",
+  "category": "CPUs",
+  "categorySlug": "cpus",
+  "icon": "i-cpu",
+
+  "price": 449.00,
+  "oldPrice": null,
+  "currency": "USD",
+  "savings": null,
+  "savingsPercent": null,
+
+  "stock": "in",
+  "stockLabel": "In Stock",
+  "stockCount": 38,
+
+  "rating": "4.9",
+  "reviewCount": 412,
+
+  "sku": "AP-001",
+  "upc": "8-14719-02891-4",
+  "partNumber": "R9-9800X-BOX",
+
+  "shortDescription": "Premium 12-core desktop processor built on Apex's latest Zen 5 architecture. Factory-tuned boost clocks, full DDR5 and PCIe 5.0 support, and a bundled Wraith Prism cooler.",
+
+  "images": [
+    {
+      "id": 1,
+      "url": "/images/products/ap-001-front.jpg",
+      "alt": "Apex R9 9800X processor front view",
+      "primary": true
+    },
+    {
+      "id": 2,
+      "url": "/images/products/ap-001-top.jpg",
+      "alt": "Apex R9 9800X processor top IHS view",
+      "primary": false
+    },
+    {
+      "id": 3,
+      "url": "/images/products/ap-001-box.jpg",
+      "alt": "Apex R9 9800X retail box",
+      "primary": false
+    },
+    {
+      "id": 4,
+      "url": "/images/products/ap-001-cooler.jpg",
+      "alt": "Bundled Wraith Prism cooler",
+      "primary": false
+    }
+  ],
+
+  "specs": {
+    "Architecture": "Zen 5",
+    "Socket": "AM6",
+    "Cores": "12",
+    "Threads": "24",
+    "Base Clock": "4.7 GHz",
+    "Boost Clock": "5.4 GHz",
+    "L2 Cache": "12 MB",
+    "L3 Cache": "64 MB",
+    "TDP": "105W",
+    "Max TDP (PPT)": "142W",
+    "Process Node": "4nm TSMC",
+    "Memory Support": "DDR5-5600 (dual channel)",
+    "Max Memory": "192 GB",
+    "PCIe Version": "PCIe 5.0",
+    "PCIe Lanes": "28",
+    "Integrated Graphics": "Apex Radeon 890M",
+    "Cooler Included": "Wraith Prism (120mm ARGB)",
+    "Thermal Interface": "Liquid Metal (pre-applied)",
+    "OS Support": "Windows 11, Linux (kernel 6.1+)"
+  },
+
+  "tags": ["New Arrival", "Top Rated", "Best Seller"],
+
+  "badges": [],
+
+  "highlights": [
+    "12 cores / 24 threads for heavy multitasking and content creation",
+    "5.4 GHz single-core boost for snappy everyday performance",
+    "PCIe 5.0 ×16 GPU + ×4 NVMe — future-proof platform",
+    "DDR5-5600 native support, up to 192 GB",
+    "Ships with Wraith Prism ARGB cooler — no extra purchase needed"
+  ],
+
+  "bundledItems": [
+    {
+      "name": "Wraith Prism ARGB Cooler",
+      "quantity": 1
+    },
+    {
+      "name": "Installation Guide",
+      "quantity": 1
+    },
+    {
+      "name": "Sticker Sheet",
+      "quantity": 1
+    }
+  ],
+
+  "shipping": {
+    "freeShipping": true,
+    "freeShippingThreshold": 99,
+    "estimatedDelivery": "2–4 business days",
+    "expedited": {
+      "available": true,
+      "label": "Next-day delivery",
+      "price": 12.99
+    },
+    "weight": "0.83 kg",
+    "dimensions": {
+      "length": 14.8,
+      "width": 12.4,
+      "height": 6.2,
+      "unit": "cm"
+    }
+  },
+
+  "warranty": {
+    "duration": "2 years",
+    "type": "Limited manufacturer warranty",
+    "extendable": true,
+    "extensionOptions": ["1 year — $29", "2 years — $49"]
+  },
+
+  "returns": {
+    "window": 30,
+    "windowUnit": "days",
+    "condition": "Unopened or defective items only",
+    "freeReturns": true
+  },
+
+  "compatibility": {
+    "notes": "Requires AM6 socket motherboard with BIOS version 1.2 or later. Not compatible with AM4 or AM5 boards.",
+    "testedBoards": [
+      "Apex X9 6900 XT (BIOS 1.2+)",
+      "Surge ProX AM6 ATX",
+      "Nova Prime AM6 mITX"
+    ]
+  },
+
+  "reviews": {
+    "average": 4.9,
+    "total": 412,
+    "distribution": {
+      "5": 349,
+      "4": 48,
+      "3": 10,
+      "2": 3,
+      "1": 2
+    },
+    "featured": [
+      {
+        "id": "r-001",
+        "author": "BuilderMike",
+        "avatar": null,
+        "rating": 5,
+        "title": "Absolutely demolishes everything I throw at it",
+        "body": "Upgraded from a 5800X and the difference is night and day. Rendering times halved, games run smoother, and the bundled cooler is surprisingly capable at stock speeds.",
+        "date": "2026-07-14",
+        "verified": true,
+        "helpful": 87
+      },
+      {
+        "id": "r-002",
+        "author": "TechReviewer_J",
+        "avatar": null,
+        "rating": 5,
+        "title": "Best AM6 chip right now, no contest",
+        "body": "Tested against the competition — single-core leads by 9%, multi-core by 12%. Power efficiency is also noticeably better. If you're on AM6, this is the chip to get.",
+        "date": "2026-06-29",
+        "verified": true,
+        "helpful": 61
+      },
+      {
+        "id": "r-003",
+        "author": "QuietBuilder",
+        "avatar": null,
+        "rating": 4,
+        "title": "Great CPU, but runs hot under sustained load",
+        "body": "Stock cooler handles everyday tasks fine, but under long Blender renders it throttles above 95°C. Swapped to a 240mm AIO and now it holds 5.1 GHz all-core stable. CPU itself is fantastic.",
+        "date": "2026-06-10",
+        "verified": true,
+        "helpful": 43
+      }
+    ]
+  },
+
+  "relatedProductIds": [4, 6, 8, 3],
+
+  "frequentlyBoughtWith": [5, 3, 7],
+
+  "metadata": {
+    "createdAt": "2026-03-01T00:00:00Z",
+    "updatedAt": "2026-08-20T09:14:00Z",
+    "publishedAt": "2026-03-15T08:00:00Z",
+    "visible": true,
+    "featured": true
+  }
+}
