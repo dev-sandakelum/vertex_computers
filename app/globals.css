@@ -361,8 +361,8 @@ footer.site { background: var(--surface); border-top: 1px solid var(--border); m
 .bottom-sheet.show{ transform: translateY(0); }
 .hscroll          { display: none; gap: 12px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; padding-left: 16px; padding-right: 16px; }
 .accordion        { display: none; border-top: 1px solid var(--border); }
-.sticky-buy       { display: none; position: sticky; bottom: var(--bottomnav-h); background: var(--surface); border-top: 1px solid var(--border); gap: 10px; padding: 10px 16px; box-shadow: 0 -4px 14px rgba(16,21,27,.06); z-index: 20; align-items: center; }
-.sticky-checkout  { display: none; position: sticky; bottom: var(--bottomnav-h); background: var(--surface); border-top: 1px solid var(--border); padding: 12px 16px; box-shadow: 0 -4px 14px rgba(16,21,27,.06); z-index: 20; }
+.sticky-buy       { display: none; position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--border); gap: 10px; padding: 10px 16px; box-shadow: 0 -4px 14px rgba(16,21,27,.06); z-index: 20; align-items: center; }
+.sticky-checkout  { display: none; position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 12px 16px; box-shadow: 0 -4px 14px rgba(16,21,27,.06); z-index: 20; }
 .shop-toolbar-sticky { display: none; position: sticky; top: var(--topbar-h); z-index: 40; background: var(--bg); align-items: center; justify-content: space-between; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--border); }
 .cart-item-m      { display: none; grid-template-columns: 64px 1fr; gap: 12px; padding: 14px 16px; align-items: start; }
 .cart-item-m + .cart-item-m { border-top: 1px solid var(--border); }
@@ -379,6 +379,39 @@ footer.site { background: var(--surface); border-top: 1px solid var(--border); m
 .facc summary::-webkit-details-marker { display: none; }
 .facc ul { list-style: none; padding-bottom: 12px; display: grid; gap: 8px; font-size: 13px; color: var(--text-2); }
 .foot-bottom-m { text-align: center; font-size: 11px; color: var(--text-2); margin-top: 18px; }
+
+/* ============ CUSTOM SCROLLBAR ============ */
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+/* Chromium / Safari */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+  transition: background .2s;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-2);
+  background-clip: content-box;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+/* Elements that already suppress their scrollbar keep doing so */
+nav.catnav::-webkit-scrollbar,
+.hscroll::-webkit-scrollbar { display: none; }
 
 /* ============ TOAST ============ */
 .toast { position: fixed; bottom: 26px; left: 50%; transform: translate(-50%, 20px); background: var(--text-1); color: var(--bg); padding: 12px 22px; border-radius: 99px; font-size: 14px; font-weight: 600; box-shadow: var(--shadow-lg); opacity: 0; pointer-events: none; transition: all .3s; z-index: 150; max-width: 88%; text-align: center; }
@@ -435,19 +468,18 @@ main { min-height: 65vh; padding-bottom: 64px; }
 
   /* show mobile chrome */
   .topbar-app         { display: flex; }
-  .bottomnav          { display: grid; }
   .promo-band         { display: block; }
   .sheet-backdrop     { display: block; }
   .bottom-sheet       { display: block; }
   .search-sheet       { display: block; }
   .footer-m           { display: block; }
 
-  /* toast above bottom nav */
-  .toast { bottom: calc(var(--bottomnav-h) + 14px) !important; }
+  /* toast position */
+  .toast { bottom: 26px !important; }
 
   /* layout reset — pad top for fixed topbar */
   .container          { padding: 0 !important; }
-  main                { min-height: unset; padding-top: var(--topbar-h); padding-bottom: calc(var(--bottomnav-h) + 8px); }
+  main                { min-height: unset; padding-top: var(--topbar-h); padding-bottom: 24px; }
   .px                 { padding-left: 16px; padding-right: 16px; }
 
   /* show mobile-only helpers */

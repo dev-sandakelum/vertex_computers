@@ -185,7 +185,7 @@ export default function ProductView({ productId }: Props) {
       </div>
 
       {/* ── Mobile-only info ── */}
-      <div className="pdp-info px" style={{ paddingTop: '16px' }}>
+      <div className="pdp-info-mobile px" style={{ paddingTop: '16px' }}>
         <span className="pcard-brand">{p.brand} · SKU {p.brand.toUpperCase().slice(0, 2)}-{String(p.id).padStart(3, '0')}</span>
         <h1 style={{ fontSize: '19px' }}>{p.name}</h1>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -228,8 +228,8 @@ export default function ProductView({ productId }: Props) {
       </div>
 
       {/* Mobile related hscroll */}
-      <div className="px" style={{ marginTop: '20px' }}>
-        <div className="section-head"><h2 className="section-title" style={{ fontSize: '15px' }}>Frequently Bought Together</h2></div>
+      <div className="mobile-section-head">
+        <h2 className="section-title" style={{ fontSize: '15px' }}>Frequently Bought Together</h2>
       </div>
       <div className="hscroll">
         {RELATED_IDS.map((id) => {
