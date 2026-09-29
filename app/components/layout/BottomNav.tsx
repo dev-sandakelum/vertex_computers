@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useApp } from '@/app/components/providers/AppProvider';
 
 export default function BottomNav() {
-  const { cartCount } = useApp();
+  const { cartCount, accountHref } = useApp();
   const pathname = usePathname();
 
   function isActive(paths: string[]) {
@@ -41,7 +41,7 @@ export default function BottomNav() {
         {cartCount > 0 && <span className="nc">{cartCount}</span>}
       </Link>
 
-      <Link href="/account/login" className={isActive(['/account']) ? 'on' : ''} aria-label="Account">
+      <Link href={accountHref} className={isActive(['/account', '/account/login', '/account/register']) ? 'on' : ''} aria-label="Account">
         <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <circle cx="12" cy="8" r="4"/>
           <path d="M4 21c1.5-4 5-5.5 8-5.5S18.5 17 20 21"/>

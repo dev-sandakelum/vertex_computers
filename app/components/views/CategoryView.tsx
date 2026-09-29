@@ -110,6 +110,32 @@ function sortProducts(products: Product[], key: SortKey): Product[] {
   }
 }
 
+/* ── Sort select (hoisted outside render to keep component identity stable) ── */
+interface SortSelectProps {
+  sortKey: SortKey;
+  onSort: (key: SortKey) => void;
+  style?: React.CSSProperties;
+  className?: string;
+}
+
+function SortSelect({ sortKey, onSort, style, className }: SortSelectProps) {
+  return (
+    <select
+      aria-label="Sort by"
+      value={sortKey}
+      className={className}
+      style={style}
+      onChange={(e) => onSort(e.target.value as SortKey)}
+    >
+      <option value="pop">Sort: Popularity</option>
+      <option value="lo">Price: Low → High</option>
+      <option value="hi">Price: High → Low</option>
+      <option value="new">Newest First</option>
+      <option value="rating">Highest Rated</option>
+    </select>
+  );
+}
+
 interface Props {
   activeCategory?: string;
 }
@@ -224,21 +250,6 @@ export default function CategoryView({ activeCategory }: Props) {
     onRemove: () => { setFilters(f => ({ ...f, minPrice: '', maxPrice: '' })); resetPage(); },
   });
 
-  const SortSelect = ({ className }: { className?: string }) => (
-    <select
-      aria-label="Sort by"
-      value={sortKey}
-      className={className}
-      onChange={(e) => handleSort(e.target.value as SortKey)}
-    >
-      <option value="pop">Sort: Popularity</option>
-      <option value="lo">Price: Low → High</option>
-      <option value="hi">Price: High → Low</option>
-      <option value="new">Newest First</option>
-      <option value="rating">Highest Rated</option>
-    </select>
-  );
-
   return (
     <div>
       {/* Mobile sticky toolbar */}
@@ -266,7 +277,7 @@ export default function CategoryView({ activeCategory }: Props) {
               }}>{activeFilterCount}</span>
             )}
           </button>
-          <SortSelect style={{ padding: '8px 10px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', background: 'var(--surface)', color: 'var(--text-1)', fontSize: '12.5px', fontWeight: 500 }} />
+          <SortSelect sortKey={sortKey} onSort={handleSort} style={{ padding: '8px 10px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', background: 'var(--surface)', color: 'var(--text-1)', fontSize: '12.5px', fontWeight: 500 }} />
         </div>
       </div>
 
@@ -330,7 +341,7 @@ export default function CategoryView({ activeCategory }: Props) {
                 ))}
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
-                <SortSelect />
+                <SortSelect sortKey={sortKey} onSort={handleSort} />
               </div>
             </div>
 

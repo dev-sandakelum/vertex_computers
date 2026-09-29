@@ -1,0 +1,12 @@
+<html>
+<body>
+    <script src="https://js.puter.com/v2/"></script>
+<script>
+  puter.ai.txt2img("A serene Japanese garden", {
+    model: "gemini-2.5-flash-image-preview"
+  }).then(result => {
+    document.getElementById('output').src = result.image;
+  });
+</script>
+</body>
+</html>

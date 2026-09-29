@@ -5,7 +5,7 @@ import { useApp } from '@/app/components/providers/AppProvider';
 import { CATS, categorySlug } from '@/lib/data';
 
 export default function Drawers() {
-  const { mobileDrawerOpen, closeDrawers } = useApp();
+  const { mobileDrawerOpen, closeDrawers, accountHref } = useApp();
 
   return (
     <>
@@ -32,7 +32,7 @@ export default function Drawers() {
             </li>
           ))}
           <li><Link href="/shop?tag=deal" onClick={closeDrawers} style={{ color: 'var(--danger)', fontWeight: 600 }}>🔥 Deals</Link></li>
-          <li><Link href="/account/login" onClick={closeDrawers}>👤 Account</Link></li>
+          <li><Link href={accountHref} onClick={closeDrawers}>👤 Account</Link></li>
           <li><Link href="/cart" onClick={closeDrawers}>🛒 Cart</Link></li>
         </ul>
       </aside>

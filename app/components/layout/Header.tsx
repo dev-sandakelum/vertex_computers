@@ -8,7 +8,7 @@ import { CATS, categorySlug } from '@/lib/data';
 import SearchSuggestions, { useSearchKeyboard } from '@/app/components/ui/SearchSuggestions';
 
 export default function Header() {
-  const { theme, toggleTheme, cartCount, toggleMobileDrawer } = useApp();
+  const { theme, toggleTheme, cartCount, toggleMobileDrawer, accountHref, accountLabel } = useApp();
   const router = useRouter();
 
   const [query, setQuery] = useState('');
@@ -111,7 +111,7 @@ export default function Header() {
                 </svg>
               )}
             </button>
-            <Link href="/account/login" className="icon-btn" aria-label="Account">
+            <Link href={accountHref} className="icon-btn" aria-label={accountLabel}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-5.5 8-5.5S18.5 17 20 21"/>
               </svg>

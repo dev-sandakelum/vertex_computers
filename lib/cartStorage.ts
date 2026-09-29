@@ -8,7 +8,7 @@ import type { CartItem } from './store';
 const KEY = 'vertex_cart';
 
 export function loadCart(): CartItem[] {
-  if (typeof window === 'undefined') return defaultCart();
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return defaultCart();

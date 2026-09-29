@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/app/components/providers/AppProvider';
@@ -15,20 +15,36 @@ const GoogleIcon = () => (
 );
 
 export default function LoginForm() {
-  const { showToast } = useApp();
+  const { authUser, authReady, signIn, showToast } = useApp();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  async function handleSubmit(e: React.FormEvent) {
+  useEffect(() => {
+    if (authReady && authUser) {
+      router.replace('/account');
+    }
+  }, [authReady, authUser, router]);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError('');
     setLoading(true);
-    /* demo: simulate network */
-    await new Promise((r) => setTimeout(r, 600));
+    const result = signIn({ email, password, rememberMe });
     setLoading(false);
-    router.push('/account');
+
+    if (!result.ok) {
+      setError(result.message);
+      showToast(result.message);
+      return;
+    }
+
+    showToast(result.message);
+    router.replace('/account');
   }
 
   return (
@@ -112,18 +128,28 @@ export default function LoginForm() {
         </div>
 
         <label className="auth-remember">
-          <input type="checkbox" defaultChecked />
+          <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
           <span>Keep me signed in</span>
         </label>
+
+        {error && (
+          <p style={{ color: 'var(--danger)', fontSize: '13px', marginTop: '-4px' }}>
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"
           className={`auth-submit${loading ? ' auth-submit--loading' : ''}`}
           disabled={loading}
         >
-          {loading ? <span className="auth-spinner" /> : 'Sign In'}
+          {loading ? <span className="auth-spinner" /> : 'Log In'}
         </button>
       </form>
+
+      <p style={{ marginTop: '14px', fontSize: '12.5px', color: 'var(--text-2)' }}>
+        Demo account: <b>name@example.com</b> / <b>Demo1234!</b>
+      </p>
 
       <p className="auth-switch">
         Don&apos;t have an account?{' '}

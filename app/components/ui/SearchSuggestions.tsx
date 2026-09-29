@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import {
   getSearchSuggestions,
   TRENDING,
@@ -26,11 +26,15 @@ export default function SearchSuggestions({
   variant = 'dropdown',
 }: SearchSuggestionsProps) {
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [prevQuery, setPrevQuery] = useState(query);
   const suggestions = getSearchSuggestions(query);
   const listRef = useRef<HTMLUListElement>(null);
 
-  /* reset active index whenever suggestions change */
-  useEffect(() => { setActiveIndex(-1); }, [query]);
+  /* reset active index whenever query changes */
+  if (query !== prevQuery) {
+    setPrevQuery(query);
+    setActiveIndex(-1);
+  }
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -212,9 +216,14 @@ export function useSearchKeyboard({
   onClose: () => void;
 }) {
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [prevQuery, setPrevQuery] = useState(query);
   const suggestions = getSearchSuggestions(query);
 
-  useEffect(() => { setActiveIndex(-1); }, [query]);
+  /* reset active index whenever query changes */
+  if (query !== prevQuery) {
+    setPrevQuery(query);
+    setActiveIndex(-1);
+  }
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {

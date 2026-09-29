@@ -12,11 +12,23 @@ import React, {
 import type { CartItem } from '@/lib/store';
 import { PRODUCTS } from '@/lib/data';
 import { loadCart, saveCart } from '@/lib/cartStorage';
+import {
+  clearAuthSession,
+  loadAuthProfile,
+  loadAuthSession,
+  saveAuthProfile,
+  saveAuthSession,
+  toPublicAuthUser,
+  type PublicAuthUser,
+  type StoredAuthProfile,
+} from '@/lib/authStorage';
 
 /* ─── State ─────────────────────────────────────────────────── */
 interface AppState {
   cart: CartItem[];
   theme: 'light' | 'dark';
+  authUser: PublicAuthUser | null;
+  authReady: boolean;
   toast: string;
   toastVisible: boolean;
   mobileDrawerOpen: boolean;
@@ -26,8 +38,10 @@ interface AppState {
 
 function makeInitial(): AppState {
   return {
-    cart: loadCart(),
+    cart: [],
     theme: 'light',
+    authUser: null,
+    authReady: false,
     toast: '',
     toastVisible: false,
     mobileDrawerOpen: false,
@@ -39,9 +53,12 @@ function makeInitial(): AppState {
 /* ─── Actions ───────────────────────────────────────────────── */
 type Action =
   | { type: 'SET_THEME'; theme: 'light' | 'dark' }
+  | { type: 'SET_AUTH_USER'; user: PublicAuthUser | null }
+  | { type: 'SET_AUTH_READY'; ready: boolean }
   | { type: 'ADD_TO_CART'; id: number; q: number }
   | { type: 'CHANGE_QTY'; index: number; delta: number }
   | { type: 'REMOVE_ITEM'; index: number }
+  | { type: 'REMOVE_ITEMS'; indices: number[] }
   | { type: 'CLEAR_CART' }
   | { type: 'SHOW_TOAST'; msg: string }
   | { type: 'HIDE_TOAST' }
@@ -54,6 +71,10 @@ function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'SET_THEME':
       return { ...state, theme: action.theme };
+    case 'SET_AUTH_USER':
+      return { ...state, authUser: action.user };
+    case 'SET_AUTH_READY':
+      return { ...state, authReady: action.ready };
     case 'ADD_TO_CART': {
       const existing = state.cart.find((c) => c.id === action.id);
       const cart = existing
@@ -70,6 +91,10 @@ function reducer(state: AppState, action: Action): AppState {
       };
     case 'REMOVE_ITEM':
       return { ...state, cart: state.cart.filter((_, i) => i !== action.index) };
+    case 'REMOVE_ITEMS': {
+      const set = new Set(action.indices);
+      return { ...state, cart: state.cart.filter((_, i) => !set.has(i)) };
+    }
     case 'CLEAR_CART':
       return { ...state, cart: [] };
     case 'SHOW_TOAST':
@@ -92,9 +117,14 @@ function reducer(state: AppState, action: Action): AppState {
 /* ─── Context value ─────────────────────────────────────────── */
 interface AppContextValue extends AppState {
   toggleTheme: () => void;
+  signIn: (credentials: AuthCredentials) => AuthResult;
+  register: (input: AuthRegistrationInput) => AuthResult;
+  updateProfile: (input: AuthUpdateInput) => AuthResult;
+  signOut: () => void;
   addToCart: (id: number, q: number) => void;
   changeQty: (index: number, delta: number) => void;
   removeItem: (index: number) => void;
+  removeItems: (indices: number[]) => void;
   clearCart: () => void;
   showToast: (msg: string) => void;
   toggleMobileDrawer: () => void;
@@ -105,6 +135,36 @@ interface AppContextValue extends AppState {
   cartSubtotal: number;
   cartTax: number;
   cartTotal: number;
+  accountHref: string;
+  accountLabel: string;
+}
+
+interface AuthCredentials {
+  email: string;
+  password: string;
+  rememberMe: boolean;
+}
+
+interface AuthRegistrationInput {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  password: string;
+  rememberMe: boolean;
+  acceptedTerms: boolean;
+}
+
+interface AuthUpdateInput {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}
+
+interface AuthResult {
+  ok: boolean;
+  message: string;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -118,14 +178,101 @@ export function AppProvider({ children }: { children: ReactNode }) {
     document.documentElement.setAttribute('data-theme', state.theme);
   }, [state.theme]);
 
+  /* Hydrate cart from localStorage after mount (avoids SSR mismatch) */
+  useEffect(() => {
+    const saved = loadCart();
+    if (saved.length > 0) {
+      saved.forEach(({ id, q }) => dispatch({ type: 'ADD_TO_CART', id, q }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   /* Persist cart to localStorage on every change */
   useEffect(() => {
     saveCart(state.cart);
   }, [state.cart]);
 
+  /* Hydrate auth from localStorage after mount */
+  useEffect(() => {
+    const profile = loadAuthProfile();
+    const sessionEmail = loadAuthSession();
+
+    if (sessionEmail && profile.email.trim().toLowerCase() === sessionEmail.trim().toLowerCase()) {
+      dispatch({ type: 'SET_AUTH_USER', user: toPublicAuthUser(profile) });
+    } else {
+      clearAuthSession();
+      dispatch({ type: 'SET_AUTH_USER', user: null });
+    }
+
+    dispatch({ type: 'SET_AUTH_READY', ready: true });
+  }, []);
+
   const toggleTheme = useCallback(() => {
     dispatch({ type: 'SET_THEME', theme: state.theme === 'dark' ? 'light' : 'dark' });
   }, [state.theme]);
+
+  const signIn = useCallback((credentials: AuthCredentials): AuthResult => {
+    const profile = loadAuthProfile();
+    const email = credentials.email.trim().toLowerCase();
+    const storedEmail = profile.email.trim().toLowerCase();
+
+    if (!credentials.email.trim() || !credentials.password.trim()) {
+      return { ok: false, message: 'Enter your email and password.' };
+    }
+
+    if (email !== storedEmail || credentials.password !== profile.password) {
+      return { ok: false, message: 'Invalid email or password.' };
+    }
+
+    saveAuthSession(profile.email);
+    dispatch({ type: 'SET_AUTH_USER', user: toPublicAuthUser(profile) });
+    return { ok: true, message: `Welcome back, ${profile.firstName}.` };
+  }, []);
+
+  const register = useCallback((input: AuthRegistrationInput): AuthResult => {
+    const profile: StoredAuthProfile = {
+      firstName: input.firstName.trim(),
+      lastName: input.lastName.trim(),
+      email: input.email.trim(),
+      phone: input.phone.trim(),
+      password: input.password,
+      rememberMe: input.rememberMe,
+      acceptedTerms: input.acceptedTerms,
+      createdAt: new Date().toISOString(),
+    };
+
+    saveAuthProfile(profile);
+    saveAuthSession(profile.email);
+    dispatch({ type: 'SET_AUTH_USER', user: toPublicAuthUser(profile) });
+    return { ok: true, message: `Account created for ${profile.firstName}.` };
+  }, []);
+
+  const updateProfile = useCallback((input: AuthUpdateInput): AuthResult => {
+    const profile = loadAuthProfile();
+    const currentEmail = state.authUser?.email.trim().toLowerCase();
+
+    if (!currentEmail || profile.email.trim().toLowerCase() !== currentEmail) {
+      return { ok: false, message: 'No signed-in account is available.' };
+    }
+
+    const nextProfile: StoredAuthProfile = {
+      ...profile,
+      firstName: input.firstName.trim(),
+      lastName: input.lastName.trim(),
+      email: input.email.trim(),
+      phone: input.phone.trim(),
+    };
+
+    saveAuthProfile(nextProfile);
+    saveAuthSession(nextProfile.email);
+    dispatch({ type: 'SET_AUTH_USER', user: toPublicAuthUser(nextProfile) });
+    return { ok: true, message: 'Profile updated.' };
+  }, [state.authUser?.email]);
+
+  const signOut = useCallback(() => {
+    clearAuthSession();
+    dispatch({ type: 'SET_AUTH_USER', user: null });
+  }, []);
 
   const addToCart = useCallback((id: number, q: number) => {
     dispatch({ type: 'ADD_TO_CART', id, q });
@@ -137,6 +284,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const removeItem = useCallback((index: number) => {
     dispatch({ type: 'REMOVE_ITEM', index });
+  }, []);
+
+  const removeItems = useCallback((indices: number[]) => {
+    dispatch({ type: 'REMOVE_ITEMS', indices });
   }, []);
 
   const clearCart = useCallback(() => {
@@ -162,14 +313,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, 0);
   const cartTax = cartSubtotal * 0.0725;
   const cartTotal = cartSubtotal + cartTax;
+  const accountHref = state.authUser ? '/account' : '/account/login';
+  const accountLabel = state.authUser ? `Account for ${state.authUser.fullName}` : 'Sign in to your account';
 
   return (
     <AppContext.Provider value={{
       ...state,
+      signIn,
+      register,
+      updateProfile,
+      signOut,
       toggleTheme,
       addToCart,
       changeQty,
       removeItem,
+      removeItems,
       clearCart,
       showToast,
       toggleMobileDrawer,
@@ -180,6 +338,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       cartSubtotal,
       cartTax,
       cartTotal,
+      accountHref,
+      accountLabel,
     }}>
       {children}
     </AppContext.Provider>

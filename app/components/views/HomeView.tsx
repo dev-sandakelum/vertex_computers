@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { CATS, PRODUCTS, categorySlug, productPath } from '@/lib/data';
+import { CATS, PRODUCTS, categorySlug, productPath, fmt } from '@/lib/data';
 import ProductCard from '@/app/components/ui/ProductCard';
 import SvgIcon from '@/app/components/ui/SvgIcon';
 
@@ -53,8 +53,25 @@ export default function HomeView() {
             </div>
           </div>
           <div className="hero-art">
-            <div className="gpu-visual">
-              <svg width="120" height="80"><use href="#i-gpu" /></svg>
+            <div className="hero-product-card">
+              <div className="hpc-badge">New Release</div>
+              <div className="hpc-icon">
+                <svg width="96" height="64"><use href="#i-gpu" /></svg>
+              </div>
+              <div className="hpc-name">{PRODUCTS[0].name}</div>
+              <div className="hpc-brand">{PRODUCTS[0].brand}</div>
+              <div className="hpc-specs">
+                {Object.values(PRODUCTS[0].specs).slice(0, 3).map((s) => (
+                  <span key={s}>{s}</span>
+                ))}
+              </div>
+              <div className="hpc-footer">
+                <span className="hpc-price">{fmt(PRODUCTS[0].price)}</span>
+                <span className="hpc-rating">
+                  ★ {PRODUCTS[0].rating}
+                  <span className="hpc-rev">({PRODUCTS[0].reviewCount})</span>
+                </span>
+              </div>
             </div>
           </div>
         </div>
