@@ -115,8 +115,20 @@ export default function PayHereButton({
       } = data;
 
       // ── Step 2: Ensure PayHere SDK is loaded ─────────────────
-      if (typeof window === 'undefined' || !window.payhere) {
-        throw new Error('PayHere SDK is not loaded. Please refresh the page and try again.');
+      // Script loads asynchronously; wait up to 10s for window.payhere to appear.
+      if (!window.payhere) {
+        await new Promise<void>((resolve, reject) => {
+          const deadline = Date.now() + 10000;
+          const poll = setInterval(() => {
+            if (window.payhere) {
+              clearInterval(poll);
+              resolve();
+            } else if (Date.now() > deadline) {
+              clearInterval(poll);
+              reject(new Error('PayHere SDK did not load. Check your internet connection and refresh.'));
+            }
+          }, 200);
+        });
       }
 
       setState('waiting');

@@ -16,7 +16,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Script from 'next/script';
 import { useApp } from '@/app/components/providers/AppProvider';
 import { PRODUCTS, fmt, productImg } from '@/lib/data';
 import PayHereButton from '@/app/components/payment/PayHereButton';
@@ -289,7 +288,6 @@ export function CheckoutReviewView() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [shipping, setShipping] = useState<ShippingState | null>(null);
-  const [sdkReady, setSdkReady] = useState(false);
 
   // Hydrate shipping from sessionStorage after mount, and mark mounted
   useEffect(() => {
@@ -297,6 +295,24 @@ export function CheckoutReviewView() {
     setShipping(saved);
     setMounted(true);
   }, [authUser]);
+
+  // Load PayHere JS SDK manually — avoids next/script timing issues in dev
+  useEffect(() => {
+    const PAYHERE_SDK = 'https://www.payhere.lk/lib/payhere.js';
+    // Skip if already loaded
+    if (document.querySelector(`script[src="${PAYHERE_SDK}"]`)) return;
+
+    const script = document.createElement('script');
+    script.src = PAYHERE_SDK;
+    script.async = true;
+    script.onerror = () => showToast('Failed to load PayHere SDK. Please refresh.');
+    document.body.appendChild(script);
+
+    return () => {
+      // Leave the script in the DOM on unmount so re-renders don't reload it
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Guard: empty cart — only after mount to avoid SSR/client mismatch
   if (mounted && cart.length === 0) {
@@ -339,13 +355,6 @@ export function CheckoutReviewView() {
 
   return (
     <div>
-      {/* Load PayHere JS SDK — only on this page */}
-      <Script
-        src="https://www.payhere.lk/lib/payhere.js"
-        strategy="lazyOnload"
-        onLoad={() => setSdkReady(true)}
-        onError={() => showToast('Failed to load PayHere. Please refresh.')}
-      />
 
       <div className="container">
         <Steps s="done" r="on" c="pending" />
@@ -420,7 +429,6 @@ export function CheckoutReviewView() {
                 shipping={shippingForButton}
                 onSuccess={handlePaySuccess}
                 onCancel={handlePayCancel}
-                disabled={!sdkReady}
                 label={`Pay Now — ${fmt(cartTotal)}`}
               />
             </div>
@@ -443,7 +451,6 @@ export function CheckoutReviewView() {
           shipping={shippingForButton}
           onSuccess={handlePaySuccess}
           onCancel={handlePayCancel}
-          disabled={!sdkReady}
           label={`Pay Now — ${fmt(cartTotal)}`}
         />
       </div>
