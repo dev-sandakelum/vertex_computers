@@ -11,130 +11,92 @@ import {
 
 interface Props { productId: number; }
 
+const PENDING_IMG = '/pending.png';
+
 export default function ProductView({ productId }: Props) {
   const { addToCart, showToast } = useApp();
   const p = PRODUCTS.find(prod => prod.id === productId) ?? PRODUCTS[0];
+
   const [qty, setQty]           = useState(1);
   const [activeThumb, setThumb] = useState(0);
   const [activeTab, setTab]     = useState<'specs' | 'reviews' | 'qa'>('specs');
   const [openAcc, setOpenAcc]   = useState<number | null>(0);
   const [wishlist, setWishlist] = useState(false);
-  const [badgeClass, stockLabel] = STOCK_MAP[p.stock as StockLevel];
 
-  const ic       = productIc(p);
-  const img      = productImg(p);
-  const old      = productOld(p);
-  const rev      = productRev(p);
-  const tag      = productTag(p);
+  const [badgeClass, stockLabel] = STOCK_MAP[p.stock as StockLevel];
+  const ic        = productIc(p);
+  const img       = productImg(p);
+  const old       = productOld(p);
+  const rev       = productRev(p);
+  const tag       = productTag(p);
   const activeImg = p.images[activeThumb]?.url ?? img;
-  const sku      = p.sku ?? `${p.brand.toUpperCase().slice(0, 2)}-${String(p.id).padStart(3, '0')}`;
-  const saveAmt  = old ? old - p.price : 0;
-  const savePct  = old ? Math.round((1 - p.price / old) * 100) : 0;
+  const sku       = p.sku ?? `${p.brand.toUpperCase().slice(0, 2)}-${String(p.id).padStart(3, '0')}`;
+  const saveAmt   = old ? old - p.price : 0;
+  const savePct   = old ? Math.round((1 - p.price / old) * 100) : 0;
   const outOfStock = p.stock === 'out';
 
   const SPECS: [string, string][] = Object.entries(p.specs ?? {}).slice(0, 16);
-  if (SPECS.length === 0) {
-    SPECS.push(
-      ['Brand', p.brand],
-      ['Price', fmt(p.price)],
-      ['Rating', `${p.rating} stars · ${rev} reviews`],
-      ['Stock', stockLabel],
-    );
-  }
+  if (SPECS.length === 0) SPECS.push(['Brand', p.brand], ['Price', fmt(p.price)], ['Rating', `${p.rating} stars`], ['Stock', stockLabel]);
 
-  const relatedProducts = (p.relatedProductIds ?? [])
-    .slice(0, 4)
-    .map(id => PRODUCTS.find(prod => prod.id === id))
-    .filter(Boolean) as typeof PRODUCTS;
+  const related = (p.relatedProductIds ?? []).slice(0, 4).map(id => PRODUCTS.find(x => x.id === id)).filter(Boolean) as typeof PRODUCTS;
 
-  function handleAddToCart() {
-    addToCart(p.id, qty);
-    showToast(`Added to cart — ${p.name.split(' ').slice(0, 3).join(' ')} ✓`);
-  }
+  function handleAddToCart() { addToCart(p.id, qty); showToast(`Added to cart — ${p.name.split(' ').slice(0, 3).join(' ')} ✓`); }
+  function toggleWishlist() { setWishlist(w => !w); showToast(wishlist ? 'Removed from wishlist' : 'Saved to wishlist ♡'); }
 
-  function toggleWishlist() {
-    setWishlist(w => !w);
-    showToast(wishlist ? 'Removed from wishlist' : 'Saved to wishlist ♡');
-  }
-
-  /* ── Star renderer ── */
   function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
-    const full  = Math.floor(rating);
-    const empty = 5 - full;
-    return (
-      <span className="stars" style={{ fontSize: size }}>
-        {'★'.repeat(full)}{'☆'.repeat(empty)}
-      </span>
-    );
+    return <span className="stars" style={{ fontSize: size }}>{'★'.repeat(Math.floor(rating))}{'☆'.repeat(5 - Math.floor(rating))}</span>;
   }
 
   return (
     <div className="pdp-page">
-
       {/* Breadcrumbs */}
-      <div className="breadcrumbs container">
+      <nav className="breadcrumbs container" aria-label="Breadcrumb">
         <Link href="/">Home</Link>
         <span className="bc-sep">/</span>
         <Link href={`/shop/${categorySlug(p.category)}`}>{p.category}</Link>
         <span className="bc-sep">/</span>
         <span className="bc-cur">{p.name.split(' ').slice(0, 5).join(' ')}</span>
-      </div>
+      </nav>
 
-      {/* ══════════════════════════════════════════
-          DESKTOP — hero 2-col
-      ══════════════════════════════════════════ */}
+      {/* ══ DESKTOP ══ */}
       <div className="container pdp-desktop">
         <div className="pdp">
 
-          {/* ── Gallery: vertical thumbs + main image ── */}
+          {/* Gallery */}
           <div className="pdp-gallery">
-            {/* Vertical thumbnail strip */}
             {p.images.length > 1 && (
               <div className="pdp-thumbs-v">
                 {p.images.slice(0, 6).map((image, i) => (
-                  <button
-                    key={image.id}
-                    className={`pdp-thumb${i === activeThumb ? ' on' : ''}`}
-                    aria-label={`View image ${i + 1}`}
-                    onClick={() => setThumb(i)}
-                  >
-                    <img src={image.url} alt={image.alt} />
+                  <button key={image.id} className={`pdp-thumb${i === activeThumb ? ' on' : ''}`} aria-label={`View image ${i + 1}`} onClick={() => setThumb(i)}>
+                    <img src={image.url} alt={image.alt} onError={(e) => { (e.currentTarget as HTMLImageElement).src = PENDING_IMG; }} />
                   </button>
                 ))}
               </div>
             )}
-
-            {/* Main image */}
             <div className="pdp-main-img">
               {tag && <span className="pdp-tag">{tag}</span>}
-              {activeImg
-                ? <img src={activeImg} alt={p.name} />
-                : <svg width="100" height="80"><use href={`#${ic}`} /></svg>
-              }
+              <img src={activeImg || PENDING_IMG} alt={p.name} onError={(e) => { (e.currentTarget as HTMLImageElement).src = PENDING_IMG; }} />
               <span className="pdp-zoom-hint">🔍 Hover to zoom</span>
             </div>
           </div>
 
-          {/* ── Info panel ── */}
+          {/* Info */}
           <div className="pdp-info">
-
-            {/* Brand + SKU */}
             <div className="pdp-topline">
-              <Link href={`/shop/${categorySlug(p.category)}`} className="pdp-brand-link">
-                {p.brand}
-              </Link>
+              <Link href={`/shop/${categorySlug(p.category)}`} className="pdp-brand-link">{p.brand}</Link>
               <span className="pdp-sku">SKU {sku}</span>
             </div>
 
-            {/* Product name */}
             <h1 className="pdp-name">{p.name}</h1>
 
-            {/* Ratings + stock */}
             <div className="pdp-meta-row">
               <Stars rating={parseFloat(p.rating)} size={15} />
-              <a href="#reviews-tab" className="pdp-rev-link" onClick={e => { e.preventDefault(); setTab('reviews'); document.querySelector('.spec-section')?.scrollIntoView({ behavior: 'smooth' }); }}>
+              <button
+                className="pdp-rev-link"
+                onClick={() => { setTab('reviews'); document.querySelector('.pdp-below')?.scrollIntoView({ behavior: 'smooth' }); }}
+              >
                 {p.rating} · {rev} {rev === 1 ? 'review' : 'reviews'}
-              </a>
+              </button>
               <span className="pdp-meta-sep" />
               <span className={`badge ${badgeClass}`}>{stockLabel}</span>
               {p.stockCount && p.stockCount < 10 && p.stock !== 'out' && (
@@ -147,23 +109,13 @@ export default function ProductView({ productId }: Props) {
               {old && <span className="pdp-was">Was {fmt(old)}</span>}
               <div className="pdp-price-row">
                 <span className="pdp-price">{fmt(p.price)}</span>
-                {old && (
-                  <span className="pdp-save-badge">
-                    Save {savePct}%
-                  </span>
-                )}
+                {old && <span className="pdp-save-badge">Save {savePct}%</span>}
               </div>
-              {old && (
-                <span className="pdp-save-amt">
-                  You save {fmt(saveAmt)}
-                </span>
-              )}
+              {old && <span className="pdp-save-amt">You save {fmt(saveAmt)}</span>}
             </div>
 
-            {/* Short description */}
             <p className="pdp-desc">{p.shortDescription}</p>
 
-            {/* Key highlights */}
             {p.highlights && p.highlights.length > 0 && (
               <ul className="pdp-highlights">
                 {p.highlights.slice(0, 5).map((h, i) => (
@@ -175,7 +127,6 @@ export default function ProductView({ productId }: Props) {
               </ul>
             )}
 
-            {/* Key specs chips */}
             {SPECS.slice(0, 6).length > 0 && (
               <div className="pdp-spec-chips">
                 {SPECS.slice(0, 6).map(([label, value]) => (
@@ -187,12 +138,12 @@ export default function ProductView({ productId }: Props) {
               </div>
             )}
 
-            <div className="pdp-divider" />
+            <hr className="pdp-divider" />
 
-            {/* Qty + Add to Cart */}
+            {/* Qty + Cart */}
             <div className="pdp-actions">
               <div className="pdp-qty-row">
-                <label className="pdp-qty-label">Qty</label>
+                <span className="pdp-qty-label">Qty</span>
                 <div className="qty" role="group" aria-label="Quantity">
                   <button onClick={() => setQty(q => Math.max(1, q - 1))} aria-label="Decrease">−</button>
                   <span>{qty}</span>
@@ -200,22 +151,11 @@ export default function ProductView({ productId }: Props) {
                 </div>
               </div>
               <div className="pdp-btn-row">
-                <button
-                  className="btn btn-primary btn-lg pdp-cart-btn"
-                  onClick={handleAddToCart}
-                  disabled={outOfStock}
-                >
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                  </svg>
+                <button className="btn btn-primary btn-lg pdp-cart-btn" onClick={handleAddToCart} disabled={outOfStock}>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
                   {outOfStock ? 'Out of Stock' : 'Add to Cart'}
                 </button>
-                <button
-                  className={`pdp-wish-btn${wishlist ? ' active' : ''}`}
-                  aria-label={wishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-                  onClick={toggleWishlist}
-                >
+                <button className={`pdp-wish-btn${wishlist ? ' active' : ''}`} aria-label={wishlist ? 'Remove from wishlist' : 'Add to wishlist'} onClick={toggleWishlist}>
                   <svg width="19" height="19" viewBox="0 0 24 24" fill={wishlist ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                   </svg>
@@ -223,83 +163,64 @@ export default function ProductView({ productId }: Props) {
               </div>
             </div>
 
-            {/* Delivery / trust strip */}
+            {/* Delivery */}
             <div className="pdp-delivery-strip">
               <div className="pdp-delivery-row">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-                  <path d="M3 7h13v10H3zM16 10h4l1 3v4h-5M6 20a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 6 20ZM18 20a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 18 20Z"/>
-                </svg>
-                <div>
-                  <b>Free Delivery</b>
-                  <span> on orders over $99 · </span>
-                  <span>{p.shipping?.estimatedDelivery ?? 'Est. 3–5 business days'}</span>
-                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M3 7h13v10H3zM16 10h4l1 3v4h-5M6 20a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 6 20ZM18 20a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 18 20Z"/></svg>
+                <div><b>Free Delivery</b><span> on orders over $99 · </span><span>{p.shipping?.estimatedDelivery ?? 'Est. 3–5 business days'}</span></div>
               </div>
               <div className="pdp-delivery-row">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-                  <path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7l-9-5Z"/>
-                </svg>
-                <div>
-                  <b>{p.warranty?.duration ?? '2-Year'} Warranty</b>
-                  <span> · {p.returns?.window ?? 30}-day hassle-free returns</span>
-                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7l-9-5Z"/></svg>
+                <div><b>{p.warranty?.duration ?? '2-Year'} Warranty</b><span> · {p.returns?.window ?? 30}-day hassle-free returns</span></div>
               </div>
             </div>
 
-            {/* Trust badges row */}
             <div className="pdp-trust-row">
-              <span>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M5 12l4 4L19 6"/></svg>
-                Compatibility-checked
-              </span>
-              <span>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg>
-                Secure checkout
-              </span>
-              <span>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 3v4l3 3"/></svg>
-                24/7 support
-              </span>
+              {[['Compatibility-checked', 'M20 6L9 17l-5-5'], ['Secure checkout', 'M2 5h20v14a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3z M2 10h20'], ['24/7 support', 'M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 3v4l3 3']].map(([label, path]) => (
+                <span key={label}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d={path}/></svg>
+                  {label}
+                </span>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* ══════════════════════════════════════════
-            BELOW FOLD — Specs / Reviews / Q&A + sidebar
-        ══════════════════════════════════════════ */}
-        <div className="pdp-below" id="reviews-tab">
-          {/* Tabs */}
-          <div className="pdp-tabs">
-            <button className={activeTab === 'specs'   ? 'on' : ''} onClick={() => setTab('specs')}>Specifications</button>
-            <button className={activeTab === 'reviews' ? 'on' : ''} onClick={() => setTab('reviews')}>Reviews ({rev})</button>
-            <button className={activeTab === 'qa'      ? 'on' : ''} onClick={() => setTab('qa')}>Q&amp;A</button>
+        {/* ── Tabs / specs / reviews ── */}
+        <div className="pdp-below">
+          <div className="pdp-tabs" role="tablist">
+            {(['specs', 'reviews', 'qa'] as const).map((t) => (
+              <button
+                key={t}
+                role="tab"
+                aria-selected={activeTab === t}
+                className={activeTab === t ? 'on' : ''}
+                onClick={() => setTab(t)}
+              >
+                {t === 'specs' ? 'Specifications' : t === 'reviews' ? `Reviews (${rev})` : 'Q&A'}
+              </button>
+            ))}
           </div>
 
           <div className="pdp-tab-body card">
-
-            {/* ── Specs ── */}
             {activeTab === 'specs' && (
               <div className="pdp-spec-layout">
                 <div className="pdp-spec-main">
                   <table className="spec-table">
-                    <tbody>
-                      {SPECS.map(([label, value]) => (
-                        <tr key={label}><td>{label}</td><td>{value}</td></tr>
-                      ))}
-                    </tbody>
+                    <tbody>{SPECS.map(([l, v]) => <tr key={l}><td>{l}</td><td>{v}</td></tr>)}</tbody>
                   </table>
                 </div>
                 {p.compatibility && (
                   <div className="pdp-spec-aside">
                     <h3 className="aside-head">Compatibility Notes</h3>
-                    <p className="muted" style={{ fontSize: '13.5px', lineHeight: 1.6 }}>{p.compatibility.notes}</p>
-                    {p.compatibility.testedBoards && p.compatibility.testedBoards.length > 0 && (
+                    <p style={{ fontSize: '13.5px', lineHeight: 1.6, color: 'var(--muted)' }}>{p.compatibility.notes}</p>
+                    {(p.compatibility.testedBoards?.length ?? 0) > 0 && (
                       <>
                         <h4 style={{ fontSize: '13px', fontWeight: 700, marginTop: '16px', marginBottom: '8px' }}>Tested Boards</h4>
                         <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          {p.compatibility.testedBoards.map(b => (
-                            <li key={b} style={{ fontSize: '13px', color: 'var(--text-2)', display: 'flex', gap: '6px', alignItems: 'center' }}>
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                          {p.compatibility.testedBoards!.map(b => (
+                            <li key={b} style={{ fontSize: '13px', color: 'var(--muted)', display: 'flex', gap: '6px', alignItems: 'center' }}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
                               {b}
                             </li>
                           ))}
@@ -311,12 +232,10 @@ export default function ProductView({ productId }: Props) {
               </div>
             )}
 
-            {/* ── Reviews ── */}
             {activeTab === 'reviews' && (
               <div className="pdp-reviews-layout">
                 {p.reviews?.featured && p.reviews.featured.length > 0 ? (
                   <>
-                    {/* Summary sidebar */}
                     <div className="reviews-summary-col">
                       <div className="rev-big-score">
                         <span className="rev-score-num">{p.reviews.average.toFixed(1)}</span>
@@ -339,8 +258,6 @@ export default function ProductView({ productId }: Props) {
                         </div>
                       )}
                     </div>
-
-                    {/* Review list */}
                     <div className="reviews-list-col">
                       {p.reviews.featured.map(review => (
                         <div key={review.id} className="review-card">
@@ -368,42 +285,34 @@ export default function ProductView({ productId }: Props) {
                   </>
                 ) : (
                   <div style={{ padding: '32px 24px' }}>
-                    <p className="muted">No reviews yet. Be the first to review this product.</p>
+                    <p style={{ color: 'var(--muted)' }}>No reviews yet. Be the first to review this product.</p>
                   </div>
                 )}
               </div>
             )}
 
-            {/* ── Q&A ── */}
             {activeTab === 'qa' && (
               <div style={{ padding: '28px 24px' }}>
-                <p className="muted" style={{ fontSize: '14px' }}>
-                  Have a question about this product?{' '}
-                  <a href="#" className="link" onClick={e => e.preventDefault()}>Ask the community →</a>
-                </p>
+                <p style={{ fontSize: '14px', color: 'var(--muted)' }}>Have a question? <a href="#" className="link" onClick={e => e.preventDefault()}>Ask the community →</a></p>
               </div>
             )}
           </div>
         </div>
 
-        {/* ── Related / Frequently Bought Together ── */}
-        {relatedProducts.length > 0 && (
+        {/* Related */}
+        {related.length > 0 && (
           <div className="pdp-related">
             <div className="section-head">
               <h2 className="section-title">Frequently Bought Together</h2>
               <Link href={`/shop/${categorySlug(p.category)}`} className="link">View all →</Link>
             </div>
             <div className="product-grid">
-              {relatedProducts.map(rp => {
-                const rpIc  = productIc(rp);
+              {related.map(rp => {
                 const rpImg = productImg(rp);
                 return (
-                  <Link key={rp.id} href={productPath(rp.id)} className="pcard">
+                  <Link key={rp.id} href={productPath(rp.id)} className="pcard" aria-label={rp.name}>
                     <div className="pcard-img">
-                      {rpImg
-                        ? <img src={rpImg} alt={rp.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        : <svg width="44" height="44"><use href={`#${rpIc}`} /></svg>
-                      }
+                      <img src={rpImg || PENDING_IMG} alt={rp.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.currentTarget as HTMLImageElement).src = PENDING_IMG; }} />
                     </div>
                     <div className="pcard-body">
                       <span className="pcard-brand">{rp.brand}</span>
@@ -411,7 +320,7 @@ export default function ProductView({ productId }: Props) {
                       <Stars rating={parseFloat(rp.rating)} size={12} />
                       <div className="pcard-foot">
                         <span className="price">{fmt(rp.price)}</span>
-                        <button className="add-btn" onClick={e => { e.preventDefault(); addToCart(rp.id, 1); showToast('Added ✓'); }}>
+                        <button className="add-btn" aria-label={`Add ${rp.name} to cart`} onClick={e => { e.preventDefault(); addToCart(rp.id, 1); showToast('Added ✓'); }}>
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
                         </button>
                       </div>
@@ -424,29 +333,21 @@ export default function ProductView({ productId }: Props) {
         )}
       </div>
 
-      {/* ══════════════════════════════════════════
-          MOBILE — stacked
-      ══════════════════════════════════════════ */}
-
-      {/* Mobile image carousel */}
+      {/* ══ MOBILE ══ */}
       <div className="pdp-mob-gallery">
         <div className="pdp-mob-img">
           {tag && <span className="pdp-tag">{tag}</span>}
-          {activeImg
-            ? <img src={activeImg} alt={p.name} />
-            : <svg width="80" height="60"><use href={`#${ic}`} /></svg>
-          }
+          <img src={activeImg || PENDING_IMG} alt={p.name} onError={(e) => { (e.currentTarget as HTMLImageElement).src = PENDING_IMG; }} />
         </div>
         {p.images.length > 1 && (
           <div className="pdp-mob-dots">
             {p.images.slice(0, 5).map((_, i) => (
-              <button key={i} className={`pdp-dot${i === activeThumb ? ' on' : ''}`} aria-label={`Image ${i+1}`} onClick={() => setThumb(i)} />
+              <button key={i} className={`pdp-dot${i === activeThumb ? ' on' : ''}`} aria-label={`Image ${i + 1}`} onClick={() => setThumb(i)} />
             ))}
           </div>
         )}
       </div>
 
-      {/* Mobile info block */}
       <div className="pdp-mob-info px">
         <div className="pdp-topline" style={{ marginTop: '14px' }}>
           <span className="pdp-brand-link">{p.brand}</span>
@@ -455,7 +356,7 @@ export default function ProductView({ productId }: Props) {
         <h1 className="pdp-name" style={{ fontSize: '19px', marginTop: '6px' }}>{p.name}</h1>
         <div className="pdp-meta-row" style={{ marginBottom: '12px' }}>
           <Stars rating={parseFloat(p.rating)} size={14} />
-          <span className="pdp-rev-link">{p.rating} · {rev} reviews</span>
+          <span className="pdp-rev-link" style={{ fontSize: '12px' }}>{p.rating} · {rev} reviews</span>
           <span className="pdp-meta-sep" />
           <span className={`badge ${badgeClass}`}>{stockLabel}</span>
         </div>
@@ -482,30 +383,25 @@ export default function ProductView({ productId }: Props) {
 
       {/* Mobile accordions */}
       <div className="accordion">
-        {([
+        {[
           {
             label: 'Specifications',
             content: (
               <div style={{ overflowX: 'auto', marginBottom: '14px' }}>
-                <table className="spec-table">
-                  <tbody>{SPECS.map(([l, v]) => <tr key={l}><td>{l}</td><td>{v}</td></tr>)}</tbody>
-                </table>
+                <table className="spec-table"><tbody>{SPECS.map(([l, v]) => <tr key={l}><td>{l}</td><td>{v}</td></tr>)}</tbody></table>
               </div>
             ),
           },
           {
             label: `Reviews (${rev})`,
-            content: p.reviews?.featured && p.reviews.featured.length > 0 ? (
+            content: p.reviews?.featured?.length ? (
               <div style={{ paddingBottom: '14px' }}>
                 <div className="rev-big-score" style={{ flexDirection: 'row', gap: '12px', justifyContent: 'flex-start', marginBottom: '16px' }}>
                   <span className="rev-score-num">{p.reviews.average.toFixed(1)}</span>
-                  <div>
-                    <Stars rating={p.reviews.average} size={14} />
-                    <span className="muted" style={{ fontSize: '11px', display: 'block', marginTop: '2px' }}>{p.reviews.total} reviews</span>
-                  </div>
+                  <div><Stars rating={p.reviews.average} size={14} /><span style={{ color: 'var(--muted)', fontSize: '11px', display: 'block', marginTop: '2px' }}>{p.reviews.total} reviews</span></div>
                 </div>
                 {p.reviews.featured.slice(0, 3).map(review => (
-                  <div key={review.id} className="review-card" style={{ border: 'none', borderTop: '1px solid var(--border)', borderRadius: 0, padding: '12px 0', marginBottom: 0 }}>
+                  <div key={review.id} className="review-card" style={{ border: 'none', borderTop: '1px solid var(--line)', borderRadius: 0, padding: '12px 0', marginBottom: 0 }}>
                     <div className="review-card-head">
                       <div className="review-avatar">{review.author.charAt(0)}</div>
                       <div className="review-meta">
@@ -518,13 +414,10 @@ export default function ProductView({ productId }: Props) {
                   </div>
                 ))}
               </div>
-            ) : <p className="muted" style={{ fontSize: '13px', paddingBottom: '14px' }}>No reviews yet.</p>,
+            ) : <p style={{ fontSize: '13px', color: 'var(--muted)', paddingBottom: '14px' }}>No reviews yet.</p>,
           },
-          {
-            label: 'Q&A',
-            content: <p className="muted" style={{ fontSize: '13px', paddingBottom: '14px' }}>Q&amp;A coming soon.</p>,
-          },
-        ] as const).map((item, i) => (
+          { label: 'Q&A', content: <p style={{ fontSize: '13px', color: 'var(--muted)', paddingBottom: '14px' }}>Q&A coming soon.</p> },
+        ].map((item, i) => (
           <div key={item.label} className={`acc-item${openAcc === i ? ' open' : ''}`}>
             <button className="acc-head" onClick={() => setOpenAcc(openAcc === i ? null : i)}>
               {item.label} <span className="chev">▾</span>
@@ -535,29 +428,25 @@ export default function ProductView({ productId }: Props) {
       </div>
 
       {/* Mobile related */}
-      {relatedProducts.length > 0 && (
+      {related.length > 0 && (
         <>
           <div className="mobile-section-head">
             <h2 className="section-title" style={{ fontSize: '15px' }}>Frequently Bought Together</h2>
           </div>
           <div className="hscroll">
-            {relatedProducts.map(rp => {
-              const rpIc  = productIc(rp);
+            {related.map(rp => {
               const rpImg = productImg(rp);
               return (
                 <Link key={rp.id} href={productPath(rp.id)} className="hcard">
                   <div className="hcard-img">
-                    {rpImg
-                      ? <img src={rpImg} alt={rp.name} style={{ width: '40px', height: '36px', objectFit: 'contain' }} />
-                      : <svg width="40" height="36"><use href={`#${rpIc}`} /></svg>
-                    }
+                    <img src={rpImg || PENDING_IMG} alt={rp.name} style={{ width: '40px', height: '36px', objectFit: 'contain' }} onError={(e) => { (e.currentTarget as HTMLImageElement).src = PENDING_IMG; }} />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <span className="pcard-brand">{rp.brand}</span>
                     <span className="pcard-name" style={{ fontSize: '12.5px' }}>{rp.name}</span>
                     <div className="pcard-foot" style={{ marginTop: 'auto' }}>
                       <span className="price" style={{ fontSize: '14px' }}>{fmt(rp.price)}</span>
-                      <button className="add-btn" onClick={e => { e.preventDefault(); addToCart(rp.id, 1); showToast('Added ✓'); }}>
+                      <button className="add-btn" aria-label={`Add ${rp.name} to cart`} onClick={e => { e.preventDefault(); addToCart(rp.id, 1); showToast('Added ✓'); }}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
                       </button>
                     </div>
@@ -592,7 +481,6 @@ export default function ProductView({ productId }: Props) {
           </svg>
         </button>
       </div>
-
     </div>
   );
 }

@@ -33,6 +33,7 @@ interface AppState {
   toastVisible: boolean;
   mobileDrawerOpen: boolean;
   filterDrawerOpen: boolean;
+  cartDrawerOpen: boolean;
   searchOpen: boolean;
 }
 
@@ -46,6 +47,7 @@ function makeInitial(): AppState {
     toastVisible: false,
     mobileDrawerOpen: false,
     filterDrawerOpen: false,
+    cartDrawerOpen: false,
     searchOpen: false,
   };
 }
@@ -64,6 +66,9 @@ type Action =
   | { type: 'HIDE_TOAST' }
   | { type: 'TOGGLE_MOBILE_DRAWER' }
   | { type: 'TOGGLE_FILTER_DRAWER' }
+  | { type: 'TOGGLE_CART_DRAWER' }
+  | { type: 'OPEN_CART_DRAWER' }
+  | { type: 'CLOSE_CART_DRAWER' }
   | { type: 'CLOSE_DRAWERS' }
   | { type: 'SET_SEARCH'; open: boolean };
 
@@ -102,13 +107,19 @@ function reducer(state: AppState, action: Action): AppState {
     case 'HIDE_TOAST':
       return { ...state, toastVisible: false };
     case 'TOGGLE_MOBILE_DRAWER':
-      return { ...state, mobileDrawerOpen: !state.mobileDrawerOpen, filterDrawerOpen: false, searchOpen: false };
+      return { ...state, mobileDrawerOpen: !state.mobileDrawerOpen, filterDrawerOpen: false, cartDrawerOpen: false, searchOpen: false };
     case 'TOGGLE_FILTER_DRAWER':
-      return { ...state, filterDrawerOpen: !state.filterDrawerOpen, mobileDrawerOpen: false, searchOpen: false };
+      return { ...state, filterDrawerOpen: !state.filterDrawerOpen, mobileDrawerOpen: false, cartDrawerOpen: false, searchOpen: false };
+    case 'TOGGLE_CART_DRAWER':
+      return { ...state, cartDrawerOpen: !state.cartDrawerOpen, mobileDrawerOpen: false, filterDrawerOpen: false, searchOpen: false };
+    case 'OPEN_CART_DRAWER':
+      return { ...state, cartDrawerOpen: true, mobileDrawerOpen: false, filterDrawerOpen: false, searchOpen: false };
+    case 'CLOSE_CART_DRAWER':
+      return { ...state, cartDrawerOpen: false };
     case 'CLOSE_DRAWERS':
-      return { ...state, mobileDrawerOpen: false, filterDrawerOpen: false };
+      return { ...state, mobileDrawerOpen: false, filterDrawerOpen: false, cartDrawerOpen: false };
     case 'SET_SEARCH':
-      return { ...state, searchOpen: action.open, mobileDrawerOpen: false, filterDrawerOpen: false };
+      return { ...state, searchOpen: action.open, mobileDrawerOpen: false, filterDrawerOpen: false, cartDrawerOpen: false };
     default:
       return state;
   }
@@ -129,6 +140,8 @@ interface AppContextValue extends AppState {
   showToast: (msg: string) => void;
   toggleMobileDrawer: () => void;
   toggleFilterDrawer: () => void;
+  toggleCartDrawer: () => void;
+  closeCartDrawer: () => void;
   closeDrawers: () => void;
   setSearchOpen: (open: boolean) => void;
   cartCount: number;
@@ -276,6 +289,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addToCart = useCallback((id: number, q: number) => {
     dispatch({ type: 'ADD_TO_CART', id, q });
+    dispatch({ type: 'OPEN_CART_DRAWER' });
   }, []);
 
   const changeQty = useCallback((index: number, delta: number) => {
@@ -302,8 +316,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const toggleMobileDrawer = useCallback(() => dispatch({ type: 'TOGGLE_MOBILE_DRAWER' }), []);
   const toggleFilterDrawer = useCallback(() => dispatch({ type: 'TOGGLE_FILTER_DRAWER' }), []);
-  const closeDrawers = useCallback(() => dispatch({ type: 'CLOSE_DRAWERS' }), []);
-  const setSearchOpen = useCallback((open: boolean) => dispatch({ type: 'SET_SEARCH', open }), []);
+  const toggleCartDrawer   = useCallback(() => dispatch({ type: 'TOGGLE_CART_DRAWER' }), []);
+  const closeCartDrawer    = useCallback(() => dispatch({ type: 'CLOSE_CART_DRAWER' }), []);
+  const closeDrawers       = useCallback(() => dispatch({ type: 'CLOSE_DRAWERS' }), []);
+  const setSearchOpen      = useCallback((open: boolean) => dispatch({ type: 'SET_SEARCH', open }), []);
 
   /* Derived cart values */
   const cartCount = state.cart.reduce((s, c) => s + c.q, 0);
@@ -311,9 +327,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const prod = PRODUCTS.find(p => p.id === c.id);
     return s + (prod ? prod.price * c.q : 0);
   }, 0);
-  const cartTax = cartSubtotal * 0.0725;
+  const cartTax   = cartSubtotal * 0.0725;
   const cartTotal = cartSubtotal + cartTax;
-  const accountHref = state.authUser ? '/account' : '/account/login';
+  const accountHref  = state.authUser ? '/account' : '/account/login';
   const accountLabel = state.authUser ? `Account for ${state.authUser.fullName}` : 'Sign in to your account';
 
   return (
@@ -332,6 +348,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       showToast,
       toggleMobileDrawer,
       toggleFilterDrawer,
+      toggleCartDrawer,
+      closeCartDrawer,
       closeDrawers,
       setSearchOpen,
       cartCount,

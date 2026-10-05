@@ -1,0 +1,793 @@
+[
+  {
+    "id": "fenriswolf",
+    "name": "Fenriswolf",
+    "logo": "/brand/fenriswolf.png",
+    "tagline": "Gaming Gear",
+    "category": "Peripherals",
+    "website": "https://example.com/fenriswolf",
+    "featured": true,
+    "products": [
+      "Fenriswolf Gaming Headset",
+      "Fenriswolf Wireless Mouse",
+      "Fenriswolf Mechanical Keyboard",
+      "Fenriswolf Controller"
+    ]
+  },
+  {
+    "id": "ragnarok-silicon",
+    "name": "Ragnarok Silicon",
+    "logo": "/brand/ragnarok-silicon.png",
+    "tagline": "CPUs & APUs",
+    "category": "CPUs",
+    "website": "https://example.com/ragnarok-silicon",
+    "featured": true,
+    "products": [
+      "Ragnarok X CPU",
+      "Ragnarok APU (CPU+GPU)",
+      "Ragnarok Threadwyrm HEDT CPU",
+      "Ragnarok Mobile APU"
+    ]
+  },
+  {
+    "id": "ironvale-modules",
+    "name": "Ironvale Modules",
+    "logo": "/brand/ironvale-modules.png",
+    "tagline": "Memory & SSD Modules",
+    "category": "RAM",
+    "website": "https://example.com/ironvale-modules",
+    "featured": true,
+    "products": [
+      "Ironvale DDR5 RAM Kit",
+      "Ironvale NVMe SSD",
+      "Ironvale SATA SSD",
+      "Ironvale Memory Upgrade Kit"
+    ]
+  },
+  {
+    "id": "emberforge-power",
+    "name": "Emberforge Power",
+    "logo": "/brand/emberforge-power.png",
+    "tagline": "Power Supplies",
+    "category": "PSUs",
+    "website": "https://example.com/emberforge-power",
+    "featured": true,
+    "products": [
+      "Emberforge 600W PSU",
+      "Emberforge 850W Gold PSU",
+      "Emberforge 1200W Platinum PSU"
+    ]
+  },
+  {
+    "id": "quicksilver-vault",
+    "name": "Quicksilver Vault",
+    "logo": "/brand/quicksilver-vault.png",
+    "tagline": "Storage Solutions",
+    "category": "Storage",
+    "website": "https://example.com/quicksilver-vault",
+    "featured": true,
+    "products": [
+      "Quicksilver Internal SSD",
+      "Quicksilver NVMe M.2 SSD",
+      "Quicksilver External Rugged Drive",
+      "Quicksilver NAS System"
+    ]
+  },
+  {
+    "id": "frostvane-thermal",
+    "name": "Frostvane Thermal",
+    "logo": "/brand/frostvane-thermal.png",
+    "tagline": "Cooling & Thermal",
+    "category": "Cooling",
+    "website": "https://example.com/frostvane-thermal",
+    "featured": true,
+    "products": [
+      "Frostvane Case Fan 120mm 3-Pack",
+      "Frostvane Thermal Paste",
+      "Frostvane CPU Air Cooler"
+    ]
+  },
+  {
+    "id": "titanforge",
+    "name": "Titanforge",
+    "logo": "/brand/titanforge.png",
+    "tagline": "High-Performance CPUs",
+    "category": "CPUs",
+    "website": "https://example.com/titanforge",
+    "featured": true,
+    "products": [
+      "Titanforge Workstation CPU",
+      "Titanforge Server Xeon-Class CPU",
+      "Titanforge Embedded CPU"
+    ]
+  },
+  {
+    "id": "valkyrie-gear",
+    "name": "Valkyrie Gear",
+    "logo": "/brand/valkyrie-gear.png",
+    "tagline": "Keyboards & Mice",
+    "category": "Peripherals",
+    "website": "https://example.com/valkyrie-gear",
+    "featured": true,
+    "products": [
+      "Valkyrie Gaming Mouse",
+      "Valkyrie Mechanical Keyboard",
+      "Valkyrie Gaming Headset",
+      "Valkyrie Mousepad XL",
+      "Valkyrie Gaming Laptop"
+    ]
+  },
+  {
+    "id": "palewind-displays",
+    "name": "Palewind Displays",
+    "logo": "/brand/palewind-displays.png",
+    "tagline": "Gaming Monitors",
+    "category": "Monitors",
+    "website": "https://example.com/palewind-displays",
+    "featured": true,
+    "products": [
+      "Palewind 27in Gaming Monitor",
+      "Palewind 24in Office Monitor",
+      "Palewind Ultrawide Curved Monitor",
+      "Palewind 4K Studio Monitor"
+    ]
+  },
+  {
+    "id": "thornwood-audio",
+    "name": "Thornwood Audio",
+    "logo": "/brand/thornwood-audio.png",
+    "tagline": "Audio & Headsets",
+    "category": "Peripherals",
+    "website": "https://example.com/thornwood-audio",
+    "featured": true,
+    "products": [
+      "Thornwood Wireless Earbuds",
+      "Thornwood Bluetooth Speaker",
+      "Thornwood Over-Ear Headphones"
+    ]
+  },
+  {
+    "id": "aetherlume-panels",
+    "name": "Aetherlume Panels",
+    "logo": "/brand/aetherlume-panels.png",
+    "tagline": "OEM Display Panels",
+    "category": "Monitors",
+    "website": "https://example.com/aetherlume-panels",
+    "featured": false,
+    "products": [
+      "Aetherlume OLED Monitor Panel",
+      "Aetherlume IPS Panel",
+      "Aetherlume TV Panel (OEM)"
+    ]
+  },
+  {
+    "id": "ashenfire-graphics",
+    "name": "Ashenfire Graphics",
+    "logo": "/brand/ashenfire-graphics.png",
+    "tagline": "Budget GPUs",
+    "category": "GPUs",
+    "website": "https://example.com/ashenfire-graphics",
+    "featured": false,
+    "products": [
+      "Ashenfire Radeon Gaming GPU",
+      "Ashenfire Nitro GPU",
+      "Ashenfire Low-Profile GPU"
+    ]
+  },
+  {
+    "id": "boneyard-switches",
+    "name": "Boneyard Switches",
+    "logo": "/brand/boneyard-switches.png",
+    "tagline": "Mechanical Switches",
+    "category": "Peripherals",
+    "website": "https://example.com/boneyard-switches",
+    "featured": false,
+    "products": [
+      "Boneyard Linear Switch Set",
+      "Boneyard Tactile Switch Set",
+      "Boneyard Custom Keycap Set"
+    ]
+  },
+  {
+    "id": "bramblecore-memory",
+    "name": "Bramblecore Memory",
+    "logo": "/brand/bramblecore-memory.png",
+    "tagline": "Value Memory",
+    "category": "RAM",
+    "website": "https://example.com/bramblecore-memory",
+    "featured": false,
+    "products": [
+      "Bramblecore DDR5 Desktop RAM",
+      "Bramblecore DDR4 Laptop RAM",
+      "Bramblecore RGB RAM Kit",
+      "Bramblecore ECC Server RAM"
+    ]
+  },
+  {
+    "id": "cerberus-tech",
+    "name": "Cerberus Tech",
+    "logo": "/brand/cerberus-tech.png",
+    "tagline": "Gaming Motherboards",
+    "category": "Motherboards",
+    "website": "https://example.com/cerberus-tech",
+    "featured": false,
+    "products": [
+      "Cerberus ROG-Class Motherboard",
+      "Cerberus Gaming Laptop",
+      "Cerberus Gaming Monitor",
+      "Cerberus Gaming Router"
+    ]
+  },
+  {
+    "id": "cindergate-chassis",
+    "name": "Cindergate Chassis",
+    "logo": "/brand/cindergate-chassis.png",
+    "tagline": "Chassis & Frames",
+    "category": "Cases",
+    "website": "https://example.com/cindergate-chassis",
+    "featured": false,
+    "products": [
+      "Cindergate Full Tower Case",
+      "Cindergate Mid Tower Case",
+      "Cindergate ITX Case"
+    ]
+  },
+  {
+    "id": "colossuscore",
+    "name": "Colossuscore",
+    "logo": "/brand/colossuscore.png",
+    "tagline": "Workstation CPUs",
+    "category": "CPUs",
+    "website": "https://example.com/colossuscore",
+    "featured": false,
+    "products": [
+      "Colossuscore Entry CPU",
+      "Colossuscore Mainstream CPU",
+      "Colossuscore Enthusiast CPU"
+    ]
+  },
+  {
+    "id": "copperfen-tech",
+    "name": "Copperfen Tech",
+    "logo": "/brand/copperfen-tech.png",
+    "tagline": "Connectivity",
+    "category": "Networking",
+    "website": "https://example.com/copperfen-tech",
+    "featured": false,
+    "products": [
+      "Copperfen Wi-Fi 6 Router",
+      "Copperfen Mesh Wi-Fi System",
+      "Copperfen Wi-Fi Extender",
+      "Copperfen Network Switch"
+    ]
+  },
+  {
+    "id": "copperthorn-controllers",
+    "name": "Copperthorn Controllers",
+    "logo": "/brand/copperthorn-controllers.png",
+    "tagline": "Game Controllers",
+    "category": "Peripherals",
+    "website": "https://example.com/copperthorn-controllers",
+    "featured": false,
+    "products": [
+      "Copperthorn Wireless Controller",
+      "Copperthorn Retro Controller",
+      "Copperthorn Arcade Stick"
+    ]
+  },
+  {
+    "id": "direwood-boards",
+    "name": "Direwood Boards",
+    "logo": "/brand/direwood-boards.png",
+    "tagline": "Budget Motherboards",
+    "category": "Motherboards",
+    "website": "https://example.com/direwood-boards",
+    "featured": false,
+    "products": [
+      "Direwood Micro-ATX Motherboard",
+      "Direwood ATX Motherboard",
+      "Direwood Workstation Board"
+    ]
+  },
+  {
+    "id": "dragonroot-capture",
+    "name": "Dragonroot Capture",
+    "logo": "/brand/dragonroot-capture.png",
+    "tagline": "Capture & Streaming",
+    "category": "Peripherals",
+    "website": "https://example.com/dragonroot-capture",
+    "featured": false,
+    "products": [
+      "Dragonroot Capture Card",
+      "Dragonroot Stream Deck",
+      "Dragonroot Green Screen"
+    ]
+  },
+  {
+    "id": "duneshadow-optics",
+    "name": "Duneshadow Optics",
+    "logo": "/brand/duneshadow-optics.png",
+    "tagline": "Monitors & Projectors",
+    "category": "Monitors",
+    "website": "https://example.com/duneshadow-optics",
+    "featured": false,
+    "products": [
+      "Duneshadow 32in Monitor",
+      "Duneshadow Portable Monitor",
+      "Duneshadow Home Projector"
+    ]
+  },
+  {
+    "id": "duskrend-mobile",
+    "name": "Duskrend Mobile",
+    "logo": "/brand/duskrend-mobile.png",
+    "tagline": "Gaming Laptops",
+    "category": "Systems",
+    "website": "https://example.com/duskrend-mobile",
+    "featured": false,
+    "products": [
+      "Duskrend Gaming Laptop 15in",
+      "Duskrend Gaming Desktop Tower",
+      "Duskrend Gaming Monitor"
+    ]
+  },
+  {
+    "id": "excalibur-peripherals",
+    "name": "Excalibur Peripherals",
+    "logo": "/brand/excalibur-peripherals.png",
+    "tagline": "Pro Peripherals",
+    "category": "Peripherals",
+    "website": "https://example.com/excalibur-peripherals",
+    "featured": false,
+    "products": [
+      "Excalibur Wireless Mouse",
+      "Excalibur Mechanical Keyboard",
+      "Excalibur Webcam",
+      "Excalibur Wired Keyboard",
+      "Excalibur Mouse Pad"
+    ]
+  },
+  {
+    "id": "frostpine-systems",
+    "name": "Frostpine Systems",
+    "logo": "/brand/frostpine-systems.png",
+    "tagline": "Pre-built Systems",
+    "category": "Systems",
+    "website": "https://example.com/frostpine-systems",
+    "featured": false,
+    "products": [
+      "Frostpine 14in Laptop",
+      "Frostpine Chromebook",
+      "Frostpine All-in-One Desktop"
+    ]
+  },
+  {
+    "id": "glimmerdust-cases",
+    "name": "Glimmerdust Cases",
+    "logo": "/brand/glimmerdust-cases.png",
+    "tagline": "Phone Protection",
+    "category": "Accessories",
+    "website": "https://example.com/glimmerdust-cases",
+    "featured": false,
+    "products": [
+      "Glimmerdust Phone Case",
+      "Glimmerdust Screen Protector",
+      "Glimmerdust Tablet Case"
+    ]
+  },
+  {
+    "id": "griffinhold",
+    "name": "Griffinhold",
+    "logo": "/brand/griffinhold.png",
+    "tagline": "PC Components",
+    "category": "Motherboards",
+    "website": "https://example.com/griffinhold",
+    "featured": false,
+    "products": [
+      "Griffinhold 850W PSU",
+      "Griffinhold Mid-Tower Case",
+      "Griffinhold Mechanical Keyboard",
+      "Griffinhold Gaming Mouse",
+      "Griffinhold AIO Cooler"
+    ]
+  },
+  {
+    "id": "hearthspire-pcs",
+    "name": "Hearthspire PCs",
+    "logo": "/brand/hearthspire-pcs.png",
+    "tagline": "Laptops & Desktops",
+    "category": "Systems",
+    "website": "https://example.com/hearthspire-pcs",
+    "featured": false,
+    "products": [
+      "Hearthspire Ultrabook Laptop",
+      "Hearthspire Business Desktop",
+      "Hearthspire Gaming Tower PC",
+      "Hearthspire Mini PC"
+    ]
+  },
+  {
+    "id": "hollowmere-drives",
+    "name": "Hollowmere Drives",
+    "logo": "/brand/hollowmere-drives.png",
+    "tagline": "External Drives",
+    "category": "Storage",
+    "website": "https://example.com/hollowmere-drives",
+    "featured": false,
+    "products": [
+      "Hollowmere 2TB External HDD",
+      "Hollowmere Internal SATA HDD",
+      "Hollowmere NAS Drive",
+      "Hollowmere Portable SSD"
+    ]
+  },
+  {
+    "id": "hydra-systems",
+    "name": "Hydra Systems",
+    "logo": "/brand/hydra-systems.png",
+    "tagline": "Multi-GPU Boards",
+    "category": "Motherboards",
+    "website": "https://example.com/hydra-systems",
+    "featured": false,
+    "products": [
+      "Hydra MPG Motherboard",
+      "Hydra MEG Motherboard",
+      "Hydra Gaming Laptop",
+      "Hydra PC Case"
+    ]
+  },
+  {
+    "id": "ivory-spire",
+    "name": "Ivory Spire",
+    "logo": "/brand/ivory-spire.png",
+    "tagline": "Mobile Accessories",
+    "category": "Accessories",
+    "website": "https://example.com/ivory-spire",
+    "featured": false,
+    "products": [
+      "Ivory Spire Wireless Earbuds",
+      "Ivory Spire Bluetooth Mouse",
+      "Ivory Spire Smartwatch"
+    ]
+  },
+  {
+    "id": "kraken-cooling",
+    "name": "Kraken Cooling",
+    "logo": "/brand/kraken-cooling.png",
+    "tagline": "AIO Liquid Cooling",
+    "category": "Cooling",
+    "website": "https://example.com/kraken-cooling",
+    "featured": false,
+    "products": [
+      "Kraken 240mm Liquid Cooler",
+      "Kraken 360mm Liquid Cooler",
+      "Kraken Air Cooler Tower",
+      "Kraken Thermal Paste"
+    ]
+  },
+  {
+    "id": "larkspur-storage",
+    "name": "Larkspur Storage",
+    "logo": "/brand/larkspur-storage.png",
+    "tagline": "NAS & Flash Storage",
+    "category": "Storage",
+    "website": "https://example.com/larkspur-storage",
+    "featured": false,
+    "products": [
+      "Larkspur USB Flash Drive",
+      "Larkspur SD Card",
+      "Larkspur MicroSD Card",
+      "Larkspur Portable External SSD"
+    ]
+  },
+  {
+    "id": "lorewood-docks",
+    "name": "Lorewood Docks",
+    "logo": "/brand/lorewood-docks.png",
+    "tagline": "Docking Stations",
+    "category": "Accessories",
+    "website": "https://example.com/lorewood-docks",
+    "featured": false,
+    "products": [
+      "Lorewood Thunderbolt Dock",
+      "Lorewood USB-C Dock",
+      "Lorewood Laptop Docking Station"
+    ]
+  },
+  {
+    "id": "minotaur-labs",
+    "name": "Minotaur Labs",
+    "logo": "/brand/minotaur-labs.png",
+    "tagline": "PSUs & GPU Labs",
+    "category": "PSUs",
+    "website": "https://example.com/minotaur-labs",
+    "featured": false,
+    "products": [
+      "Minotaur 750W Power Supply",
+      "Minotaur 1000W Modular PSU",
+      "Minotaur Gaming GPU",
+      "Minotaur PC Case"
+    ]
+  },
+  {
+    "id": "mistvale-webcams",
+    "name": "Mistvale Webcams",
+    "logo": "/brand/mistvale-webcams.png",
+    "tagline": "Webcams",
+    "category": "Peripherals",
+    "website": "https://example.com/mistvale-webcams",
+    "featured": false,
+    "products": [
+      "Mistvale 1080p Webcam",
+      "Mistvale 4K Webcam",
+      "Mistvale Ring Light"
+    ]
+  },
+  {
+    "id": "nettlecross-boards",
+    "name": "Nettlecross Boards",
+    "logo": "/brand/nettlecross-boards.png",
+    "tagline": "Graphics Tablets",
+    "category": "Peripherals",
+    "website": "https://example.com/nettlecross-boards",
+    "featured": false,
+    "products": [
+      "Nettlecross Drawing Tablet",
+      "Nettlecross Pen Display",
+      "Nettlecross Stylus Pen"
+    ]
+  },
+  {
+    "id": "ninthgate-keys",
+    "name": "Ninthgate Keys",
+    "logo": "/brand/ninthgate-keys.png",
+    "tagline": "Keyboards",
+    "category": "Peripherals",
+    "website": "https://example.com/ninthgate-keys",
+    "featured": false,
+    "products": [
+      "Ninthgate 75% Mechanical Keyboard",
+      "Ninthgate Full-Size Keyboard",
+      "Ninthgate Keycap Set",
+      "Ninthgate Wrist Rest"
+    ]
+  },
+  {
+    "id": "odinforge",
+    "name": "Odinforge",
+    "logo": "/brand/odinforge.png",
+    "tagline": "GPUs & AI Hardware",
+    "category": "GPUs",
+    "website": "https://example.com/odinforge",
+    "featured": false,
+    "products": [
+      "Odinforge Radeon-Class GPU",
+      "Odinforge AI Accelerator Card",
+      "Odinforge Workstation GPU",
+      "Odinforge Capture Card"
+    ]
+  },
+  {
+    "id": "phoenix-circuit",
+    "name": "Phoenix Circuit",
+    "logo": "/brand/phoenix-circuit.png",
+    "tagline": "Circuit Design",
+    "category": "Motherboards",
+    "website": "https://example.com/phoenix-circuit",
+    "featured": false,
+    "products": [
+      "Phoenix Circuit Z-Series Motherboard",
+      "Phoenix Circuit B-Series Motherboard",
+      "Phoenix Circuit Mini-ITX Board",
+      "Phoenix Circuit Server Board"
+    ]
+  },
+  {
+    "id": "promethion",
+    "name": "Promethion",
+    "logo": "/brand/promethion.png",
+    "tagline": "Core-Class Processors",
+    "category": "CPUs",
+    "website": "https://example.com/promethion",
+    "featured": false,
+    "products": [
+      "Promethion Core i5-Class CPU",
+      "Promethion Core i7-Class CPU",
+      "Promethion Core i9-Class CPU",
+      "Promethion Laptop CPU",
+      "Promethion Chipset Board"
+    ]
+  },
+  {
+    "id": "sablewick-cables",
+    "name": "Sablewick Cables",
+    "logo": "/brand/sablewick-cables.png",
+    "tagline": "Cables & Adapters",
+    "category": "Accessories",
+    "website": "https://example.com/sablewick-cables",
+    "featured": false,
+    "products": [
+      "Sablewick HDMI Cable",
+      "Sablewick USB-C Cable",
+      "Sablewick DisplayPort Cable",
+      "Sablewick USB Hub",
+      "Sablewick SATA Cable"
+    ]
+  },
+  {
+    "id": "shadowmere-pc",
+    "name": "Shadowmere PC",
+    "logo": "/brand/shadowmere-pc.png",
+    "tagline": "Silent PCs & Laptops",
+    "category": "Systems",
+    "website": "https://example.com/shadowmere-pc",
+    "featured": false,
+    "products": [
+      "Shadowmere ROG-Class Gaming Laptop",
+      "Shadowmere Zenbook-Class Ultrabook",
+      "Shadowmere Motherboard"
+    ]
+  },
+  {
+    "id": "sphinxware",
+    "name": "Sphinxware",
+    "logo": "/brand/sphinxware.png",
+    "tagline": "Firmware & Boards",
+    "category": "Motherboards",
+    "website": "https://example.com/sphinxware",
+    "featured": false,
+    "products": [
+      "Sphinxware AM5 Motherboard",
+      "Sphinxware LGA Motherboard",
+      "Sphinxware Industrial Mini PC Board"
+    ]
+  },
+  {
+    "id": "starling-wing",
+    "name": "Starling Wing",
+    "logo": "/brand/starling-wing.png",
+    "tagline": "Charging Accessories",
+    "category": "Accessories",
+    "website": "https://example.com/starling-wing",
+    "featured": false,
+    "products": [
+      "Starling Wing Power Bank",
+      "Starling Wing Wireless Charger",
+      "Starling Wing USB-C Charger"
+    ]
+  },
+  {
+    "id": "stonehelm-chips",
+    "name": "Stonehelm Chips",
+    "logo": "/brand/stonehelm-chips.png",
+    "tagline": "OEM Memory Chips",
+    "category": "RAM",
+    "website": "https://example.com/stonehelm-chips",
+    "featured": false,
+    "products": [
+      "Stonehelm DRAM Chip",
+      "Stonehelm NAND Flash Chip",
+      "Stonehelm Memory Module (OEM)"
+    ]
+  },
+  {
+    "id": "stormvane-connect",
+    "name": "Stormvane Connect",
+    "logo": "/brand/stormvane-connect.png",
+    "tagline": "Wireless & Connect",
+    "category": "Networking",
+    "website": "https://example.com/stormvane-connect",
+    "featured": false,
+    "products": [
+      "Stormvane Gaming Router",
+      "Stormvane Network Switch",
+      "Stormvane USB Wi-Fi Adapter"
+    ]
+  },
+  {
+    "id": "thornhollow-hubs",
+    "name": "Thornhollow Hubs",
+    "logo": "/brand/thornhollow-hubs.png",
+    "tagline": "Hubs & Card Readers",
+    "category": "Accessories",
+    "website": "https://example.com/thornhollow-hubs",
+    "featured": false,
+    "products": [
+      "Thornhollow USB-C Hub",
+      "Thornhollow SD Card Reader",
+      "Thornhollow 4-Port USB Hub"
+    ]
+  },
+  {
+    "id": "vulcanis",
+    "name": "Vulcanis",
+    "logo": "/brand/vulcanis.png",
+    "tagline": "Desktop & Server Processors",
+    "category": "CPUs",
+    "website": "https://example.com/vulcanis",
+    "featured": false,
+    "products": [
+      "Vulcanis Ryzeon 5 Desktop CPU",
+      "Vulcanis Ryzeon 7 Desktop CPU",
+      "Vulcanis Ryzeon 9 Desktop CPU",
+      "Vulcanis Mobile CPU Series",
+      "Vulcanis Server Processor"
+    ]
+  },
+  {
+    "id": "wolfsbane-gaming",
+    "name": "Wolfsbane Gaming",
+    "logo": "/brand/wolfsbane-gaming.png",
+    "tagline": "Gaming Peripherals",
+    "category": "Peripherals",
+    "website": "https://example.com/wolfsbane-gaming",
+    "featured": false,
+    "products": [
+      "Wolfsbane Gaming Mouse",
+      "Wolfsbane Mechanical Keyboard",
+      "Wolfsbane Gaming Headset",
+      "Wolfsbane Racing Wheel",
+      "Wolfsbane Webcam"
+    ]
+  },
+  {
+    "id": "wraithlink-networks",
+    "name": "Wraithlink Networks",
+    "logo": "/brand/wraithlink-networks.png",
+    "tagline": "Networking Gear",
+    "category": "Networking",
+    "website": "https://example.com/wraithlink-networks",
+    "featured": false,
+    "products": [
+      "Wraithlink Gaming Router",
+      "Wraithlink Cable Modem",
+      "Wraithlink PCIe Wi-Fi Card",
+      "Wraithlink Mesh Node"
+    ]
+  },
+  {
+    "id": "wyrmforge",
+    "name": "Wyrmforge",
+    "logo": "/brand/wyrmforge.png",
+    "tagline": "Cases & Cooling",
+    "category": "Cooling",
+    "website": "https://example.com/wyrmforge",
+    "featured": false,
+    "products": [
+      "Wyrmforge ATX Mid Tower Case",
+      "Wyrmforge Mini-ITX Case",
+      "Wyrmforge 240mm AIO Cooler",
+      "Wyrmforge Case Fan 3-Pack"
+    ]
+  },
+  {
+    "id": "wyrmscale-graphics",
+    "name": "Wyrmscale Graphics",
+    "logo": "/brand/wyrmscale-graphics.png",
+    "tagline": "Professional GPUs",
+    "category": "GPUs",
+    "website": "https://example.com/wyrmscale-graphics",
+    "featured": false,
+    "products": [
+      "Wyrmscale RTX Gaming GPU OC Edition",
+      "Wyrmscale RTX Gaming GPU Mini",
+      "Wyrmscale Triple-Fan GPU"
+    ]
+  },
+  {
+    "id": "ymir-core",
+    "name": "Ymir Core",
+    "logo": "/brand/ymir-core.png",
+    "tagline": "Graphics Cards",
+    "category": "GPUs",
+    "website": "https://example.com/ymir-core",
+    "featured": false,
+    "products": [
+      "Ymir GForce RTX-Class GPU",
+      "Ymir Studio GPU",
+      "Ymir Mobile GPU",
+      "Ymir Gaming Mousepad",
+      "Ymir Gaming Mouse"
+    ]
+  }
+]

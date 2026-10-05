@@ -2,59 +2,87 @@
 
 import Link from 'next/link';
 import { useApp } from '@/app/components/providers/AppProvider';
-import { STOCK_MAP, fmt, productPath, productImg, productIc, productSpecList, productTag, type Product, type StockLevel } from '@/lib/data';
+import {
+  STOCK_MAP, fmt, productPath, productImg, productIc,
+  productSpecList, productTag, type Product, type StockLevel,
+} from '@/lib/data';
 
 interface ProductCardProps {
   product: Product;
 }
 
+const PENDING_IMG = '/pending.png';
+
 export default function ProductCard({ product: p }: ProductCardProps) {
   const { addToCart, showToast } = useApp();
   const [badgeClass, stockLabel] = STOCK_MAP[p.stock as StockLevel];
-  const href = productPath(p.id);
-  const img = productImg(p);
-  const ic = productIc(p);
+  const href  = productPath(p.id);
+  const img   = productImg(p);
+  const ic    = productIc(p);
   const specs = productSpecList(p);
-  const tag = productTag(p);
+  const tag   = productTag(p);
 
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
+    if (p.stock === 'out') return;
     addToCart(p.id, 1);
     showToast(`Added to cart — ${p.name.split(' ').slice(0, 3).join(' ')} ✓`);
   }
 
   return (
     <Link href={href} className="pcard" aria-label={`${p.name} — ${fmt(p.price)}`}>
+      {/* Image */}
       <div className="pcard-img">
-        {img
-          ? <img src={img} alt={p.name} />
-          : <svg width="44" height="44"><use href={`#${ic}`} /></svg>
-        }
+        {img ? (
+          <img
+            src={img}
+            alt={p.name}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = PENDING_IMG; }}
+          />
+        ) : (
+          <svg width="44%" height="44%" style={{ opacity: .5 }}>
+            <use href={`#${ic}`} />
+          </svg>
+        )}
         {tag && (
-          <span className="pcard-tag" style={{
-            position: 'absolute', top: 8, left: 8,
-            background: 'var(--danger)', color: '#fff',
-            fontSize: '11px', fontWeight: 700,
-            padding: '3px 9px', borderRadius: '99px',
-            letterSpacing: '.02em',
-          }}>
+          <span
+            className="pcard-tag"
+            style={{
+              background: /sale/i.test(tag) ? 'var(--red)' : 'var(--blue)',
+              color: '#fff', fontSize: '11px', fontWeight: 700,
+              padding: '3px 9px', borderRadius: '99px', letterSpacing: '.02em',
+            }}
+          >
             {tag}
           </span>
         )}
       </div>
+
+      {/* Body */}
       <div className="pcard-body">
         <span className="pcard-brand">{p.brand}</span>
         <span className="pcard-name">{p.name}</span>
-        <span className="stars">★★★★★ <small>{p.rating}</small></span>
+
+        {/* Rating */}
+        <span className="stars">
+          {'★'.repeat(Math.floor(parseFloat(p.rating)))}{'☆'.repeat(5 - Math.floor(parseFloat(p.rating)))}
+          {' '}<small>{p.rating} ({p.reviewCount.toLocaleString()})</small>
+        </span>
+
+        {/* Spec chips */}
         <div className="pcard-specs">
           {specs.slice(0, 2).map((s) => (
             <span key={s} className="badge-spec">{s}</span>
           ))}
         </div>
+
+        {/* Stock */}
         <span className={`badge ${badgeClass}`} style={{ alignSelf: 'flex-start' }}>
           {stockLabel}
         </span>
+
+        {/* Price + CTA */}
         <div className="pcard-foot">
           <span className="price">
             {p.oldPrice && <s>{fmt(p.oldPrice)}</s>}
