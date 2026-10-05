@@ -138,11 +138,13 @@ export function CheckoutShippingView() {
   const { authUser, cart, showToast } = useApp();
   const router = useRouter();
 
+  const [mounted, setMounted] = useState(false);
   const [form, setForm] = useState<ShippingState>(() => makeDefaultShipping());
 
-  // Hydrate from sessionStorage / authUser after mount
+  // After mount: hydrate form from sessionStorage / authUser, and mark mounted
   useEffect(() => {
     setForm(loadShipping(authUser));
+    setMounted(true);
   }, [authUser]);
 
   const set = useCallback((field: keyof ShippingState, value: string) => {
@@ -161,8 +163,8 @@ export function CheckoutShippingView() {
     router.push('/checkout/review');
   }
 
-  // Guard: empty cart
-  if (typeof window !== 'undefined' && cart.length === 0) {
+  // Guard: empty cart — only after mount to avoid SSR/client mismatch
+  if (mounted && cart.length === 0) {
     return (
       <div className="container" style={{ textAlign: 'center', paddingTop: '60px' }}>
         <p style={{ color: 'var(--muted)', marginBottom: '16px' }}>Your cart is empty.</p>
@@ -285,17 +287,19 @@ export function CheckoutShippingView() {
 export function CheckoutReviewView() {
   const { cart, cartTotal, authUser, showToast } = useApp();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [shipping, setShipping] = useState<ShippingState | null>(null);
   const [sdkReady, setSdkReady] = useState(false);
 
-  // Hydrate shipping from sessionStorage after mount
+  // Hydrate shipping from sessionStorage after mount, and mark mounted
   useEffect(() => {
     const saved = loadShipping(authUser);
     setShipping(saved);
+    setMounted(true);
   }, [authUser]);
 
-  // Guard: empty cart
-  if (typeof window !== 'undefined' && cart.length === 0) {
+  // Guard: empty cart — only after mount to avoid SSR/client mismatch
+  if (mounted && cart.length === 0) {
     return (
       <div className="container" style={{ textAlign: 'center', paddingTop: '60px' }}>
         <p style={{ color: 'var(--muted)', marginBottom: '16px' }}>Your cart is empty.</p>
