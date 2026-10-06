@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
       country:   shipping.country.trim(),
     };
 
-    saveOrder(order);
+    await saveOrder(order);
 
     // ── 5. Generate checkout hash ────────────────────────────────
     const amountStr = formatAmount(total);

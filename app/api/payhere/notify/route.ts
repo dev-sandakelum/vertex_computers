@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 5. Retrieve the order ────────────────────────────────────
-    const order = getOrder(order_id);
+    const order = await getOrder(order_id);
     if (!order) {
       console.warn(`[payhere/notify] Unknown order ID: ${order_id}`);
       return new NextResponse('OK', { status: 200 });
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 10. Update order ─────────────────────────────────────────
-    updateOrderStatus(order_id, newStatus, payment_id || undefined, method || undefined);
+    await updateOrderStatus(order_id, newStatus, payment_id || undefined, method || undefined);
 
     console.info(
       `[payhere/notify] Order ${order_id} → ${newStatus} (payment_id: ${payment_id}, method: ${method})`,

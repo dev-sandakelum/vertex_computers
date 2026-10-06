@@ -21,7 +21,7 @@ export async function GET(_req: NextRequest, { params }: Props) {
       return NextResponse.json({ error: 'Missing orderId.' }, { status: 400 });
     }
 
-    const order = getOrder(orderId);
+    const order = await getOrder(orderId);
 
     if (!order) {
       return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
