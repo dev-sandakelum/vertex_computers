@@ -2,7 +2,7 @@
  * Search keywords and suggestion data for Vertex Computers.
  */
 
-import { PRODUCTS } from './data';
+import type { Product } from './data';
 
 export interface SearchSuggestion {
   label: string;
@@ -96,10 +96,10 @@ export const KEYWORDS: SearchSuggestion[] = [
 /* ── Search matching helper ───────────────────────────────────────────────── */
 /**
  * Returns up to `limit` suggestions matching `query`.
- * Sources: product names (from actual products.json) + static keywords.
+ * Sources: product names (passed in) + static keywords.
  * Deduplicates by label.
  */
-export function getSearchSuggestions(query: string, limit = 8): SearchSuggestion[] {
+export function getSearchSuggestions(query: string, limit = 8, products: Product[] = []): SearchSuggestion[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
 
@@ -115,13 +115,13 @@ export function getSearchSuggestions(query: string, limit = 8): SearchSuggestion
   }
 
   /* 1. Exact product name matches (highest priority) */
-  PRODUCTS
+  products
     .filter(p => p.name.toLowerCase().includes(q))
     .slice(0, 4)
     .forEach(p => add({ label: p.name, tag: p.category, icon: CAT_ICON[p.category] }));
 
   /* 2. Brand matches */
-  PRODUCTS
+  products
     .filter(p => p.brand.toLowerCase().includes(q))
     .slice(0, 2)
     .forEach(p => add({ label: `${p.brand} ${p.category}`, tag: p.category, icon: CAT_ICON[p.category] }));

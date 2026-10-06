@@ -17,7 +17,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/app/components/providers/AppProvider';
-import { PRODUCTS, fmt, productImg } from '@/lib/data';
+import { fmt, productImg } from '@/lib/data';
 import PayHereButton from '@/app/components/payment/PayHereButton';
 
 const PENDING_IMG = '/pending.png';
@@ -40,15 +40,15 @@ interface ShippingState {
 
 function makeDefaultShipping(authUser?: { firstName?: string; lastName?: string; email?: string; phone?: string } | null): ShippingState {
   return {
-    firstName: authUser?.firstName ?? 'John',
-    lastName:  authUser?.lastName  ?? 'Doe',
-    email:     authUser?.email     ?? 'name@example.com',
-    phone:     authUser?.phone     ?? '+1 (555) 000-0000',
-    address:   '123 Example St',
+    firstName: authUser?.firstName ?? '',
+    lastName:  authUser?.lastName  ?? '',
+    email:     authUser?.email     ?? '',
+    phone:     authUser?.phone     ?? '',
+    address:   '',
     apt:       '',
-    city:      'Springfield',
-    state:     'IL',
-    zip:       '62704',
+    city:      '',
+    state:     '',
+    zip:       '',
     country:   'United States',
     shippingMethod: 'standard',
   };
@@ -84,12 +84,12 @@ function Steps({ s, r, c }: { s: S; r: S; c: S }) {
 }
 
 function MiniCart() {
-  const { cart } = useApp();
+  const { cart, products } = useApp();
   if (!cart.length) return <p style={{ color: 'var(--muted)', fontSize: '13px' }}>No items</p>;
   return (
     <>
       {cart.map((item, i) => {
-        const p = PRODUCTS.find(prod => prod.id === item.id);
+        const p = products.find(prod => prod.id === item.id);
         if (!p) return null;
         const img = productImg(p);
         return (

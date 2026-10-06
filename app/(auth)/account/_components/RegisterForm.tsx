@@ -17,21 +17,19 @@ const GoogleIcon = () => (
 export default function RegisterForm() {
   const { authUser, authReady, register, showToast } = useApp();
   const router = useRouter();
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
+  const [firstName,       setFirstName]       = useState('');
+  const [lastName,        setLastName]        = useState('');
+  const [email,           setEmail]           = useState('');
+  const [phone,           setPhone]           = useState('');
+  const [password,        setPassword]        = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [agreed, setAgreed] = useState(false);
-  const [error, setError] = useState('');
+  const [showPass,        setShowPass]        = useState(false);
+  const [loading,         setLoading]         = useState(false);
+  const [agreed,          setAgreed]          = useState(false);
+  const [error,           setError]           = useState('');
 
   useEffect(() => {
-    if (authReady && authUser) {
-      router.replace('/account');
-    }
+    if (authReady && authUser) router.replace('/account');
   }, [authReady, authUser, router]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -39,43 +37,24 @@ export default function RegisterForm() {
     setError('');
 
     if (!firstName.trim() || !lastName.trim() || !email.trim() || !phone.trim() || !password.trim() || !confirmPassword.trim()) {
-      const message = 'Complete every field before creating your account.';
-      setError(message);
-      showToast(message);
-      return;
+      const msg = 'Please complete every field.';
+      setError(msg); showToast(msg); return;
     }
-
     if (password.length < 8) {
-      const message = 'Password must be at least 8 characters long.';
-      setError(message);
-      showToast(message);
-      return;
+      const msg = 'Password must be at least 8 characters.';
+      setError(msg); showToast(msg); return;
     }
-
     if (password !== confirmPassword) {
-      const message = 'Passwords do not match.';
-      setError(message);
-      showToast(message);
-      return;
+      const msg = 'Passwords do not match.';
+      setError(msg); showToast(msg); return;
     }
-
     if (!agreed) {
-      const message = 'Please agree to the Terms & Privacy Policy.';
-      setError(message);
-      showToast(message);
-      return;
+      const msg = 'Please agree to the Terms & Privacy Policy.';
+      setError(msg); showToast(msg); return;
     }
 
     setLoading(true);
-    const result = register({
-      firstName,
-      lastName,
-      email,
-      phone,
-      password,
-      rememberMe: true,
-      acceptedTerms: agreed,
-    });
+    const result = await register({ firstName, lastName, email, phone, password, acceptedTerms: agreed });
     setLoading(false);
 
     if (!result.ok) {
@@ -96,7 +75,7 @@ export default function RegisterForm() {
       </div>
 
       <div className="auth-socials">
-        <button type="button" className="auth-social-btn" onClick={() => showToast('Google sign-up (demo)')}>
+        <button type="button" className="auth-social-btn" onClick={() => showToast('Google sign-up is not yet available.')}>
           <GoogleIcon />
           <span>Sign up with Google</span>
         </button>
@@ -108,22 +87,22 @@ export default function RegisterForm() {
         <div className="auth-field-row">
           <div className="auth-field">
             <label htmlFor="rfn">First name</label>
-            <input id="rfn" type="text" placeholder="John" autoComplete="given-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+            <input id="rfn" type="text" placeholder="John" autoComplete="given-name" value={firstName} onChange={(e) => { setFirstName(e.target.value); setError(''); }} required />
           </div>
           <div className="auth-field">
             <label htmlFor="rln">Last name</label>
-            <input id="rln" type="text" placeholder="Doe" autoComplete="family-name" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+            <input id="rln" type="text" placeholder="Doe" autoComplete="family-name" value={lastName} onChange={(e) => { setLastName(e.target.value); setError(''); }} required />
           </div>
         </div>
 
         <div className="auth-field">
           <label htmlFor="remail">Email address</label>
-          <input id="remail" type="email" placeholder="name@example.com" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <input id="remail" type="email" placeholder="name@example.com" autoComplete="email" value={email} onChange={(e) => { setEmail(e.target.value); setError(''); }} required />
         </div>
 
         <div className="auth-field">
           <label htmlFor="rphone">Phone number</label>
-          <input id="rphone" type="tel" placeholder="+1 (555) 000-0000" autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+          <input id="rphone" type="tel" placeholder="+1 (555) 000-0000" autoComplete="tel" value={phone} onChange={(e) => { setPhone(e.target.value); setError(''); }} required />
         </div>
 
         <div className="auth-field">
@@ -135,7 +114,7 @@ export default function RegisterForm() {
               placeholder="Min. 8 characters"
               autoComplete="new-password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => { setPassword(e.target.value); setError(''); }}
               required
               minLength={8}
             />
@@ -156,29 +135,21 @@ export default function RegisterForm() {
 
         <div className="auth-field">
           <label htmlFor="rpassword2">Confirm password</label>
-          <input
-            id="rpassword2"
-            type={showPass ? 'text' : 'password'}
-            placeholder="Repeat password"
-            autoComplete="new-password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
+          <input id="rpassword2" type={showPass ? 'text' : 'password'} placeholder="Repeat password" autoComplete="new-password" value={confirmPassword} onChange={(e) => { setConfirmPassword(e.target.value); setError(''); }} required />
         </div>
 
         <label className="auth-remember auth-terms">
           <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
           <span>
             I agree to the{' '}
-            <Link href="#" onClick={(e) => { e.preventDefault(); showToast('Terms of Service (demo)'); }}>Terms of Service</Link>
+            <Link href="#" onClick={(e) => e.preventDefault()}>Terms of Service</Link>
             {' '}&amp;{' '}
-            <Link href="#" onClick={(e) => { e.preventDefault(); showToast('Privacy Policy (demo)'); }}>Privacy Policy</Link>
+            <Link href="#" onClick={(e) => e.preventDefault()}>Privacy Policy</Link>
           </span>
         </label>
 
         {error && (
-          <p style={{ color: 'var(--danger)', fontSize: '13px', marginTop: '-4px' }}>
+          <p role="alert" style={{ color: 'var(--danger)', fontSize: '13px', marginTop: '-4px' }}>
             {error}
           </p>
         )}
@@ -187,10 +158,6 @@ export default function RegisterForm() {
           {loading ? <span className="auth-spinner" /> : 'Create Account'}
         </button>
       </form>
-
-      <p style={{ marginTop: '14px', fontSize: '12.5px', color: 'var(--text-2)' }}>
-        Your account is stored in this browser for the demo experience.
-      </p>
 
       <p className="auth-switch">
         Already have an account?{' '}

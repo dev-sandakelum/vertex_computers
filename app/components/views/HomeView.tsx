@@ -2,13 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { CATS, PRODUCTS, categorySlug, productPath, fmt } from '@/lib/data';
+import { CATS, categorySlug, fmt, type Product } from '@/lib/data';
+import type { Brand } from '@/lib/db/brands';
 import ProductCard from '@/app/components/ui/ProductCard';
 import SvgIcon from '@/app/components/ui/SvgIcon';
 import BrandCarousel from '@/app/components/ui/BrandCarousel';
+import { useMemo } from 'react';
 
-const FEATURED = [0, 1, 3, 4].map((i) => PRODUCTS[i]);
-const DEALS    = [2, 6, 10, 4].map((i) => PRODUCTS[i]);
+interface Props {
+  products: Product[];
+  brands:   Brand[];
+}
 
 /* ── Countdown timer ── */
 function useCountdown() {
@@ -36,11 +40,14 @@ function useCountdown() {
 
 const PENDING_IMG = '/pending.png';
 
-export default function HomeView() {
-  const flagship = PRODUCTS[0];
-  const dealProduct  = PRODUCTS.find(p => p.oldPrice && p.categorySlug === 'peripherals') ?? PRODUCTS.find(p => p.oldPrice) ?? PRODUCTS[0];
-  const freshProduct = PRODUCTS.find(p => /new/i.test(p.tags?.[0] ?? '')) ?? PRODUCTS[0];
-  const time = useCountdown();
+export default function HomeView({ products, brands }: Props) {
+  const flagship     = products[0];
+  const dealProduct  = products.find(p => p.oldPrice && p.categorySlug === 'peripherals') ?? products.find(p => p.oldPrice) ?? products[0];
+  const freshProduct = products.find(p => /new/i.test(p.tags?.[0] ?? '')) ?? products[0];
+  const DEALS        = [2, 6, 10, 4].map(i => products[i]).filter(Boolean);
+  const time         = useCountdown();
+  const trending     = useMemo(() => [...products].sort((a, b) => b.reviewCount - a.reviewCount).slice(0, 5), [products]);
+  const recommended  = useMemo(() => [...products].sort((a, b) => b.reviewCount - a.reviewCount).slice(5, 10), [products]);
 
   return (
     <div>
@@ -55,7 +62,7 @@ export default function HomeView() {
           <div>
             <p className="tn-eye">NEXT GEN PC HARDWARE</p>
             <h1>A Faster Build<br /><span className="grad">Starts Here</span></h1>
-            <p>Explore {PRODUCTS.length} hand-picked components, compatibility-checked and backed by real builders.</p>
+            <p>Explore {products.length} hand-picked components, compatibility-checked and backed by real builders.</p>
             <Link href="/shop" className="btn btn-solid btn-lg">
               Shop Components
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
@@ -132,7 +139,7 @@ export default function HomeView() {
 
       <div className="container">
         {/* ══ Brand carousel ══ */}
-        <BrandCarousel />
+        <BrandCarousel brands={brands} />
 
         {/* ══ Trending / Featured ══ */}
         <div className="sec-h">
@@ -140,7 +147,7 @@ export default function HomeView() {
           <Link href="/shop">View All →</Link>
         </div>
         <div className="pg5">
-          {[...PRODUCTS].sort((a, b) => b.reviewCount - a.reviewCount).slice(0, 5).map((p) => (
+          {trending.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
         </div>
@@ -178,7 +185,7 @@ export default function HomeView() {
             <div>
               <h3>New Arrivals</h3>
               <p>Be the first to experience what&apos;s next!</p>
-              <Link href={productPath(freshProduct.id)} className="btn btn-lg">
+              <Link href={`/product/${freshProduct.id}/${freshProduct.slug}`} className="btn btn-lg">
                 Explore Now
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
               </Link>
@@ -200,7 +207,7 @@ export default function HomeView() {
           <Link href="/shop">View All →</Link>
         </div>
         <div className="pg5">
-          {[...PRODUCTS].sort((a, b) => b.reviewCount - a.reviewCount).slice(5, 10).map((p) => (
+          {recommended.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
         </div>

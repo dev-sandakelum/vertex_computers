@@ -2,18 +2,29 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useApp } from '@/app/components/providers/AppProvider';
-import { PRODUCTS, STOCK_MAP, fmt, productIc, productImg, productSpecList, type StockLevel } from '@/lib/data';
+import { STOCK_MAP, fmt, productIc, productImg, productSpecList, type StockLevel } from '@/lib/data';
 
 const PENDING_IMG = '/pending.png';
 
 export default function CartView() {
-  const { cart, cartSubtotal, cartTax, cartTotal, cartCount, changeQty, removeItem, removeItems, showToast } = useApp();
+  const { cart, cartSubtotal, cartTax, cartTotal, cartCount, changeQty, removeItem, removeItems, showToast, products, authUser } = useApp();
+  const router = useRouter();
 
   const [selected, setSelected] = useState<Set<number>>(new Set());
 
   const allSelected  = cart.length > 0 && selected.size === cart.length;
   const someSelected = selected.size > 0;
+
+  function handleCheckout() {
+    if (!authUser) {
+      showToast('Please sign in to proceed to checkout.');
+      router.push('/account/login?next=/checkout/shipping');
+      return;
+    }
+    router.push('/checkout/shipping');
+  }
 
   function toggleSelect(i: number) {
     setSelected(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n; });
@@ -54,13 +65,17 @@ export default function CartView() {
       <div className="sumrow"><span>Est. tax</span><span>{fmt(cartTax)}</span></div>
       <div className="promo-row">
         <input placeholder="Promo code" aria-label="Promo code" />
-        <button className="btn btn-secondary btn-sm" onClick={() => showToast('Promo code applied (demo) 🎉')}>Apply</button>
+        <button className="btn btn-secondary btn-sm" onClick={() => showToast('Promo codes coming soon.')}>Apply</button>
       </div>
       <div className="sumrow total"><span>Total</span><span>{fmt(cartTotal)}</span></div>
       {!compact && (
-        <Link href="/checkout/shipping" className="btn btn-primary btn-block btn-lg" style={{ marginTop: '16px', borderRadius: '12px' }}>
-          Proceed to Checkout →
-        </Link>
+        <button
+          className="btn btn-primary btn-block btn-lg"
+          style={{ marginTop: '16px', borderRadius: '12px' }}
+          onClick={handleCheckout}
+        >
+          {authUser ? 'Proceed to Checkout →' : 'Sign In to Checkout →'}
+        </button>
       )}
       <p style={{ fontSize: '12px', textAlign: 'center', marginTop: '10px', color: 'var(--muted)' }}>
         🔒 Secure 256-bit encrypted checkout
@@ -112,7 +127,7 @@ export default function CartView() {
                   )}
 
                   {cart.map((item, i) => {
-                    const p = PRODUCTS.find(prod => prod.id === item.id)!;
+                    const p = products.find(prod => prod.id === item.id)!;
                     const [badgeClass, stockLabel] = STOCK_MAP[p.stock as StockLevel];
                     const ic    = productIc(p);
                     const img   = productImg(p);
@@ -196,7 +211,7 @@ export default function CartView() {
               )}
 
               {cart.map((item, i) => {
-                const p     = PRODUCTS.find(prod => prod.id === item.id)!;
+                const p     = products.find(prod => prod.id === item.id)!;
                 const ic    = productIc(p);
                 const img   = productImg(p);
                 const specs = productSpecList(p);
@@ -242,9 +257,13 @@ export default function CartView() {
         </p>
 
         <div className="sticky-checkout">
-          <Link href="/checkout/shipping" className="btn btn-primary btn-block btn-lg" style={{ borderRadius: '12px' }}>
-            Checkout — {fmt(cartTotal)}
-          </Link>
+          <button
+            className="btn btn-primary btn-block btn-lg"
+            style={{ borderRadius: '12px' }}
+            onClick={handleCheckout}
+          >
+            {authUser ? `Checkout — ${fmt(cartTotal)}` : 'Sign In to Checkout'}
+          </button>
         </div>
       </div>
     </div>

@@ -20,6 +20,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyNotificationHash, formatAmount } from '@/lib/payhere/hash';
 import { getMerchantId, getMerchantSecret } from '@/lib/payhere/config';
 import { getOrder, updateOrderStatus } from '@/lib/orderStore';
+import { log } from '@/lib/logger';
 import { PAYHERE_STATUS, type PayHereStatusCode } from '@/lib/payhere/types';
 
 export async function POST(req: NextRequest) {
@@ -108,9 +109,12 @@ export async function POST(req: NextRequest) {
     // ── 10. Update order ─────────────────────────────────────────
     await updateOrderStatus(order_id, newStatus, payment_id || undefined, method || undefined);
 
-    console.info(
-      `[payhere/notify] Order ${order_id} → ${newStatus} (payment_id: ${payment_id}, method: ${method})`,
-    );
+    await log({
+      level: newStatus === 'PAID' ? 'success' : newStatus === 'FAILED' ? 'error' : 'info',
+      category: 'payment',
+      message: `Order ${order_id} → ${newStatus}`,
+      meta: { orderId: order_id, paymentId: payment_id, method, status: newStatus },
+    });
 
     return new NextResponse('OK', { status: 200 });
   } catch (err) {

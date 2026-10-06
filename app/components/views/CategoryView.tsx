@@ -4,15 +4,12 @@ import { useState, useMemo, useCallback } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useApp } from '@/app/components/providers/AppProvider';
-import { PRODUCTS, categorySlug, type Product } from '@/lib/data';
+import { categorySlug, type Product } from '@/lib/data';
 import ProductCard from '@/app/components/ui/ProductCard';
 
 type SortKey = 'pop' | 'lo' | 'hi' | 'new' | 'rating';
 
 const PAGE_SIZE = 12;
-
-const ALL_BRANDS     = Array.from(new Set(PRODUCTS.map(p => p.brand))).sort();
-const ALL_CATEGORIES = Array.from(new Set(PRODUCTS.map(p => p.category))).sort();
 
 export interface FilterState {
   brands:      Set<string>;
@@ -90,9 +87,11 @@ function SortSelect({ sortKey, onSort, style, className }: {
   );
 }
 
-interface Props { activeCategory?: string; }
+interface Props { activeCategory?: string; products: Product[]; }
 
-export default function CategoryView({ activeCategory }: Props) {
+export default function CategoryView({ activeCategory, products }: Props) {
+  const ALL_BRANDS     = useMemo(() => Array.from(new Set(products.map(p => p.brand))).sort(),     [products]);
+  const ALL_CATEGORIES = useMemo(() => Array.from(new Set(products.map(p => p.category))).sort(), [products]);
   const searchParams = useSearchParams();
   const router       = useRouter();
   const pathname     = usePathname();
@@ -123,8 +122,8 @@ export default function CategoryView({ activeCategory }: Props) {
   }
 
   const filtered = useMemo(
-    () => applyFilters(PRODUCTS, filters, activeCategory, urlQuery, urlTag),
-    [filters, activeCategory, urlQuery, urlTag],
+    () => applyFilters(products, filters, activeCategory, urlQuery, urlTag),
+    [products, filters, activeCategory, urlQuery, urlTag],
   );
   const sorted     = useMemo(() => sortProducts(filtered, sortKey), [filtered, sortKey]);
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
@@ -217,6 +216,9 @@ export default function CategoryView({ activeCategory }: Props) {
                   setFilters={setFilters}
                   resetPage={resetPage}
                   activeCategory={activeCategory}
+                  products={products}
+                  allBrands={ALL_BRANDS}
+                  allCategories={ALL_CATEGORIES}
                 />
               </div>
             </div>
@@ -305,6 +307,9 @@ export default function CategoryView({ activeCategory }: Props) {
         activeCategory={activeCategory}
         resultCount={sorted.length}
         onClearAll={clearAllFilters}
+        products={products}
+        allBrands={ALL_BRANDS}
+        allCategories={ALL_CATEGORIES}
       />
     </div>
   );
@@ -312,13 +317,16 @@ export default function CategoryView({ activeCategory }: Props) {
 
 /* ── Filter groups ── */
 interface FilterGroupsProps {
-  filters: FilterState;
-  setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
-  resetPage: () => void;
+  filters:       FilterState;
+  setFilters:    React.Dispatch<React.SetStateAction<FilterState>>;
+  resetPage:     () => void;
   activeCategory?: string;
+  products:      Product[];
+  allBrands:     string[];
+  allCategories: string[];
 }
 
-function FilterGroups({ filters, setFilters, resetPage, activeCategory }: FilterGroupsProps) {
+function FilterGroups({ filters, setFilters, resetPage, activeCategory, products, allBrands, allCategories }: FilterGroupsProps) {
   function toggleBrand(brand: string) {
     setFilters(f => { const s = new Set(f.brands); s.has(brand) ? s.delete(brand) : s.add(brand); return { ...f, brands: s }; });
     resetPage();
@@ -329,26 +337,26 @@ function FilterGroups({ filters, setFilters, resetPage, activeCategory }: Filter
   }
 
   const scopedProducts = useMemo(
-    () => activeCategory ? PRODUCTS.filter(p => p.category === activeCategory) : PRODUCTS,
-    [activeCategory],
+    () => activeCategory ? products.filter(p => p.category === activeCategory) : products,
+    [activeCategory, products],
   );
   const brandCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    ALL_BRANDS.forEach(b => { counts[b] = scopedProducts.filter(p => p.brand === b).length; });
+    allBrands.forEach(b => { counts[b] = scopedProducts.filter(p => p.brand === b).length; });
     return counts;
-  }, [scopedProducts]);
+  }, [scopedProducts, allBrands]);
   const catCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    ALL_CATEGORIES.forEach(c => { counts[c] = PRODUCTS.filter(p => p.category === c).length; });
+    allCategories.forEach(c => { counts[c] = products.filter(p => p.category === c).length; });
     return counts;
-  }, []);
+  }, [products, allCategories]);
 
   return (
     <>
       {!activeCategory && (
         <fieldset className="fgroup">
           <legend>Category</legend>
-          {ALL_CATEGORIES.map(cat => (
+          {allCategories.map(cat => (
             <label key={cat} className="fopt">
               <input type="checkbox" checked={filters.categories.has(cat)} onChange={() => toggleCategory(cat)} style={{ accentColor: 'var(--blue)' }} />
               {cat}<span className="cnt">{catCounts[cat]}</span>
@@ -359,7 +367,7 @@ function FilterGroups({ filters, setFilters, resetPage, activeCategory }: Filter
 
       <fieldset className="fgroup">
         <legend>Brand</legend>
-        {ALL_BRANDS.filter(b => (brandCounts[b] ?? 0) > 0).map(brand => (
+        {allBrands.filter(b => (brandCounts[b] ?? 0) > 0).map(brand => (
           <label key={brand} className="fopt">
             <input type="checkbox" checked={filters.brands.has(brand)} onChange={() => toggleBrand(brand)} style={{ accentColor: 'var(--blue)' }} />
             {brand}<span className="cnt">{brandCounts[brand]}</span>
@@ -409,7 +417,7 @@ interface FilterDrawerProps extends FilterGroupsProps {
   onClearAll: () => void;
 }
 
-function FilterDrawer({ filters, setFilters, resetPage, activeCategory, resultCount, onClearAll }: FilterDrawerProps) {
+function FilterDrawer({ filters, setFilters, resetPage, activeCategory, resultCount, onClearAll, products, allBrands, allCategories }: FilterDrawerProps) {
   const { filterDrawerOpen, closeDrawers } = useApp();
   return (
     <>
@@ -434,7 +442,7 @@ function FilterDrawer({ filters, setFilters, resetPage, activeCategory, resultCo
           </button>
         </div>
         <div style={{ overflowY: 'auto', flex: 1, paddingBottom: '16px' }}>
-          <FilterGroups filters={filters} setFilters={setFilters} resetPage={resetPage} activeCategory={activeCategory} />
+          <FilterGroups filters={filters} setFilters={setFilters} resetPage={resetPage} activeCategory={activeCategory} products={products} allBrands={allBrands} allCategories={allCategories} />
         </div>
         <div style={{ borderTop: '1px solid var(--line)', paddingTop: '12px', display: 'flex', gap: '8px' }}>
           <button className="btn btn-secondary btn-sm" style={{ flex: 1 }} onClick={onClearAll}>Clear all</button>

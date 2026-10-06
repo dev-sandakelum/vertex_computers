@@ -10,24 +10,44 @@ import React, {
   type ReactNode,
 } from 'react';
 import type { CartItem } from '@/lib/store';
+import type { Product } from '@/lib/data';
 import { PRODUCTS } from '@/lib/data';
 import { loadCart, saveCart } from '@/lib/cartStorage';
-import {
-  clearAuthSession,
-  loadAuthProfile,
-  loadAuthSession,
-  saveAuthProfile,
-  saveAuthSession,
-  toPublicAuthUser,
-  type PublicAuthUser,
-  type StoredAuthProfile,
-} from '@/lib/authStorage';
+
+/* ─── Auth user shape (returned from /api/auth/me) ──────────── */
+export interface AuthUser {
+  userId:    string;
+  firstName: string;
+  lastName:  string;
+  fullName:  string;
+  initials:  string;
+  email:     string;
+  phone:     string;
+  role:      string;
+  createdAt: string;
+}
+
+function toAuthUser(raw: Record<string, unknown>): AuthUser {
+  const f = String(raw.firstName ?? '');
+  const l = String(raw.lastName ?? '');
+  return {
+    userId:    String(raw.userId ?? raw._id ?? ''),
+    firstName: f,
+    lastName:  l,
+    fullName:  `${f} ${l}`.trim(),
+    initials:  `${f.charAt(0)}${l.charAt(0)}`.toUpperCase() || 'U',
+    email:     String(raw.email ?? ''),
+    phone:     String(raw.phone ?? ''),
+    role:      String(raw.role ?? 'user'),
+    createdAt: String(raw.createdAt ?? ''),
+  };
+}
 
 /* ─── State ─────────────────────────────────────────────────── */
 interface AppState {
   cart: CartItem[];
   theme: 'light' | 'dark';
-  authUser: PublicAuthUser | null;
+  authUser: AuthUser | null;
   authReady: boolean;
   toast: string;
   toastVisible: boolean;
@@ -55,7 +75,7 @@ function makeInitial(): AppState {
 /* ─── Actions ───────────────────────────────────────────────── */
 type Action =
   | { type: 'SET_THEME'; theme: 'light' | 'dark' }
-  | { type: 'SET_AUTH_USER'; user: PublicAuthUser | null }
+  | { type: 'SET_AUTH_USER'; user: AuthUser | null }
   | { type: 'SET_AUTH_READY'; ready: boolean }
   | { type: 'ADD_TO_CART'; id: number; q: number }
   | { type: 'CHANGE_QTY'; index: number; delta: number }
@@ -126,12 +146,21 @@ function reducer(state: AppState, action: Action): AppState {
 }
 
 /* ─── Context value ─────────────────────────────────────────── */
+export interface AuthResult {
+  ok: boolean;
+  message: string;
+}
+
 interface AppContextValue extends AppState {
+  products: Product[];
   toggleTheme: () => void;
-  signIn: (credentials: AuthCredentials) => AuthResult;
-  register: (input: AuthRegistrationInput) => AuthResult;
-  updateProfile: (input: AuthUpdateInput) => AuthResult;
-  signOut: () => void;
+  signIn: (credentials: { email: string; password: string }) => Promise<AuthResult>;
+  register: (input: {
+    firstName: string; lastName: string; email: string;
+    phone: string; password: string; acceptedTerms: boolean;
+  }) => Promise<AuthResult>;
+  updateProfile: (input: { firstName: string; lastName: string; phone: string }) => Promise<AuthResult>;
+  signOut: () => Promise<void>;
   addToCart: (id: number, q: number) => void;
   changeQty: (index: number, delta: number) => void;
   removeItem: (index: number) => void;
@@ -152,46 +181,19 @@ interface AppContextValue extends AppState {
   accountLabel: string;
 }
 
-interface AuthCredentials {
-  email: string;
-  password: string;
-  rememberMe: boolean;
-}
-
-interface AuthRegistrationInput {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  password: string;
-  rememberMe: boolean;
-  acceptedTerms: boolean;
-}
-
-interface AuthUpdateInput {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-}
-
-interface AuthResult {
-  ok: boolean;
-  message: string;
-}
-
 const AppContext = createContext<AppContextValue | null>(null);
 
-export function AppProvider({ children }: { children: ReactNode }) {
+export function AppProvider({ children, products: productsProp }: { children: ReactNode; products?: Product[] }) {
   const [state, dispatch] = useReducer(reducer, undefined, makeInitial);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const products = productsProp ?? PRODUCTS;
 
   /* Sync theme to <html data-theme> */
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', state.theme);
   }, [state.theme]);
 
-  /* Hydrate cart from localStorage after mount (avoids SSR mismatch) */
+  /* Hydrate cart from localStorage */
   useEffect(() => {
     const saved = loadCart();
     if (saved.length > 0) {
@@ -200,90 +202,81 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* Persist cart to localStorage on every change */
+  /* Persist cart */
   useEffect(() => {
     saveCart(state.cart);
   }, [state.cart]);
 
-  /* Hydrate auth from localStorage after mount */
+  /* Hydrate auth from server session on mount */
   useEffect(() => {
-    const profile = loadAuthProfile();
-    const sessionEmail = loadAuthSession();
-
-    if (sessionEmail && profile.email.trim().toLowerCase() === sessionEmail.trim().toLowerCase()) {
-      dispatch({ type: 'SET_AUTH_USER', user: toPublicAuthUser(profile) });
-    } else {
-      clearAuthSession();
-      dispatch({ type: 'SET_AUTH_USER', user: null });
-    }
-
-    dispatch({ type: 'SET_AUTH_READY', ready: true });
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.user) {
+          dispatch({ type: 'SET_AUTH_USER', user: toAuthUser(data.user as Record<string, unknown>) });
+        }
+      })
+      .catch(() => {/* no session */})
+      .finally(() => dispatch({ type: 'SET_AUTH_READY', ready: true }));
   }, []);
 
   const toggleTheme = useCallback(() => {
     dispatch({ type: 'SET_THEME', theme: state.theme === 'dark' ? 'light' : 'dark' });
   }, [state.theme]);
 
-  const signIn = useCallback((credentials: AuthCredentials): AuthResult => {
-    const profile = loadAuthProfile();
-    const email = credentials.email.trim().toLowerCase();
-    const storedEmail = profile.email.trim().toLowerCase();
-
-    if (!credentials.email.trim() || !credentials.password.trim()) {
-      return { ok: false, message: 'Enter your email and password.' };
+  const signIn = useCallback(async (credentials: { email: string; password: string }): Promise<AuthResult> => {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials),
+      });
+      const data = await res.json();
+      if (!res.ok) return { ok: false, message: data.error ?? 'Login failed.' };
+      dispatch({ type: 'SET_AUTH_USER', user: toAuthUser(data.user as Record<string, unknown>) });
+      return { ok: true, message: `Welcome back, ${(data.user as Record<string, unknown>).firstName}!` };
+    } catch {
+      return { ok: false, message: 'Network error. Please try again.' };
     }
-
-    if (email !== storedEmail || credentials.password !== profile.password) {
-      return { ok: false, message: 'Invalid email or password.' };
-    }
-
-    saveAuthSession(profile.email);
-    dispatch({ type: 'SET_AUTH_USER', user: toPublicAuthUser(profile) });
-    return { ok: true, message: `Welcome back, ${profile.firstName}.` };
   }, []);
 
-  const register = useCallback((input: AuthRegistrationInput): AuthResult => {
-    const profile: StoredAuthProfile = {
-      firstName: input.firstName.trim(),
-      lastName: input.lastName.trim(),
-      email: input.email.trim(),
-      phone: input.phone.trim(),
-      password: input.password,
-      rememberMe: input.rememberMe,
-      acceptedTerms: input.acceptedTerms,
-      createdAt: new Date().toISOString(),
-    };
-
-    saveAuthProfile(profile);
-    saveAuthSession(profile.email);
-    dispatch({ type: 'SET_AUTH_USER', user: toPublicAuthUser(profile) });
-    return { ok: true, message: `Account created for ${profile.firstName}.` };
+  const register = useCallback(async (input: {
+    firstName: string; lastName: string; email: string;
+    phone: string; password: string; acceptedTerms: boolean;
+  }): Promise<AuthResult> => {
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(input),
+      });
+      const data = await res.json();
+      if (!res.ok) return { ok: false, message: data.error ?? 'Registration failed.' };
+      dispatch({ type: 'SET_AUTH_USER', user: toAuthUser(data.user as Record<string, unknown>) });
+      return { ok: true, message: `Account created! Welcome, ${(data.user as Record<string, unknown>).firstName}!` };
+    } catch {
+      return { ok: false, message: 'Network error. Please try again.' };
+    }
   }, []);
 
-  const updateProfile = useCallback((input: AuthUpdateInput): AuthResult => {
-    const profile = loadAuthProfile();
-    const currentEmail = state.authUser?.email.trim().toLowerCase();
-
-    if (!currentEmail || profile.email.trim().toLowerCase() !== currentEmail) {
-      return { ok: false, message: 'No signed-in account is available.' };
+  const updateProfile = useCallback(async (input: { firstName: string; lastName: string; phone: string }): Promise<AuthResult> => {
+    try {
+      const res = await fetch('/api/account/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(input),
+      });
+      const data = await res.json();
+      if (!res.ok) return { ok: false, message: data.error ?? 'Update failed.' };
+      dispatch({ type: 'SET_AUTH_USER', user: toAuthUser(data.user as Record<string, unknown>) });
+      return { ok: true, message: 'Profile updated successfully.' };
+    } catch {
+      return { ok: false, message: 'Network error. Please try again.' };
     }
+  }, []);
 
-    const nextProfile: StoredAuthProfile = {
-      ...profile,
-      firstName: input.firstName.trim(),
-      lastName: input.lastName.trim(),
-      email: input.email.trim(),
-      phone: input.phone.trim(),
-    };
-
-    saveAuthProfile(nextProfile);
-    saveAuthSession(nextProfile.email);
-    dispatch({ type: 'SET_AUTH_USER', user: toPublicAuthUser(nextProfile) });
-    return { ok: true, message: 'Profile updated.' };
-  }, [state.authUser?.email]);
-
-  const signOut = useCallback(() => {
-    clearAuthSession();
+  const signOut = useCallback(async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
     dispatch({ type: 'SET_AUTH_USER', user: null });
   }, []);
 
@@ -292,26 +285,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'OPEN_CART_DRAWER' });
   }, []);
 
-  const changeQty = useCallback((index: number, delta: number) => {
-    dispatch({ type: 'CHANGE_QTY', index, delta });
-  }, []);
-
-  const removeItem = useCallback((index: number) => {
-    dispatch({ type: 'REMOVE_ITEM', index });
-  }, []);
-
-  const removeItems = useCallback((indices: number[]) => {
-    dispatch({ type: 'REMOVE_ITEMS', indices });
-  }, []);
-
-  const clearCart = useCallback(() => {
-    dispatch({ type: 'CLEAR_CART' });
-  }, []);
+  const changeQty    = useCallback((index: number, delta: number) => dispatch({ type: 'CHANGE_QTY', index, delta }), []);
+  const removeItem   = useCallback((index: number) => dispatch({ type: 'REMOVE_ITEM', index }), []);
+  const removeItems  = useCallback((indices: number[]) => dispatch({ type: 'REMOVE_ITEMS', indices }), []);
+  const clearCart    = useCallback(() => dispatch({ type: 'CLEAR_CART' }), []);
 
   const showToast = useCallback((msg: string) => {
     dispatch({ type: 'SHOW_TOAST', msg });
     if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => dispatch({ type: 'HIDE_TOAST' }), 2400);
+    toastTimer.current = setTimeout(() => dispatch({ type: 'HIDE_TOAST' }), 3000);
   }, []);
 
   const toggleMobileDrawer = useCallback(() => dispatch({ type: 'TOGGLE_MOBILE_DRAWER' }), []);
@@ -321,10 +303,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const closeDrawers       = useCallback(() => dispatch({ type: 'CLOSE_DRAWERS' }), []);
   const setSearchOpen      = useCallback((open: boolean) => dispatch({ type: 'SET_SEARCH', open }), []);
 
-  /* Derived cart values */
-  const cartCount = state.cart.reduce((s, c) => s + c.q, 0);
+  const cartCount    = state.cart.reduce((s, c) => s + c.q, 0);
   const cartSubtotal = state.cart.reduce((s, c) => {
-    const prod = PRODUCTS.find(p => p.id === c.id);
+    const prod = products.find((p) => p.id === c.id);
     return s + (prod ? prod.price * c.q : 0);
   }, 0);
   const cartTax   = cartSubtotal * 0.0725;
@@ -335,6 +316,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider value={{
       ...state,
+      products,
       signIn,
       register,
       updateProfile,

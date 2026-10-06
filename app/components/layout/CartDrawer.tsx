@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useApp } from '@/app/components/providers/AppProvider';
-import { PRODUCTS, fmt, productImg, productIc, type StockLevel } from '@/lib/data';
+import { fmt, productImg, productIc } from '@/lib/data';
 
 interface Props {
   open: boolean;
@@ -13,15 +14,26 @@ const PENDING_IMG = '/pending.png';
 const FREE_SHIP_THRESHOLD = 99;
 
 export default function CartDrawer({ open, onClose }: Props) {
-  const { cart, cartSubtotal, changeQty, removeItem, showToast } = useApp();
+  const { cart, cartSubtotal, changeQty, removeItem, showToast, products, authUser } = useApp();
+  const router = useRouter();
 
-  const shipPct   = Math.min(100, (cartSubtotal / FREE_SHIP_THRESHOLD) * 100);
-  const remaining = Math.max(0, FREE_SHIP_THRESHOLD - cartSubtotal);
+  const shipPct      = Math.min(100, (cartSubtotal / FREE_SHIP_THRESHOLD) * 100);
+  const remaining    = Math.max(0, FREE_SHIP_THRESHOLD - cartSubtotal);
   const freeUnlocked = cartSubtotal >= FREE_SHIP_THRESHOLD;
 
   function handleRemove(i: number) {
     removeItem(i);
     showToast('Item removed from cart');
+  }
+
+  function handleCheckout() {
+    onClose();
+    if (!authUser) {
+      showToast('Please sign in to proceed to checkout.');
+      router.push('/account/login?next=/checkout/shipping');
+      return;
+    }
+    router.push('/checkout/shipping');
   }
 
   return (
@@ -66,7 +78,7 @@ export default function CartDrawer({ open, onClose }: Props) {
           ) : (
             <ul className="cd-list">
               {cart.map((item, i) => {
-                const p = PRODUCTS.find(x => x.id === item.id);
+                const p = products.find(x => x.id === item.id);
                 if (!p) return null;
                 const img = productImg(p);
                 const ic  = productIc(p);
@@ -152,15 +164,15 @@ export default function CartDrawer({ open, onClose }: Props) {
             </div>
 
             {/* Checkout CTA */}
-            <Link
-              href="/checkout/shipping"
+            <button
               className="cd-checkout-btn"
-              onClick={onClose}
+              onClick={handleCheckout}
+              style={{ width: '100%', textAlign: 'center', cursor: 'pointer' }}
             >
-              Checkout · {fmt(cartSubtotal)}
-            </Link>
+              {authUser ? `Checkout · ${fmt(cartSubtotal)}` : `Sign in to Checkout · ${fmt(cartSubtotal)}`}
+            </button>
 
-            <p className="cd-note">Taxes at checkout · Demo storefront, no real charge</p>
+            <p className="cd-note">Taxes calculated at checkout</p>
           </div>
         )}
       </aside>

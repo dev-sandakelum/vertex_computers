@@ -4,18 +4,17 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/app/components/providers/AppProvider';
 import {
-  PRODUCTS, fmt, STOCK_MAP, productPath, categorySlug,
+  fmt, STOCK_MAP, categorySlug,
   productIc, productImg, productOld, productRev,
-  productTag, type StockLevel,
+  productTag, slugify, type Product, type StockLevel,
 } from '@/lib/data';
 
-interface Props { productId: number; }
+interface Props { product: Product; allProducts: Product[] }
 
 const PENDING_IMG = '/pending.png';
 
-export default function ProductView({ productId }: Props) {
+export default function ProductView({ product: p, allProducts }: Props) {
   const { addToCart, showToast } = useApp();
-  const p = PRODUCTS.find(prod => prod.id === productId) ?? PRODUCTS[0];
 
   const [qty, setQty]           = useState(1);
   const [activeThumb, setThumb] = useState(0);
@@ -38,7 +37,7 @@ export default function ProductView({ productId }: Props) {
   const SPECS: [string, string][] = Object.entries(p.specs ?? {}).slice(0, 16);
   if (SPECS.length === 0) SPECS.push(['Brand', p.brand], ['Price', fmt(p.price)], ['Rating', `${p.rating} stars`], ['Stock', stockLabel]);
 
-  const related = (p.relatedProductIds ?? []).slice(0, 4).map(id => PRODUCTS.find(x => x.id === id)).filter(Boolean) as typeof PRODUCTS;
+  const related = (p.relatedProductIds ?? []).slice(0, 4).map(id => allProducts.find(x => x.id === id)).filter(Boolean) as Product[];
 
   function handleAddToCart() { addToCart(p.id, qty); showToast(`Added to cart — ${p.name.split(' ').slice(0, 3).join(' ')} ✓`); }
   function toggleWishlist() { setWishlist(w => !w); showToast(wishlist ? 'Removed from wishlist' : 'Saved to wishlist ♡'); }
@@ -310,7 +309,7 @@ export default function ProductView({ productId }: Props) {
               {related.map(rp => {
                 const rpImg = productImg(rp);
                 return (
-                  <Link key={rp.id} href={productPath(rp.id)} className="pcard" aria-label={rp.name}>
+                  <Link key={rp.id} href={`/product/${rp.id}/${rp.slug ?? slugify(rp.name)}`} className="pcard" aria-label={rp.name}>
                     <div className="pcard-img">
                       <img src={rpImg || PENDING_IMG} alt={rp.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.currentTarget as HTMLImageElement).src = PENDING_IMG; }} />
                     </div>
@@ -437,7 +436,7 @@ export default function ProductView({ productId }: Props) {
             {related.map(rp => {
               const rpImg = productImg(rp);
               return (
-                <Link key={rp.id} href={productPath(rp.id)} className="hcard">
+                <Link key={rp.id} href={`/product/${rp.id}/${rp.slug ?? slugify(rp.name)}`} className="hcard">
                   <div className="hcard-img">
                     <img src={rpImg || PENDING_IMG} alt={rp.name} style={{ width: '40px', height: '36px', objectFit: 'contain' }} onError={(e) => { (e.currentTarget as HTMLImageElement).src = PENDING_IMG; }} />
                   </div>

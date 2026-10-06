@@ -7,6 +7,7 @@ import {
   CATEGORY_SHORTCUTS,
   type SearchSuggestion,
 } from '@/lib/searchKeywords';
+import type { Product } from '@/lib/data';
 
 interface SearchSuggestionsProps {
   /** Current input value */
@@ -17,6 +18,8 @@ interface SearchSuggestionsProps {
   onSubmit: (query: string) => void;
   /** Variant: 'dropdown' for desktop header, 'sheet' for mobile full-screen */
   variant?: 'dropdown' | 'sheet';
+  /** Products list for live name/brand matching */
+  products?: Product[];
 }
 
 export default function SearchSuggestions({
@@ -24,10 +27,11 @@ export default function SearchSuggestions({
   onSelect,
   onSubmit,
   variant = 'dropdown',
+  products = [],
 }: SearchSuggestionsProps) {
   const [activeIndex, setActiveIndex] = useState(-1);
   const [prevQuery, setPrevQuery] = useState(query);
-  const suggestions = getSearchSuggestions(query);
+  const suggestions = getSearchSuggestions(query, 8, products);
   const listRef = useRef<HTMLUListElement>(null);
 
   /* reset active index whenever query changes */
@@ -209,15 +213,17 @@ export function useSearchKeyboard({
   onSelect,
   onSubmit,
   onClose,
+  products = [],
 }: {
   query: string;
   onSelect: (label: string) => void;
   onSubmit: (query: string) => void;
   onClose: () => void;
+  products?: Product[];
 }) {
   const [activeIndex, setActiveIndex] = useState(-1);
   const [prevQuery, setPrevQuery] = useState(query);
-  const suggestions = getSearchSuggestions(query);
+  const suggestions = getSearchSuggestions(query, 8, products);
 
   /* reset active index whenever query changes */
   if (query !== prevQuery) {

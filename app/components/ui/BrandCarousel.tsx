@@ -1,21 +1,14 @@
 'use client';
 
 import { useRef } from 'react';
-import brandsData from '@/lib/brands.json';
+import type { Brand } from '@/lib/db/brands';
 
-export interface Brand {
-  id:       string;
-  name:     string;
-  logo:     string;
-  tagline:  string;
-  category: string;
-  website:  string;
-  featured: boolean;
+interface Props {
+  brands: Brand[];
 }
 
-const BRANDS: Brand[] = brandsData as Brand[];
-
-export default function BrandCarousel() {
+export default function BrandCarousel({ brands }: Props) {
+  const BRANDS = brands;
   const trackRef = useRef<HTMLDivElement>(null);
 
   function scroll(dir: number) {

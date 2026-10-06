@@ -9,10 +9,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PRODUCTS } from '@/lib/data';
+import { getProductById } from '@/lib/db/products';
 import { getMerchantId, getMerchantSecret, isSandbox, getAppUrl } from '@/lib/payhere/config';
 import { generateCheckoutHash, formatAmount } from '@/lib/payhere/hash';
 import { generateOrderId, saveOrder } from '@/lib/orderStore';
+import { getSession } from '@/lib/session';
+import { log } from '@/lib/logger';
 import type { CreateOrderRequest, CreateOrderResponse, Order, OrderItem } from '@/lib/payhere/types';
 
 export async function POST(req: NextRequest) {
@@ -44,10 +46,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ── 2. Resolve products from server-side data (never trust client price) ──
+    // ── 2. Resolve products from DB (never trust client price) ──
     const orderItems: OrderItem[] = [];
     for (const item of cartItems) {
-      const product = PRODUCTS.find((p) => p.id === item.id);
+      const product = await getProductById(item.id);
       if (!product) {
         return NextResponse.json(
           { error: `Product with ID ${item.id} not found.` },
@@ -80,9 +82,12 @@ export async function POST(req: NextRequest) {
     const orderId = generateOrderId();
     const now = new Date().toISOString();
 
+    // Use session email as userId if logged in, fall back to shipping email
+    const session  = await getSession();
+    const userId   = session.email ?? shipping.email.toLowerCase().trim();
     const order: Order = {
       orderId,
-      userId: shipping.email.toLowerCase().trim(), // email as userId (no server auth)
+      userId,
       items: orderItems,
       subtotal,
       tax,
@@ -101,6 +106,8 @@ export async function POST(req: NextRequest) {
     };
 
     await saveOrder(order);
+
+    await log({ level: 'info', category: 'payment', message: `Order created: ${orderId} for ${userId} — total ${total} ${currency}`, meta: { orderId, total } });
 
     // ── 5. Generate checkout hash ────────────────────────────────
     const amountStr = formatAmount(total);

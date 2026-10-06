@@ -30,7 +30,7 @@ export function clearCart(): void {
   localStorage.removeItem(KEY);
 }
 
-/** Demo default cart — 3 items on first load */
+/** Start with an empty cart */
 function defaultCart(): CartItem[] {
-  return [{ id: 0, q: 1 }, { id: 3, q: 1 }, { id: 4, q: 1 }];
+  return [];
 }

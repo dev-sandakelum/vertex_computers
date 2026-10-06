@@ -66,7 +66,7 @@ export default function Footer() {
             <ul>
               <li><a href="#" onClick={(e) => e.preventDefault()}>Our Story</a></li>
               <li><Link href="/account">My Account</Link></li>
-              <li><Link href="/checkout/shipping">Checkout</Link></li>
+              <li><Link href="/cart">Cart &amp; Checkout</Link></li>
               <li><a href="#" onClick={(e) => e.preventDefault()}>Blog</a></li>
             </ul>
           </nav>
