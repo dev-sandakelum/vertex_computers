@@ -17,12 +17,8 @@ import mongoose from 'mongoose';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
-if (!MONGODB_URI) {
-  throw new Error(
-    'Please set the MONGODB_URI environment variable in .env.local.\n' +
-    'Example: MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/vertex_computers?retryWrites=true&w=majority',
-  );
-}
+// Don't throw at module-load time — callers guard with `if (!MONGODB_URI)` already.
+// Throwing here breaks the build when the env var isn't available at build time.
 
 /* ── Cached connection on globalThis (survives hot-reloads) ── */
 
@@ -40,11 +36,17 @@ const cache: MongooseCache = globalThis.__mongooseCache ?? { conn: null, promise
 globalThis.__mongooseCache = cache;
 
 export async function connectDB(): Promise<typeof mongoose> {
+  if (!MONGODB_URI) {
+    throw new Error(
+      'Please set the MONGODB_URI environment variable in .env.local.\n' +
+      'Example: MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/vertex_computers?retryWrites=true&w=majority',
+    );
+  }
   if (cache.conn) return cache.conn;
 
   if (!cache.promise) {
     cache.promise = mongoose
-      .connect(MONGODB_URI as string, {
+      .connect(MONGODB_URI, {
         bufferCommands: false,
         serverSelectionTimeoutMS: 10000,
         socketTimeoutMS: 30000,
