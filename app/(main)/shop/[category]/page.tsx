@@ -1,6 +1,8 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { CATEGORY_SLUGS } from '@/lib/data';
 import CategoryView from '@/app/components/views/CategoryView';
+import { getAllProducts } from '@/lib/db/products';
 
 interface Props {
   params: Promise<{ category: string }>;
@@ -21,6 +23,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params }: Props) {
   const { category } = await params;
-  const name = CATEGORY_SLUGS[category] ?? category;
-  return <CategoryView activeCategory={name} />;
+  const name     = CATEGORY_SLUGS[category] ?? category;
+  const products = await getAllProducts();
+  return (
+    <Suspense fallback={<div style={{ padding: '40px', textAlign: 'center' }} className="muted">Loading products…</div>}>
+      <CategoryView products={products} activeCategory={name} />
+    </Suspense>
+  );
 }

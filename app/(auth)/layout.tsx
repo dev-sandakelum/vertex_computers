@@ -11,7 +11,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="auth-shell">
         <header className="auth-header">
           <Link href="/" className="auth-logo" aria-label="Vertex Computers home">
-            <span className="logo-mark">V</span>
+            <img src="/logo.png" alt="Vertex Computers" width={34} height={34} style={{ borderRadius: '9px', objectFit: 'contain', flexShrink: 0 }} />
             <span className="auth-logo-text">
               VERTEX
               <small>Computers</small>

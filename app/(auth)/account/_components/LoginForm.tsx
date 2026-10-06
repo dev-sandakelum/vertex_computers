@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/app/components/providers/AppProvider';
 
 const GoogleIcon = () => (
@@ -15,47 +15,63 @@ const GoogleIcon = () => (
 );
 
 export default function LoginForm() {
-  const { showToast } = useApp();
-  const router = useRouter();
-  const [email, setEmail] = useState('');
+  const { authUser, authReady, signIn, showToast } = useApp();
+  const router       = useRouter();
+  const searchParams = useSearchParams();
+  const nextUrl      = searchParams.get('next') ?? '/account';
+
+  const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState('');
 
-  async function handleSubmit(e: React.FormEvent) {
+  // Redirect if already logged in
+  useEffect(() => {
+    if (authReady && authUser) router.replace(nextUrl);
+  }, [authReady, authUser, router, nextUrl]);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError('');
+
+    if (!email.trim() || !password.trim()) {
+      const msg = 'Please enter your email and password.';
+      setError(msg);
+      showToast(msg);
+      return;
+    }
+
     setLoading(true);
-    /* demo: simulate network */
-    await new Promise((r) => setTimeout(r, 600));
+    const result = await signIn({ email, password });
     setLoading(false);
-    router.push('/account');
+
+    if (!result.ok) {
+      setError(result.message);
+      showToast(result.message);
+      return;
+    }
+
+    showToast(result.message);
+    router.replace(nextUrl);
   }
 
   return (
     <div className="auth-card">
-      {/* Heading */}
       <div className="auth-card-head">
         <h1 className="auth-title">Welcome back</h1>
-        <p className="auth-subtitle">Sign in to your account to continue</p>
+        <p className="auth-subtitle">Sign in to your Vertex Computers account</p>
       </div>
 
-      {/* Social */}
       <div className="auth-socials">
-        <button
-          type="button"
-          className="auth-social-btn"
-          onClick={() => showToast('Google sign-in (demo)')}
-        >
+        <button type="button" className="auth-social-btn" onClick={() => showToast('Google sign-in is not yet available.')}>
           <GoogleIcon />
           <span>Continue with Google</span>
         </button>
       </div>
 
-      <div className="auth-divider">
-        <span>or sign in with email</span>
-      </div>
+      <div className="auth-divider"><span>or sign in with email</span></div>
 
-      {/* Form */}
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         <div className="auth-field">
           <label htmlFor="email">Email address</label>
@@ -65,7 +81,7 @@ export default function LoginForm() {
             placeholder="name@example.com"
             autoComplete="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => { setEmail(e.target.value); setError(''); }}
             required
           />
         </div>
@@ -73,11 +89,7 @@ export default function LoginForm() {
         <div className="auth-field">
           <div className="auth-field-header">
             <label htmlFor="password">Password</label>
-            <a
-              href="#"
-              className="auth-forgot"
-              onClick={(e) => { e.preventDefault(); showToast('Password reset link sent (demo)'); }}
-            >
+            <a href="#" className="auth-forgot" onClick={(e) => { e.preventDefault(); showToast('Password reset — please contact support.'); }}>
               Forgot password?
             </a>
           </div>
@@ -88,15 +100,10 @@ export default function LoginForm() {
               placeholder="••••••••"
               autoComplete="current-password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => { setPassword(e.target.value); setError(''); }}
               required
             />
-            <button
-              type="button"
-              className="auth-eye"
-              onClick={() => setShowPass((v) => !v)}
-              aria-label={showPass ? 'Hide password' : 'Show password'}
-            >
+            <button type="button" className="auth-eye" onClick={() => setShowPass((v) => !v)} aria-label={showPass ? 'Hide password' : 'Show password'}>
               {showPass ? (
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <path d="M17.9 17.9A10 10 0 0 1 12 20C7 20 2.7 16.4 1 12a10.1 10.1 0 0 1 5.1-5.9M9.9 4.2A9.8 9.8 0 0 1 12 4c5 0 9.3 3.6 11 8a10.1 10.1 0 0 1-4.2 5.1M3 3l18 18"/>
@@ -111,17 +118,14 @@ export default function LoginForm() {
           </div>
         </div>
 
-        <label className="auth-remember">
-          <input type="checkbox" defaultChecked />
-          <span>Keep me signed in</span>
-        </label>
+        {error && (
+          <p role="alert" style={{ color: 'var(--danger)', fontSize: '13px', marginTop: '-4px' }}>
+            {error}
+          </p>
+        )}
 
-        <button
-          type="submit"
-          className={`auth-submit${loading ? ' auth-submit--loading' : ''}`}
-          disabled={loading}
-        >
-          {loading ? <span className="auth-spinner" /> : 'Sign In'}
+        <button type="submit" className={`auth-submit${loading ? ' auth-submit--loading' : ''}`} disabled={loading}>
+          {loading ? <span className="auth-spinner" /> : 'Log In'}
         </button>
       </form>
 

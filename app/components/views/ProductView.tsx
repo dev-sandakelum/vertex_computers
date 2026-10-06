@@ -3,176 +3,449 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/app/components/providers/AppProvider';
-import { PRODUCTS, fmt, STOCK_MAP, productPath, categorySlug } from '@/lib/data';
+import {
+  fmt, STOCK_MAP, categorySlug,
+  productIc, productImg, productOld, productRev,
+  productTag, slugify, type Product, type StockLevel,
+} from '@/lib/data';
 
-interface Props {
-  productId: number;
-}
+interface Props { product: Product; allProducts: Product[] }
 
-const RELATED_IDS = [4, 6, 8, 3];
-const SPECS_STATIC: [string, string][] = [
-  ['GPU Chipset', 'Nova RTX 9090'],
-  ['VRAM', '16GB GDDR7'],
-  ['Boost Clock', '2,610 MHz (OC mode)'],
-  ['Memory Bus', '256-bit'],
-  ['Interface', 'PCIe 5.0 ×16'],
-  ['Power Draw (TDP)', '320W'],
-  ['Recommended PSU', '750W'],
-  ['Outputs', '3× DisplayPort 2.1 · 1× HDMI 2.1'],
-  ['Dimensions', '306 × 137 × 61 mm (2.8-slot)'],
-  ['Warranty', '2 years, extendable'],
-];
+const PENDING_IMG = '/pending.png';
 
-export default function ProductView({ productId }: Props) {
+export default function ProductView({ product: p, allProducts }: Props) {
   const { addToCart, showToast } = useApp();
-  const p = PRODUCTS[productId] ?? PRODUCTS[0];
-  const [qty, setQty] = useState(1);
-  const [openAccordion, setOpenAccordion] = useState<number | null>(0);
-  const [badgeClass, stockLabel] = STOCK_MAP[p.stock];
 
-  /* Build dynamic specs from product data */
-  const SPECS: [string, string][] = [
-    ['Brand', p.brand],
-    ['Price', fmt(p.price)],
-    ['Specs', p.specs.join(' · ')],
-    ['Rating', `${p.rating} stars · ${p.rev} reviews`],
-    ['Stock', stockLabel],
-    ['Warranty', '2 years, extendable'],
-  ];
+  const [qty, setQty]           = useState(1);
+  const [activeThumb, setThumb] = useState(0);
+  const [activeTab, setTab]     = useState<'specs' | 'reviews' | 'qa'>('specs');
+  const [openAcc, setOpenAcc]   = useState<number | null>(0);
+  const [wishlist, setWishlist] = useState(false);
 
-  /* Determine category for breadcrumb */
-  const catName =
-    p.ic === 'i-gpu'   ? 'GPUs' :
-    p.ic === 'i-cpu'   ? 'CPUs' :
-    p.ic === 'i-mobo'  ? 'Motherboards' :
-    p.ic === 'i-ram'   ? 'RAM' :
-    p.ic === 'i-psu'   ? 'PSUs' :
-    p.ic === 'i-ssd'   ? 'Storage' :
-    p.ic === 'i-fan'   ? 'Cooling' :
-    p.ic === 'i-case'  ? 'Cases' :
-    'Peripherals';
+  const [badgeClass, stockLabel] = STOCK_MAP[p.stock as StockLevel];
+  const ic        = productIc(p);
+  const img       = productImg(p);
+  const old       = productOld(p);
+  const rev       = productRev(p);
+  const tag       = productTag(p);
+  const activeImg = p.images[activeThumb]?.url ?? img;
+  const sku       = p.sku ?? `${p.brand.toUpperCase().slice(0, 2)}-${String(p.id).padStart(3, '0')}`;
+  const saveAmt   = old ? old - p.price : 0;
+  const savePct   = old ? Math.round((1 - p.price / old) * 100) : 0;
+  const outOfStock = p.stock === 'out';
 
-  function handleAddToCart() {
-    addToCart(p.id, qty);
-    showToast(`Added to cart — ${p.name.split(' ').slice(0, 3).join(' ')} ✓`);
+  const SPECS: [string, string][] = Object.entries(p.specs ?? {}).slice(0, 16);
+  if (SPECS.length === 0) SPECS.push(['Brand', p.brand], ['Price', fmt(p.price)], ['Rating', `${p.rating} stars`], ['Stock', stockLabel]);
+
+  const related = (p.relatedProductIds ?? []).slice(0, 4).map(id => allProducts.find(x => x.id === id)).filter(Boolean) as Product[];
+
+  function handleAddToCart() { addToCart(p.id, qty); showToast(`Added to cart — ${p.name.split(' ').slice(0, 3).join(' ')} ✓`); }
+  function toggleWishlist() { setWishlist(w => !w); showToast(wishlist ? 'Removed from wishlist' : 'Saved to wishlist ♡'); }
+
+  function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
+    return <span className="stars" style={{ fontSize: size }}>{'★'.repeat(Math.floor(rating))}{'☆'.repeat(5 - Math.floor(rating))}</span>;
   }
 
   return (
-    <div>
+    <div className="pdp-page">
       {/* Breadcrumbs */}
-      <div className="breadcrumbs container">
-        <Link href="/">Home</Link> /
-        <Link href={`/shop/${categorySlug(catName)}`}>{catName}</Link> /
-        <b style={{ color: 'var(--text-1)' }}>{p.name.split(' ').slice(0, 4).join(' ')}</b>
-      </div>
+      <nav className="breadcrumbs container" aria-label="Breadcrumb">
+        <Link href="/">Home</Link>
+        <span className="bc-sep">/</span>
+        <Link href={`/shop/${categorySlug(p.category)}`}>{p.category}</Link>
+        <span className="bc-sep">/</span>
+        <span className="bc-cur">{p.name.split(' ').slice(0, 5).join(' ')}</span>
+      </nav>
 
-      {/* ── Desktop 2-col layout ── */}
-      <div className="container">
+      {/* ══ DESKTOP ══ */}
+      <div className="container pdp-desktop">
         <div className="pdp">
+
           {/* Gallery */}
           <div className="pdp-gallery">
-            <div className="main-img" style={{ position: 'relative' }}>
-              <svg width="120" height="90"><use href={`#${p.ic}`} /></svg>
-            </div>
-            <div className="thumbs">
-              {(['i-gpu', 'i-fan', 'i-mobo', 'i-case'] as const).map((ic, i) => (
-                <button key={ic} className={i === 0 ? 'on' : ''} aria-label={`Image ${i + 1}`}>
-                  <svg width="40" height="30"><use href={`#${ic}`} /></svg>
-                </button>
-              ))}
+            {p.images.length > 1 && (
+              <div className="pdp-thumbs-v">
+                {p.images.slice(0, 6).map((image, i) => (
+                  <button key={image.id} className={`pdp-thumb${i === activeThumb ? ' on' : ''}`} aria-label={`View image ${i + 1}`} onClick={() => setThumb(i)}>
+                    <img src={image.url} alt={image.alt} onError={(e) => { (e.currentTarget as HTMLImageElement).src = PENDING_IMG; }} />
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="pdp-main-img">
+              {tag && <span className="pdp-tag">{tag}</span>}
+              <img src={activeImg || PENDING_IMG} alt={p.name} onError={(e) => { (e.currentTarget as HTMLImageElement).src = PENDING_IMG; }} />
+              <span className="pdp-zoom-hint">🔍 Hover to zoom</span>
             </div>
           </div>
 
           {/* Info */}
           <div className="pdp-info">
-            <span className="pcard-brand">{p.brand} · SKU {p.brand.toUpperCase().slice(0, 2)}-{String(p.id).padStart(3, '0')}</span>
-            <h1>{p.name}</h1>
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <span className="stars">★★★★★ <small>{p.rating} · {p.rev} reviews</small></span>
+            <div className="pdp-topline">
+              <Link href={`/shop/${categorySlug(p.category)}`} className="pdp-brand-link">{p.brand}</Link>
+              <span className="pdp-sku">SKU {sku}</span>
+            </div>
+
+            <h1 className="pdp-name">{p.name}</h1>
+
+            <div className="pdp-meta-row">
+              <Stars rating={parseFloat(p.rating)} size={15} />
+              <button
+                className="pdp-rev-link"
+                onClick={() => { setTab('reviews'); document.querySelector('.pdp-below')?.scrollIntoView({ behavior: 'smooth' }); }}
+              >
+                {p.rating} · {rev} {rev === 1 ? 'review' : 'reviews'}
+              </button>
+              <span className="pdp-meta-sep" />
               <span className={`badge ${badgeClass}`}>{stockLabel}</span>
-            </div>
-            <div className="pdp-price">
-              {p.old && <s>{fmt(p.old)}</s>}
-              {fmt(p.price)}
-            </div>
-            {p.old && (
-              <span className="save-note">
-                You save {fmt(p.old - p.price)} ({Math.round((1 - p.price / p.old) * 100)}%)
-              </span>
-            )}
-            <p className="muted" style={{ marginTop: '14px', fontSize: '13.5px' }}>
-              Premium components, factory overclocked and ready to install. Compatibility checked with your cart.
-            </p>
-
-            {/* Desktop buy controls */}
-            <div className="pdp-buy">
-              <div className="qty" role="group" aria-label="Quantity">
-                <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Decrease">−</button>
-                <span>{qty}</span>
-                <button onClick={() => setQty((q) => q + 1)} aria-label="Increase">+</button>
-              </div>
-              <button className="btn btn-primary btn-lg" style={{ flex: 1, minWidth: '180px' }} onClick={handleAddToCart}>
-                Add to Cart
-              </button>
-              <button className="btn btn-secondary btn-lg" aria-label="Wishlist" onClick={() => showToast('Saved to wishlist ♡')}>
-                ♡
-              </button>
+              {p.stockCount && p.stockCount < 10 && p.stock !== 'out' && (
+                <span className="pdp-low-stock">Only {p.stockCount} left!</span>
+              )}
             </div>
 
-            <div className="trust">
-              <div>
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 7h13v10H3zM16 10h4l1 3v4h-5M6 20a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 6 20ZM18 20a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 18 20Z"/></svg>
-                Free shipping over $99
+            {/* Price */}
+            <div className="pdp-price-box">
+              {old && <span className="pdp-was">Was {fmt(old)}</span>}
+              <div className="pdp-price-row">
+                <span className="pdp-price">{fmt(p.price)}</span>
+                {old && <span className="pdp-save-badge">Save {savePct}%</span>}
               </div>
-              <div>
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7l-9-5Z"/></svg>
-                2-year warranty · 30-day returns
-              </div>
-              <div>
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 12l4 4L19 6"/></svg>
-                Compatibility-checked with your cart
-              </div>
-              <div>
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg>
-                Secure checkout · all major cards
-              </div>
+              {old && <span className="pdp-save-amt">You save {fmt(saveAmt)}</span>}
             </div>
-          </div>
-        </div>
 
-        {/* Desktop spec table */}
-        <div className="spec-section">
-          <div className="tabs">
-            <button className="on">Full Specifications</button>
-            <button onClick={() => showToast('Reviews — coming soon')}>Reviews ({p.rev})</button>
-            <button onClick={() => showToast('Q&A — coming soon')}>Q&amp;A</button>
-          </div>
-          <div className="card" style={{ borderTopLeftRadius: 0, overflow: 'hidden' }}>
-            <table className="spec-table">
-              <tbody>
-                {SPECS.map(([label, value]) => (
-                  <tr key={label}><td>{label}</td><td>{value}</td></tr>
+            <p className="pdp-desc">{p.shortDescription}</p>
+
+            {p.highlights && p.highlights.length > 0 && (
+              <ul className="pdp-highlights">
+                {p.highlights.slice(0, 5).map((h, i) => (
+                  <li key={i}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+                    {h}
+                  </li>
                 ))}
-              </tbody>
-            </table>
+              </ul>
+            )}
+
+            {SPECS.slice(0, 6).length > 0 && (
+              <div className="pdp-spec-chips">
+                {SPECS.slice(0, 6).map(([label, value]) => (
+                  <div key={label} className="pdp-chip">
+                    <span className="chip-label">{label}</span>
+                    <span className="chip-val">{value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <hr className="pdp-divider" />
+
+            {/* Qty + Cart */}
+            <div className="pdp-actions">
+              <div className="pdp-qty-row">
+                <span className="pdp-qty-label">Qty</span>
+                <div className="qty" role="group" aria-label="Quantity">
+                  <button onClick={() => setQty(q => Math.max(1, q - 1))} aria-label="Decrease">−</button>
+                  <span>{qty}</span>
+                  <button onClick={() => setQty(q => q + 1)} aria-label="Increase">+</button>
+                </div>
+              </div>
+              <div className="pdp-btn-row">
+                <button className="btn btn-primary btn-lg pdp-cart-btn" onClick={handleAddToCart} disabled={outOfStock}>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                  {outOfStock ? 'Out of Stock' : 'Add to Cart'}
+                </button>
+                <button className={`pdp-wish-btn${wishlist ? ' active' : ''}`} aria-label={wishlist ? 'Remove from wishlist' : 'Add to wishlist'} onClick={toggleWishlist}>
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill={wishlist ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Delivery */}
+            <div className="pdp-delivery-strip">
+              <div className="pdp-delivery-row">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M3 7h13v10H3zM16 10h4l1 3v4h-5M6 20a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 6 20ZM18 20a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 18 20Z"/></svg>
+                <div><b>Free Delivery</b><span> on orders over $99 · </span><span>{p.shipping?.estimatedDelivery ?? 'Est. 3–5 business days'}</span></div>
+              </div>
+              <div className="pdp-delivery-row">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7l-9-5Z"/></svg>
+                <div><b>{p.warranty?.duration ?? '2-Year'} Warranty</b><span> · {p.returns?.window ?? 30}-day hassle-free returns</span></div>
+              </div>
+            </div>
+
+            <div className="pdp-trust-row">
+              {[['Compatibility-checked', 'M20 6L9 17l-5-5'], ['Secure checkout', 'M2 5h20v14a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3z M2 10h20'], ['24/7 support', 'M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 3v4l3 3']].map(([label, path]) => (
+                <span key={label}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d={path}/></svg>
+                  {label}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Desktop related */}
-        <div className="spec-section">
-          <div className="section-head"><h2 className="section-title">Frequently Bought Together</h2></div>
-          <div className="product-grid">
-            {RELATED_IDS.map((id) => {
-              const rp = PRODUCTS[id];
+        {/* ── Tabs / specs / reviews ── */}
+        <div className="pdp-below">
+          <div className="pdp-tabs" role="tablist">
+            {(['specs', 'reviews', 'qa'] as const).map((t) => (
+              <button
+                key={t}
+                role="tab"
+                aria-selected={activeTab === t}
+                className={activeTab === t ? 'on' : ''}
+                onClick={() => setTab(t)}
+              >
+                {t === 'specs' ? 'Specifications' : t === 'reviews' ? `Reviews (${rev})` : 'Q&A'}
+              </button>
+            ))}
+          </div>
+
+          <div className="pdp-tab-body card">
+            {activeTab === 'specs' && (
+              <div className="pdp-spec-layout">
+                <div className="pdp-spec-main">
+                  <table className="spec-table">
+                    <tbody>{SPECS.map(([l, v]) => <tr key={l}><td>{l}</td><td>{v}</td></tr>)}</tbody>
+                  </table>
+                </div>
+                {p.compatibility && (
+                  <div className="pdp-spec-aside">
+                    <h3 className="aside-head">Compatibility Notes</h3>
+                    <p style={{ fontSize: '13.5px', lineHeight: 1.6, color: 'var(--muted)' }}>{p.compatibility.notes}</p>
+                    {(p.compatibility.testedBoards?.length ?? 0) > 0 && (
+                      <>
+                        <h4 style={{ fontSize: '13px', fontWeight: 700, marginTop: '16px', marginBottom: '8px' }}>Tested Boards</h4>
+                        <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {p.compatibility.testedBoards!.map(b => (
+                            <li key={b} style={{ fontSize: '13px', color: 'var(--muted)', display: 'flex', gap: '6px', alignItems: 'center' }}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                              {b}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'reviews' && (
+              <div className="pdp-reviews-layout">
+                {p.reviews?.featured && p.reviews.featured.length > 0 ? (
+                  <>
+                    <div className="reviews-summary-col">
+                      <div className="rev-big-score">
+                        <span className="rev-score-num">{p.reviews.average.toFixed(1)}</span>
+                        <Stars rating={p.reviews.average} size={20} />
+                        <span className="rev-score-total">{p.reviews.total} reviews</span>
+                      </div>
+                      {p.reviews.distribution && (
+                        <div className="rev-dist">
+                          {[5,4,3,2,1].map(star => {
+                            const count = p.reviews!.distribution[String(star)] ?? 0;
+                            const pct   = p.reviews!.total > 0 ? Math.round((count / p.reviews!.total) * 100) : 0;
+                            return (
+                              <div key={star} className="rev-dist-row">
+                                <span className="rev-dist-label">{star} ★</span>
+                                <div className="rev-dist-bar"><div className="rev-dist-fill" style={{ width: `${pct}%` }} /></div>
+                                <span className="rev-dist-pct">{pct}%</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                    <div className="reviews-list-col">
+                      {p.reviews.featured.map(review => (
+                        <div key={review.id} className="review-card">
+                          <div className="review-card-head">
+                            <div className="review-avatar">{review.author.charAt(0)}</div>
+                            <div className="review-meta">
+                              <div className="review-author-row">
+                                <strong className="review-author">{review.author}</strong>
+                                {review.verified && <span className="verified-chip">✓ Verified Purchase</span>}
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Stars rating={review.rating} size={13} />
+                                <span className="review-date">{review.date}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <p className="review-title">{review.title}</p>
+                          <p className="review-body">{review.body}</p>
+                          {review.helpful !== undefined && (
+                            <button className="helpful-btn">👍 Helpful ({review.helpful})</button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ padding: '32px 24px' }}>
+                    <p style={{ color: 'var(--muted)' }}>No reviews yet. Be the first to review this product.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'qa' && (
+              <div style={{ padding: '28px 24px' }}>
+                <p style={{ fontSize: '14px', color: 'var(--muted)' }}>Have a question? <a href="#" className="link" onClick={e => e.preventDefault()}>Ask the community →</a></p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Related */}
+        {related.length > 0 && (
+          <div className="pdp-related">
+            <div className="section-head">
+              <h2 className="section-title">Frequently Bought Together</h2>
+              <Link href={`/shop/${categorySlug(p.category)}`} className="link">View all →</Link>
+            </div>
+            <div className="product-grid">
+              {related.map(rp => {
+                const rpImg = productImg(rp);
+                return (
+                  <Link key={rp.id} href={`/product/${rp.id}/${rp.slug ?? slugify(rp.name)}`} className="pcard" aria-label={rp.name}>
+                    <div className="pcard-img">
+                      <img src={rpImg || PENDING_IMG} alt={rp.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { (e.currentTarget as HTMLImageElement).src = PENDING_IMG; }} />
+                    </div>
+                    <div className="pcard-body">
+                      <span className="pcard-brand">{rp.brand}</span>
+                      <span className="pcard-name">{rp.name}</span>
+                      <Stars rating={parseFloat(rp.rating)} size={12} />
+                      <div className="pcard-foot">
+                        <span className="price">{fmt(rp.price)}</span>
+                        <button className="add-btn" aria-label={`Add ${rp.name} to cart`} onClick={e => { e.preventDefault(); addToCart(rp.id, 1); showToast('Added ✓'); }}>
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        </button>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ══ MOBILE ══ */}
+      <div className="pdp-mob-gallery">
+        <div className="pdp-mob-img">
+          {tag && <span className="pdp-tag">{tag}</span>}
+          <img src={activeImg || PENDING_IMG} alt={p.name} onError={(e) => { (e.currentTarget as HTMLImageElement).src = PENDING_IMG; }} />
+        </div>
+        {p.images.length > 1 && (
+          <div className="pdp-mob-dots">
+            {p.images.slice(0, 5).map((_, i) => (
+              <button key={i} className={`pdp-dot${i === activeThumb ? ' on' : ''}`} aria-label={`Image ${i + 1}`} onClick={() => setThumb(i)} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="pdp-mob-info px">
+        <div className="pdp-topline" style={{ marginTop: '14px' }}>
+          <span className="pdp-brand-link">{p.brand}</span>
+          <span className="pdp-sku">SKU {sku}</span>
+        </div>
+        <h1 className="pdp-name" style={{ fontSize: '19px', marginTop: '6px' }}>{p.name}</h1>
+        <div className="pdp-meta-row" style={{ marginBottom: '12px' }}>
+          <Stars rating={parseFloat(p.rating)} size={14} />
+          <span className="pdp-rev-link" style={{ fontSize: '12px' }}>{p.rating} · {rev} reviews</span>
+          <span className="pdp-meta-sep" />
+          <span className={`badge ${badgeClass}`}>{stockLabel}</span>
+        </div>
+        <div className="pdp-price-box" style={{ marginBottom: '12px' }}>
+          {old && <span className="pdp-was">Was {fmt(old)}</span>}
+          <div className="pdp-price-row">
+            <span className="pdp-price" style={{ fontSize: '28px' }}>{fmt(p.price)}</span>
+            {old && <span className="pdp-save-badge">Save {savePct}%</span>}
+          </div>
+          {old && <span className="pdp-save-amt">You save {fmt(saveAmt)}</span>}
+        </div>
+        <p className="pdp-desc">{p.shortDescription}</p>
+        <div className="pdp-delivery-strip" style={{ marginTop: '14px' }}>
+          <div className="pdp-delivery-row">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M3 7h13v10H3zM16 10h4l1 3v4h-5M6 20a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 6 20ZM18 20a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 18 20Z"/></svg>
+            <div><b>Free Delivery</b> on orders over $99</div>
+          </div>
+          <div className="pdp-delivery-row">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7l-9-5Z"/></svg>
+            <div><b>{p.warranty?.duration ?? '2-Year'} Warranty</b> · {p.returns?.window ?? 30}-day returns</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile accordions */}
+      <div className="accordion">
+        {[
+          {
+            label: 'Specifications',
+            content: (
+              <div style={{ overflowX: 'auto', marginBottom: '14px' }}>
+                <table className="spec-table"><tbody>{SPECS.map(([l, v]) => <tr key={l}><td>{l}</td><td>{v}</td></tr>)}</tbody></table>
+              </div>
+            ),
+          },
+          {
+            label: `Reviews (${rev})`,
+            content: p.reviews?.featured?.length ? (
+              <div style={{ paddingBottom: '14px' }}>
+                <div className="rev-big-score" style={{ flexDirection: 'row', gap: '12px', justifyContent: 'flex-start', marginBottom: '16px' }}>
+                  <span className="rev-score-num">{p.reviews.average.toFixed(1)}</span>
+                  <div><Stars rating={p.reviews.average} size={14} /><span style={{ color: 'var(--muted)', fontSize: '11px', display: 'block', marginTop: '2px' }}>{p.reviews.total} reviews</span></div>
+                </div>
+                {p.reviews.featured.slice(0, 3).map(review => (
+                  <div key={review.id} className="review-card" style={{ border: 'none', borderTop: '1px solid var(--line)', borderRadius: 0, padding: '12px 0', marginBottom: 0 }}>
+                    <div className="review-card-head">
+                      <div className="review-avatar">{review.author.charAt(0)}</div>
+                      <div className="review-meta">
+                        <strong className="review-author">{review.author}</strong>
+                        <Stars rating={review.rating} size={12} />
+                      </div>
+                    </div>
+                    <p className="review-title" style={{ marginTop: '6px' }}>{review.title}</p>
+                    <p className="review-body">{review.body}</p>
+                  </div>
+                ))}
+              </div>
+            ) : <p style={{ fontSize: '13px', color: 'var(--muted)', paddingBottom: '14px' }}>No reviews yet.</p>,
+          },
+          { label: 'Q&A', content: <p style={{ fontSize: '13px', color: 'var(--muted)', paddingBottom: '14px' }}>Q&A coming soon.</p> },
+        ].map((item, i) => (
+          <div key={item.label} className={`acc-item${openAcc === i ? ' open' : ''}`}>
+            <button className="acc-head" onClick={() => setOpenAcc(openAcc === i ? null : i)}>
+              {item.label} <span className="chev">▾</span>
+            </button>
+            <div className="acc-body">{item.content}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Mobile related */}
+      {related.length > 0 && (
+        <>
+          <div className="mobile-section-head">
+            <h2 className="section-title" style={{ fontSize: '15px' }}>Frequently Bought Together</h2>
+          </div>
+          <div className="hscroll">
+            {related.map(rp => {
+              const rpImg = productImg(rp);
               return (
-                <Link key={id} href={productPath(id)} className="pcard">
-                  <div className="pcard-img"><svg width="44" height="44"><use href={`#${rp.ic}`} /></svg></div>
-                  <div className="pcard-body">
+                <Link key={rp.id} href={`/product/${rp.id}/${rp.slug ?? slugify(rp.name)}`} className="hcard">
+                  <div className="hcard-img">
+                    <img src={rpImg || PENDING_IMG} alt={rp.name} style={{ width: '40px', height: '36px', objectFit: 'contain' }} onError={(e) => { (e.currentTarget as HTMLImageElement).src = PENDING_IMG; }} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <span className="pcard-brand">{rp.brand}</span>
-                    <span className="pcard-name">{rp.name}</span>
-                    <div className="pcard-foot">
-                      <span className="price">{fmt(rp.price)}</span>
-                      <button className="add-btn" onClick={(e) => { e.preventDefault(); addToCart(rp.id, 1); showToast('Added ✓'); }}>
+                    <span className="pcard-name" style={{ fontSize: '12.5px' }}>{rp.name}</span>
+                    <div className="pcard-foot" style={{ marginTop: 'auto' }}>
+                      <span className="price" style={{ fontSize: '14px' }}>{fmt(rp.price)}</span>
+                      <button className="add-btn" aria-label={`Add ${rp.name} to cart`} onClick={e => { e.preventDefault(); addToCart(rp.id, 1); showToast('Added ✓'); }}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
                       </button>
                     </div>
@@ -181,88 +454,31 @@ export default function ProductView({ productId }: Props) {
               );
             })}
           </div>
-        </div>
-      </div>
-
-      {/* ── Mobile-only info ── */}
-      <div className="pdp-info-mobile px" style={{ paddingTop: '16px' }}>
-        <span className="pcard-brand">{p.brand} · SKU {p.brand.toUpperCase().slice(0, 2)}-{String(p.id).padStart(3, '0')}</span>
-        <h1 style={{ fontSize: '19px' }}>{p.name}</h1>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <span className="stars">★★★★★ <small>{p.rating} · {p.rev} reviews</small></span>
-          <span className={`badge ${badgeClass}`}>{stockLabel}</span>
-        </div>
-        <div className="pdp-price" style={{ fontSize: '26px' }}>
-          {p.old && <s style={{ fontSize: '14px' }}>{fmt(p.old)}</s>}
-          {fmt(p.price)}
-        </div>
-        {p.old && <span className="save-note">You save {fmt(p.old - p.price)} ({Math.round((1 - p.price / p.old) * 100)}%)</span>}
-        <p className="muted" style={{ marginTop: '12px', fontSize: '13.5px' }}>
-          Premium component, compatibility checked with your cart.
-        </p>
-        <div className="trust" style={{ marginTop: '16px' }}>
-          <div><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 7h13v10H3zM16 10h4l1 3v4h-5M6 20a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 6 20ZM18 20a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 18 20Z"/></svg> Free shipping over $99</div>
-          <div><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7l-9-5Z"/></svg> 2-year warranty · 30-day returns</div>
-          <div><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 12l4 4L19 6"/></svg> Compatibility-checked</div>
-        </div>
-      </div>
-
-      {/* Mobile accordion */}
-      <div className="accordion">
-        {[
-          { label: 'Full Specifications', content: (
-            <table className="spec-table" style={{ marginBottom: '14px' }}>
-              <tbody>{SPECS.map(([l, v]) => <tr key={l}><td>{l}</td><td>{v}</td></tr>)}</tbody>
-            </table>
-          )},
-          { label: `Reviews (${p.rev})`, content: <p className="muted" style={{ fontSize: '13px', paddingBottom: '14px' }}>Reviews coming soon.</p> },
-          { label: 'Q&A', content: <p className="muted" style={{ fontSize: '13px', paddingBottom: '14px' }}>Q&amp;A coming soon.</p> },
-        ].map((item, i) => (
-          <div key={item.label} className={`acc-item${openAccordion === i ? ' open' : ''}`}>
-            <button className="acc-head" onClick={() => setOpenAccordion(openAccordion === i ? null : i)}>
-              {item.label} <span className="chev">▾</span>
-            </button>
-            <div className="acc-body">{item.content}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Mobile related hscroll */}
-      <div className="mobile-section-head">
-        <h2 className="section-title" style={{ fontSize: '15px' }}>Frequently Bought Together</h2>
-      </div>
-      <div className="hscroll">
-        {RELATED_IDS.map((id) => {
-          const rp = PRODUCTS[id];
-          return (
-            <Link key={id} href={productPath(id)} className="hcard">
-              <div className="hcard-img"><svg width="40" height="36"><use href={`#${rp.ic}`} /></svg></div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span className="pcard-brand">{rp.brand}</span>
-                <span className="pcard-name" style={{ fontSize: '12.5px' }}>{rp.name}</span>
-                <div className="pcard-foot" style={{ marginTop: 'auto' }}>
-                  <span className="price" style={{ fontSize: '14px' }}>{fmt(rp.price)}</span>
-                  <button className="add-btn" onClick={(e) => { e.preventDefault(); addToCart(rp.id, 1); showToast('Added ✓'); }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                  </button>
-                </div>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+        </>
+      )}
 
       <div style={{ height: '80px' }} />
 
       {/* Mobile sticky buy bar */}
       <div className="sticky-buy">
         <div className="qty" role="group" aria-label="Quantity">
-          <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Decrease">−</button>
+          <button onClick={() => setQty(q => Math.max(1, q - 1))} aria-label="Decrease">−</button>
           <span>{qty}</span>
-          <button onClick={() => setQty((q) => q + 1)} aria-label="Increase">+</button>
+          <button onClick={() => setQty(q => q + 1)} aria-label="Increase">+</button>
         </div>
-        <button className="btn btn-primary btn-lg" style={{ flex: 1 }} onClick={handleAddToCart}>Add to Cart</button>
-        <button className="btn btn-secondary btn-lg" style={{ width: '48px', padding: 0 }} aria-label="Wishlist" onClick={() => showToast('Saved to wishlist ♡')}>♡</button>
+        <button className="btn btn-primary btn-lg" style={{ flex: 1 }} onClick={handleAddToCart} disabled={outOfStock}>
+          {outOfStock ? 'Out of Stock' : 'Add to Cart'}
+        </button>
+        <button
+          className={`pdp-wish-btn${wishlist ? ' active' : ''}`}
+          style={{ width: '48px', height: '48px' }}
+          aria-label="Wishlist"
+          onClick={toggleWishlist}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill={wishlist ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
       </div>
     </div>
   );

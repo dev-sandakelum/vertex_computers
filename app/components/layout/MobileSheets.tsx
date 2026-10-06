@@ -54,7 +54,7 @@ const CAT_ICONS: Record<string, React.ReactNode> = {
 };
 
 export default function MobileSheets() {
-  const { mobileDrawerOpen, filterDrawerOpen, closeDrawers, cartCount, showToast } = useApp();
+  const { mobileDrawerOpen, filterDrawerOpen, closeDrawers, cartCount, showToast, accountHref } = useApp();
   const anyOpen = mobileDrawerOpen || filterDrawerOpen;
 
   return (
@@ -148,7 +148,7 @@ export default function MobileSheets() {
             </Link>
           </li>
           <li>
-            <Link href="/account/login" onClick={closeDrawers} style={quickLinkStyle}>
+            <Link href={accountHref} onClick={closeDrawers} style={quickLinkStyle}>
               <span style={{ ...quickIconStyle, background: 'var(--surface-2)', color: 'var(--text-2)' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-5.5 8-5.5S18.5 17 20 21"/>

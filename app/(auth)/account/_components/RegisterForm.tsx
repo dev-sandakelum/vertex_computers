@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/app/components/providers/AppProvider';
@@ -15,19 +15,56 @@ const GoogleIcon = () => (
 );
 
 export default function RegisterForm() {
-  const { showToast } = useApp();
+  const { authUser, authReady, register, showToast } = useApp();
   const router = useRouter();
-  const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [agreed, setAgreed] = useState(false);
+  const [firstName,       setFirstName]       = useState('');
+  const [lastName,        setLastName]        = useState('');
+  const [email,           setEmail]           = useState('');
+  const [phone,           setPhone]           = useState('');
+  const [password,        setPassword]        = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPass,        setShowPass]        = useState(false);
+  const [loading,         setLoading]         = useState(false);
+  const [agreed,          setAgreed]          = useState(false);
+  const [error,           setError]           = useState('');
 
-  async function handleSubmit(e: React.FormEvent) {
+  useEffect(() => {
+    if (authReady && authUser) router.replace('/account');
+  }, [authReady, authUser, router]);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!agreed) { showToast('Please agree to the Terms & Privacy Policy'); return; }
+    setError('');
+
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !phone.trim() || !password.trim() || !confirmPassword.trim()) {
+      const msg = 'Please complete every field.';
+      setError(msg); showToast(msg); return;
+    }
+    if (password.length < 8) {
+      const msg = 'Password must be at least 8 characters.';
+      setError(msg); showToast(msg); return;
+    }
+    if (password !== confirmPassword) {
+      const msg = 'Passwords do not match.';
+      setError(msg); showToast(msg); return;
+    }
+    if (!agreed) {
+      const msg = 'Please agree to the Terms & Privacy Policy.';
+      setError(msg); showToast(msg); return;
+    }
+
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 600));
+    const result = await register({ firstName, lastName, email, phone, password, acceptedTerms: agreed });
     setLoading(false);
-    router.push('/account');
+
+    if (!result.ok) {
+      setError(result.message);
+      showToast(result.message);
+      return;
+    }
+
+    showToast(result.message);
+    router.replace('/account');
   }
 
   return (
@@ -38,7 +75,7 @@ export default function RegisterForm() {
       </div>
 
       <div className="auth-socials">
-        <button type="button" className="auth-social-btn" onClick={() => showToast('Google sign-up (demo)')}>
+        <button type="button" className="auth-social-btn" onClick={() => showToast('Google sign-up is not yet available.')}>
           <GoogleIcon />
           <span>Sign up with Google</span>
         </button>
@@ -50,17 +87,22 @@ export default function RegisterForm() {
         <div className="auth-field-row">
           <div className="auth-field">
             <label htmlFor="rfn">First name</label>
-            <input id="rfn" type="text" placeholder="John" autoComplete="given-name" required />
+            <input id="rfn" type="text" placeholder="John" autoComplete="given-name" value={firstName} onChange={(e) => { setFirstName(e.target.value); setError(''); }} required />
           </div>
           <div className="auth-field">
             <label htmlFor="rln">Last name</label>
-            <input id="rln" type="text" placeholder="Doe" autoComplete="family-name" required />
+            <input id="rln" type="text" placeholder="Doe" autoComplete="family-name" value={lastName} onChange={(e) => { setLastName(e.target.value); setError(''); }} required />
           </div>
         </div>
 
         <div className="auth-field">
           <label htmlFor="remail">Email address</label>
-          <input id="remail" type="email" placeholder="name@example.com" autoComplete="email" required />
+          <input id="remail" type="email" placeholder="name@example.com" autoComplete="email" value={email} onChange={(e) => { setEmail(e.target.value); setError(''); }} required />
+        </div>
+
+        <div className="auth-field">
+          <label htmlFor="rphone">Phone number</label>
+          <input id="rphone" type="tel" placeholder="+1 (555) 000-0000" autoComplete="tel" value={phone} onChange={(e) => { setPhone(e.target.value); setError(''); }} required />
         </div>
 
         <div className="auth-field">
@@ -71,6 +113,8 @@ export default function RegisterForm() {
               type={showPass ? 'text' : 'password'}
               placeholder="Min. 8 characters"
               autoComplete="new-password"
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); setError(''); }}
               required
               minLength={8}
             />
@@ -89,15 +133,26 @@ export default function RegisterForm() {
           </div>
         </div>
 
+        <div className="auth-field">
+          <label htmlFor="rpassword2">Confirm password</label>
+          <input id="rpassword2" type={showPass ? 'text' : 'password'} placeholder="Repeat password" autoComplete="new-password" value={confirmPassword} onChange={(e) => { setConfirmPassword(e.target.value); setError(''); }} required />
+        </div>
+
         <label className="auth-remember auth-terms">
           <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
           <span>
             I agree to the{' '}
-            <Link href="#" onClick={(e) => e.stopPropagation()}>Terms of Service</Link>
+            <Link href="#" onClick={(e) => e.preventDefault()}>Terms of Service</Link>
             {' '}&amp;{' '}
-            <Link href="#" onClick={(e) => e.stopPropagation()}>Privacy Policy</Link>
+            <Link href="#" onClick={(e) => e.preventDefault()}>Privacy Policy</Link>
           </span>
         </label>
+
+        {error && (
+          <p role="alert" style={{ color: 'var(--danger)', fontSize: '13px', marginTop: '-4px' }}>
+            {error}
+          </p>
+        )}
 
         <button type="submit" className={`auth-submit${loading ? ' auth-submit--loading' : ''}`} disabled={loading}>
           {loading ? <span className="auth-spinner" /> : 'Create Account'}

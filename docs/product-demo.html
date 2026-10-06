@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vertex Computers — Product Page Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+/* ═══════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════ */
+:root {
+  --bg:           #F7F8FA;
+  --surface:      #FFFFFF;
+  --surface-2:    #EFF2F5;
+  --text-1:       #12181F;
+  --text-2:       #5B6672;
+  --border:       #E2E6EA;
+  --accent:       #2F6FED;
+  --accent-hover: #2258c7;
+  --accent-soft:  #EAF1FE;
+  --success:      #1E9E6B;
+  --success-soft: #E4F5EE;
+  --warning:      #D98E04;
+  --warning-soft: #FBF1DC;
+  --danger:       #D9432F;
+  --danger-soft:  #FBE6E3;
+  --shadow-sm:    0 1px 2px rgba(16,21,27,.06);
+  --shadow-md:    0 4px 16px rgba(16,21,27,.08);
+  --shadow-lg:    0 12px 32px rgba(16,21,27,.14);
+  --radius:       12px;
+  --radius-sm:    8px;
+  --hero-grad:    linear-gradient(120deg,#12233f 0%,#1d3a6b 55%,#2F6FED 130%);
+}
+[data-theme="dark"] {
+  --bg:           #10151B;
+  --surface:      #171E27;
+  --surface-2:    #1F2833;
+  --text-1:       #EDF0F3;
+  --text-2:       #9AA5B1;
+  --border:       #2A323C;
+  --accent:       #5B8DEF;
+  --accent-hover: #79a2f3;
+  --accent-soft:  #1c2a44;
+  --success:      #35C48C;
+  --success-soft: #12352a;
+  --warning:      #E8A83D;
+  --warning-soft: #3a2e14;
+  --danger:       #E85A47;
+  --danger-soft:  #3d1c17;
+  --shadow-sm:    0 1px 2px rgba(0,0,0,.4);
+  --shadow-md:    0 4px 16px rgba(0,0,0,.45);
+  --shadow-lg:    0 12px 32px rgba(0,0,0,.55);
+  --hero-grad:    linear-gradient(120deg,#0c1524 0%,#152b52 55%,#2a58bb 130%);
+}
+
+/* ═══════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg); color:var(--text-1);
+  font-size:15px; line-height:1.5;
+  transition:background .25s, color .25s;
+}
+img { max-width:100%; display:block; }
+a { color:inherit; text-decoration:none; }
+button { font-family:inherit; cursor:pointer; }
+:focus-visible { outline:2px solid var(--accent); outline-offset:2px; border-radius:4px; }
+
+/* ═══════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════ */
+.container { max-width:1280px; margin:0 auto; padding:0 24px; }
+
+/* ═══════════════════════════════════════
+   HEADER
+═══════════════════════════════════════ */
+.site-header {
+  position:sticky; top:0; z-index:60;
+  background:var(--surface); border-bottom:1px solid var(--border);
+  box-shadow:var(--shadow-sm);
+}
+.header-inner {
+  display:flex; align-items:center; gap:20px; padding:13px 24px;
+  max-width:1280px; margin:0 auto;
+}
+.logo { display:flex; align-items:center; gap:10px; font-weight:800; font-size:18px; letter-spacing:-.02em; flex-shrink:0; }
+.logo-mark {
+  width:34px; height:34px; border-radius:9px;
+  background:var(--hero-grad); display:grid; place-items:center;
+  color:#fff; font-size:16px; font-weight:800;
+}
+.logo-sub { display:block; font-size:9px; font-weight:600; color:var(--text-2); letter-spacing:.22em; text-transform:uppercase; }
+.searchbar { flex:1; max-width:520px; position:relative; }
+.searchbar input {
+  width:100%; padding:10px 16px 10px 40px;
+  border:1px solid var(--border); border-radius:99px;
+  background:var(--surface-2); color:var(--text-1); font-size:14px;
+  font-family:inherit;
+}
+.searchbar input:focus { outline:none; border-color:var(--accent); background:var(--surface); box-shadow:0 0 0 3px var(--accent-soft); }
+.searchbar-icon { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--text-2); pointer-events:none; }
+.header-actions { display:flex; align-items:center; gap:6px; margin-left:auto; }
+.icon-btn {
+  position:relative; width:42px; height:42px; border-radius:10px;
+  border:none; background:transparent; color:var(--text-1);
+  display:grid; place-items:center; transition:background .15s;
+}
+.icon-btn:hover { background:var(--surface-2); }
+.cart-count {
+  position:absolute; top:4px; right:3px;
+  background:var(--danger); color:#fff; font-size:10px; font-weight:700;
+  min-width:17px; height:17px; border-radius:99px;
+  display:grid; place-items:center; padding:0 4px;
+}
+.theme-toggle { padding:8px 14px; border:1px solid var(--border); border-radius:99px; background:var(--surface-2); font-size:13px; font-weight:600; color:var(--text-2); transition:all .15s; }
+.theme-toggle:hover { border-color:var(--accent); color:var(--accent); }
+
+/* Catnav */
+.catnav { border-top:1px solid var(--border); }
+.catnav ul { display:flex; gap:4px; list-style:none; padding:6px 24px; max-width:1280px; margin:0 auto; overflow-x:auto; scrollbar-width:none; }
+.catnav ul::-webkit-scrollbar { display:none; }
+.catnav a { display:block; padding:7px 13px; font-size:13.5px; font-weight:500; color:var(--text-2); border-radius:8px; white-space:nowrap; transition:all .15s; cursor:pointer; }
+.catnav a:hover, .catnav a.active { color:var(--accent); background:var(--accent-soft); }
+
+/* ═══════════════════════════════════════
+   BREADCRUMBS
+═══════════════════════════════════════ */
+.breadcrumbs {
+  font-size:13px; color:var(--text-2);
+  padding:20px 24px 0; max-width:1280px; margin:0 auto;
+  display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+}
+.breadcrumbs a:hover { color:var(--accent); }
+.bc-sep { color:var(--border); }
+.bc-cur { color:var(--text-1); font-weight:600; }
+
+/* ═══════════════════════════════════════
+   PDP HERO GRID
+═══════════════════════════════════════ */
+.pdp-wrap { max-width:1280px; margin:0 auto; padding:0 24px 60px; }
+
+.pdp {
+  display:grid;
+  grid-template-columns:52fr 48fr;
+  gap:52px;
+  margin-top:24px;
+  align-items:start;
+}
+
+/* ── Gallery ── */
+.pdp-gallery {
+  display:grid;
+  grid-template-columns:76px 1fr;
+  gap:12px;
+  position:sticky;
+  top:130px;
+  max-height:calc(100vh - 150px);
+  align-items:start;
+}
+.pdp-thumbs-v {
+  display:flex; flex-direction:column; gap:8px;
+  overflow-y:auto; max-height:calc(100vh - 150px);
+  scrollbar-width:none;
+}
+.pdp-thumbs-v::-webkit-scrollbar { display:none; }
+.pdp-thumb {
+  width:76px; height:76px; border-radius:10px;
+  background:var(--surface-2); border:2px solid transparent;
+  overflow:hidden; flex-shrink:0; cursor:pointer;
+  transition:border-color .15s, box-shadow .15s; padding:0;
+}
+.pdp-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.pdp-thumb.on  { border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent); }
+.pdp-thumb:hover { border-color:var(--accent); }
+
+.pdp-main-img {
+  width:100%; max-height:calc(100vh - 150px);
+  aspect-ratio:1/1; border-radius:18px;
+  background:var(--surface-2); border:1px solid var(--border);
+  display:grid; place-items:center; position:relative; overflow:hidden;
+}
+.pdp-main-img img { width:100%; height:100%; object-fit:cover; transition:transform .4s ease; display:block; }
+.pdp-main-img:hover img { transform:scale(1.06); }
+.pdp-tag {
+  position:absolute; top:14px; left:14px; z-index:2;
+  background:var(--danger); color:#fff;
+  font-size:11px; font-weight:700; padding:4px 12px; border-radius:99px; letter-spacing:.03em;
+}
+.pdp-zoom-hint {
+  position:absolute; bottom:12px; right:12px;
+  background:rgba(0,0,0,.44); color:#fff;
+  font-size:11px; font-weight:500; padding:4px 10px; border-radius:99px;
+  pointer-events:none; opacity:0; transition:opacity .2s; backdrop-filter:blur(4px);
+}
+.pdp-main-img:hover .pdp-zoom-hint { opacity:1; }
+
+/* ── Info panel ── */
+.pdp-info { display:flex; flex-direction:column; padding-top:2px; }
+
+.pdp-topline { display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
+.pdp-brand-link { font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); }
+.pdp-brand-link:hover { text-decoration:underline; }
+.pdp-sku { font-size:11.5px; color:var(--text-2); background:var(--surface-2); padding:2px 8px; border-radius:6px; border:1px solid var(--border); }
+
+.pdp-name { font-size:clamp(18px,2.2vw,26px); font-weight:800; letter-spacing:-.03em; line-height:1.25; color:var(--text-1); margin:0 0 12px; }
+
+.pdp-meta-row { display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-bottom:16px; }
+.stars { color:#f3a712; font-size:15px; letter-spacing:1px; }
+.pdp-rev-link { font-size:12.5px; color:var(--accent); font-weight:500; cursor:pointer; }
+.pdp-rev-link:hover { text-decoration:underline; }
+.pdp-meta-sep { width:1px; height:14px; background:var(--border); display:inline-block; }
+.badge { display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:99px; }
+.badge::before { content:""; width:6px; height:6px; border-radius:50%; background:currentColor; }
+.badge-success { background:var(--success-soft); color:var(--success); }
+.badge-warning { background:var(--warning-soft); color:var(--warning); }
+.badge-danger  { background:var(--danger-soft);  color:var(--danger);  }
+
+/* Price box */
+.pdp-price-box { margin-bottom:16px; padding:16px 18px; background:var(--surface-2); border:1px solid var(--border); border-radius:14px; }
+.pdp-was { font-size:13px; color:var(--text-2); text-decoration:line-through; display:block; margin-bottom:4px; }
+.pdp-price-row { display:flex; align-items:center; gap:12px; }
+.pdp-price { font-size:34px; font-weight:800; color:var(--text-1); letter-spacing:-.02em; line-height:1; }
+.pdp-save-badge { background:var(--danger); color:#fff; font-size:12px; font-weight:700; padding:4px 11px; border-radius:99px; }
+.pdp-save-amt { display:block; font-size:12.5px; color:var(--success); font-weight:600; margin-top:5px; }
+
+/* Description */
+.pdp-desc { font-size:14px; color:var(--text-2); line-height:1.65; margin-bottom:16px; }
+
+/* Highlights */
+.pdp-highlights { list-style:none; display:flex; flex-direction:column; gap:7px; margin-bottom:18px; }
+.pdp-highlights li { display:flex; align-items:flex-start; gap:8px; font-size:13.5px; color:var(--text-1); }
+.pdp-highlights li svg { color:var(--success); flex-shrink:0; margin-top:2px; }
+
+/* Spec chips */
+.pdp-spec-chips { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:20px; }
+.pdp-chip { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:9px 13px; display:flex; flex-direction:column; gap:2px; }
+.chip-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text-2); }
+.chip-val { font-size:13px; font-weight:600; color:var(--text-1); }
+
+/* Divider */
+.pdp-divider { border:none; border-top:1px solid var(--border); margin:6px 0 20px; }
+
+/* Qty + buy */
+.pdp-actions { margin-bottom:18px; }
+.pdp-qty-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.pdp-qty-label { font-size:13px; font-weight:600; color:var(--text-2); min-width:24px; }
+.qty { display:inline-flex; align-items:center; border:1.5px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); height:48px; flex-shrink:0; }
+.qty button { width:42px; height:100%; border:none; background:transparent; color:var(--text-1); font-size:20px; font-weight:600; transition:color .15s; }
+.qty button:hover { color:var(--accent); }
+.qty span { min-width:36px; text-align:center; font-weight:700; font-size:15px; }
+.pdp-btn-row { display:flex; gap:10px; }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; border:none; border-radius:var(--radius-sm); font-weight:600; font-size:14px; padding:11px 20px; transition:all .18s; white-space:nowrap; font-family:inherit; cursor:pointer; }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-primary:hover { background:var(--accent-hover); transform:translateY(-1px); box-shadow:var(--shadow-md); }
+.btn-primary:active { transform:scale(.98); }
+.btn-secondary { background:var(--surface); color:var(--text-1); border:1px solid var(--border); }
+.btn-secondary:hover { border-color:var(--accent); color:var(--accent); }
+.btn-lg { padding:14px 26px; font-size:15px; }
+.pdp-cart-btn { flex:1; }
+.pdp-wish-btn {
+  width:52px; height:52px; flex-shrink:0; border-radius:var(--radius-sm);
+  border:1.5px solid var(--border); background:var(--surface); color:var(--text-2);
+  display:grid; place-items:center; transition:all .18s; cursor:pointer;
+}
+.pdp-wish-btn:hover { border-color:var(--danger); color:var(--danger); }
+.pdp-wish-btn.active { background:var(--danger-soft); border-color:var(--danger); color:var(--danger); }
+
+/* Delivery strip */
+.pdp-delivery-strip { display:flex; flex-direction:column; gap:8px; padding:14px 16px; background:var(--surface); border:1px solid var(--border); border-radius:12px; margin-bottom:12px; }
+.pdp-delivery-row { display:flex; align-items:flex-start; gap:10px; font-size:13px; color:var(--text-2); }
+.pdp-delivery-row b { color:var(--text-1); }
+.pdp-delivery-row svg { color:var(--accent); margin-top:1px; flex-shrink:0; }
+
+/* Trust row */
+.pdp-trust-row { display:flex; flex-wrap:wrap; gap:6px 16px; font-size:12px; color:var(--text-2); }
+.pdp-trust-row span { display:flex; align-items:center; gap:5px; }
+.pdp-trust-row svg { color:var(--success); }
+
+/* ═══════════════════════════════════════
+   BELOW FOLD — Tabs + content
+═══════════════════════════════════════ */
+.pdp-below { margin-top:56px; }
+.pdp-tabs { display:flex; gap:2px; border-bottom:2px solid var(--border); }
+.pdp-tabs button { padding:13px 24px; border:none; background:none; font-weight:600; font-size:14px; color:var(--text-2); border-bottom:3px solid transparent; margin-bottom:-2px; transition:color .15s; cursor:pointer; font-family:inherit; }
+.pdp-tabs button:hover { color:var(--text-1); }
+.pdp-tabs button.on { color:var(--accent); border-color:var(--accent); }
+
+.card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-sm); }
+.pdp-tab-body { border-top-left-radius:0; overflow:hidden; }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+
+/* Spec layout */
+.pdp-spec-layout { display:grid; grid-template-columns:1fr 280px; }
+.pdp-spec-main { border-right:1px solid var(--border); overflow-x:auto; }
+.pdp-spec-aside { padding:22px 24px; }
+.aside-head { font-size:14px; font-weight:700; margin-bottom:10px; color:var(--text-1); }
+.spec-table { width:100%; border-collapse:collapse; font-size:13.5px; }
+.spec-table tr { border-bottom:1px solid var(--border); }
+.spec-table tr:last-child { border-bottom:none; }
+.spec-table td { padding:11px 18px; }
+.spec-table td:first-child { color:var(--text-2); font-weight:600; width:35%; white-space:nowrap; background:var(--surface-2); }
+.tested-board { font-size:13px; color:var(--text-2); display:flex; gap:6px; align-items:center; padding:4px 0; }
+.tested-board svg { color:var(--success); flex-shrink:0; }
+
+/* Reviews layout */
+.pdp-reviews-layout { display:grid; grid-template-columns:240px 1fr; }
+.reviews-summary-col { padding:28px 24px; border-right:1px solid var(--border); }
+.rev-big-score { display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; margin-bottom:20px; }
+.rev-score-num { font-size:52px; font-weight:800; color:var(--text-1); line-height:1; }
+.rev-score-total { font-size:12px; color:var(--text-2); }
+.rev-dist { display:flex; flex-direction:column; gap:6px; }
+.rev-dist-row { display:flex; align-items:center; gap:8px; }
+.rev-dist-label { font-size:12px; color:var(--text-2); min-width:28px; text-align:right; flex-shrink:0; }
+.rev-dist-bar { flex:1; height:8px; background:var(--border); border-radius:4px; overflow:hidden; }
+.rev-dist-fill { height:100%; background:var(--accent); border-radius:4px; }
+.rev-dist-pct { font-size:11px; color:var(--text-2); min-width:30px; }
+.reviews-list-col { padding:20px 24px; display:flex; flex-direction:column; gap:0; }
+.review-card { padding:18px 0; border-bottom:1px solid var(--border); }
+.review-card:last-child { border-bottom:none; }
+.review-card-head { display:flex; align-items:flex-start; gap:12px; margin-bottom:10px; }
+.review-avatar { width:38px; height:38px; border-radius:50%; background:var(--hero-grad); color:#fff; display:grid; place-items:center; font-weight:700; font-size:15px; flex-shrink:0; }
+.review-meta { flex:1; }
+.review-author-row { display:flex; align-items:center; gap:8px; margin-bottom:3px; flex-wrap:wrap; }
+.review-author { font-size:14px; font-weight:700; color:var(--text-1); }
+.verified-chip { font-size:11px; font-weight:600; color:var(--success); background:var(--success-soft); padding:2px 7px; border-radius:99px; }
+.review-date { font-size:12px; color:var(--text-2); }
+.review-title { font-size:14px; font-weight:700; color:var(--text-1); margin-bottom:6px; }
+.review-body { font-size:13.5px; color:var(--text-2); line-height:1.6; margin:0 0 8px; }
+.helpful-btn { background:none; border:1px solid var(--border); border-radius:8px; padding:4px 12px; font-size:12.5px; color:var(--text-2); transition:all .15s; cursor:pointer; font-family:inherit; }
+.helpful-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+/* Q&A */
+.qa-empty { padding:28px 24px; font-size:14px; color:var(--text-2); }
+.qa-link { color:var(--accent); font-weight:600; }
+.qa-link:hover { text-decoration:underline; }
+
+/* ═══════════════════════════════════════
+   RELATED PRODUCTS
+═══════════════════════════════════════ */
+.pdp-related { margin-top:56px; margin-bottom:40px; }
+.section-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.section-title { font-size:22px; font-weight:700; letter-spacing:-.01em; }
+.link { color:var(--accent); font-weight:600; font-size:14px; }
+.link:hover { text-decoration:underline; }
+.product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:16px; }
+.pcard {
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  overflow:hidden; display:flex; flex-direction:column; cursor:pointer;
+  transition:transform .18s, box-shadow .18s, border-color .18s; box-shadow:var(--shadow-sm);
+}
+.pcard:hover { transform:translateY(-3px); box-shadow:var(--shadow-md); border-color:var(--accent); }
+.pcard-img { height:160px; background:var(--surface-2); display:grid; place-items:center; overflow:hidden; position:relative; }
+.pcard-img img { width:100%; height:100%; object-fit:cover; }
+.pcard-body { padding:12px 14px 14px; display:flex; flex-direction:column; gap:6px; flex:1; }
+.pcard-brand { font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text-2); }
+.pcard-name { font-weight:600; font-size:13.5px; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.pcard-stars { color:#f3a712; font-size:12px; }
+.pcard-foot { display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding-top:8px; }
+.price { font-weight:800; font-size:17px; letter-spacing:-.01em; }
+.add-btn { width:36px; height:36px; border-radius:10px; border:1.5px solid var(--accent); background:transparent; color:var(--accent); display:grid; place-items:center; transition:all .15s; cursor:pointer; }
+.add-btn:hover { background:var(--accent); color:#fff; transform:scale(1.06); }
+
+/* Toast */
+.toast {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
+  background:var(--text-1); color:var(--surface); font-size:13.5px; font-weight:500;
+  padding:12px 22px; border-radius:99px; box-shadow:var(--shadow-lg);
+  z-index:9999; transition:transform .3s ease, opacity .3s ease; opacity:0; white-space:nowrap;
+}
+.toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+
+/* ═══════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════ */
+footer { background:var(--surface); border-top:1px solid var(--border); padding:32px 24px; margin-top:0; }
+.footer-inner { max-width:1280px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+.footer-logo { display:flex; align-items:center; gap:8px; font-weight:800; font-size:15px; }
+.footer-copy { font-size:12.5px; color:var(--text-2); }
+.footer-links { display:flex; gap:16px; }
+.footer-links a { font-size:13px; color:var(--text-2); }
+.footer-links a:hover { color:var(--accent); }
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+@media (max-width:900px) {
+  .pdp { grid-template-columns:1fr; gap:28px; }
+  .pdp-gallery { position:static; max-height:none; grid-template-columns:64px 1fr; }
+  .pdp-thumbs-v { max-height:480px; }
+  .pdp-main-img { max-height:480px; }
+  .pdp-spec-layout { grid-template-columns:1fr; }
+  .pdp-spec-aside { border-top:1px solid var(--border); }
+  .pdp-reviews-layout { grid-template-columns:1fr; }
+  .reviews-summary-col { border-right:none; border-bottom:1px solid var(--border); }
+  .section-title { font-size:18px; }
+}
+@media (max-width:640px) {
+  .header-inner { padding:10px 16px; }
+  .searchbar { display:none; }
+  .pdp-wrap { padding:0 16px 60px; }
+  .pdp-gallery { grid-template-columns:56px 1fr; gap:8px; }
+  .pdp-thumb { width:56px; height:56px; }
+  .pdp-name { font-size:19px; }
+  .pdp-price { font-size:26px; }
+  .pdp-spec-chips { grid-template-columns:1fr; }
+  .product-grid { grid-template-columns:1fr 1fr; }
+  .catnav ul { padding:6px 16px; }
+  .breadcrumbs { padding:16px 16px 0; }
+  .pdp-tabs button { padding:10px 14px; font-size:13px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     HEADER
+══════════════════════════════════════ -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-mark">V</div>
+      <div>
+        VERTEX
+        <small class="logo-sub">Computers</small>
+      </div>
+    </div>
+
+    <div class="searchbar">
+      <svg class="searchbar-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="Search GPUs, CPUs, RAM..." />
+    </div>
+
+    <div class="header-actions">
+      <button class="icon-btn" title="Toggle theme" onclick="toggleTheme()">
+        <svg id="theme-icon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+      <button class="icon-btn" title="Account">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </button>
+      <button class="icon-btn" title="Cart">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span class="cart-count" id="cart-count">0</span>
+      </button>
+    </div>
+  </div>
+
+  <nav class="catnav">
+    <ul>
+      <li><a href="#">GPUs</a></li>
+      <li><a href="#">CPUs</a></li>
+      <li><a href="#">Motherboards</a></li>
+      <li><a href="#">RAM</a></li>
+      <li><a href="#">PSUs</a></li>
+      <li><a href="#">Storage</a></li>
+      <li><a href="#">Cooling</a></li>
+      <li><a href="#">Cases</a></li>
+      <li><a href="#">Peripherals</a></li>
+      <li><a href="#" style="color:#D9432F;font-weight:700;">🔥 Deals</a></li>
+    </ul>
+  </nav>
+</header>
+
+<!-- ══════════════════════════════════════
+     BREADCRUMBS
+══════════════════════════════════════ -->
+<nav class="breadcrumbs">
+  <a href="#">Home</a>
+  <span class="bc-sep">/</span>
+  <a href="#">CPUs</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-cur">Apex R9 9800X 12-Core Processor</span>
+</nav>
+
+<!-- ══════════════════════════════════════
+     PDP HERO
+══════════════════════════════════════ -->
+<div class="pdp-wrap">
+  <div class="pdp">
+
+    <!-- ── Gallery ── -->
+    <div class="pdp-gallery">
+
+      <!-- Vertical thumbnails -->
+      <div class="pdp-thumbs-v" id="thumbs">
+        <button class="pdp-thumb on" onclick="switchImg(0,this)">
+          <img src="https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=160&q=80" alt="Front" />
+        </button>
+        <button class="pdp-thumb" onclick="switchImg(1,this)">
+          <img src="https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=160&q=80" alt="Top IHS" />
+        </button>
+        <button class="pdp-thumb" onclick="switchImg(2,this)">
+          <img src="https://images.unsplash.com/photo-1555617981-dac3880eac6e?w=160&q=80" alt="Retail Box" />
+        </button>
+        <button class="pdp-thumb" onclick="switchImg(3,this)">
+          <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=160&q=80" alt="Cooler" />
+        </button>
+      </div>
+
+      <!-- Main image -->
+      <div class="pdp-main-img">
+        <span class="pdp-tag">New Arrival</span>
+        <img id="main-img"
+          src="https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=900&q=85"
+          alt="Apex R9 9800X 12-Core Processor" />
+        <span class="pdp-zoom-hint">🔍 Hover to zoom</span>
+      </div>
+    </div>
+
+    <!-- ── Info panel ── -->
+    <div class="pdp-info">
+
+      <!-- Brand + SKU -->
+      <div class="pdp-topline">
+        <a href="#" class="pdp-brand-link">APEX</a>
+        <span class="pdp-sku">SKU AP-001</span>
+      </div>
+
+      <!-- Name -->
+      <h1 class="pdp-name">Apex R9 9800X 12-Core Processor</h1>
+
+      <!-- Rating + stock -->
+      <div class="pdp-meta-row">
+        <span class="stars">★★★★★</span>
+        <a class="pdp-rev-link" onclick="switchTab('reviews')">4.9 · 412 reviews</a>
+        <span class="pdp-meta-sep"></span>
+        <span class="badge badge-success">In Stock</span>
+        <span style="font-size:12px;color:var(--warning);font-weight:700;background:var(--warning-soft);padding:2px 8px;border-radius:99px;">38 left</span>
+      </div>
+
+      <!-- Price box -->
+      <div class="pdp-price-box">
+        <span class="pdp-was">Was $499.00</span>
+        <div class="pdp-price-row">
+          <span class="pdp-price">$449.00</span>
+          <span class="pdp-save-badge">Save 10%</span>
+        </div>
+        <span class="pdp-save-amt">You save $50.00</span>
+      </div>
+
+      <!-- Description -->
+      <p class="pdp-desc">Premium 12-core desktop processor built on Apex's latest Zen 5 architecture. Factory-tuned boost clocks, full DDR5 and PCIe 5.0 support, and a bundled Wraith Prism cooler.</p>
+
+      <!-- Highlights -->
+      <ul class="pdp-highlights">
+        <li>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+          12 cores / 24 threads for heavy multitasking and content creation
+        </li>
+        <li>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+          5.4 GHz single-core boost for snappy everyday performance
+        </li>
+        <li>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+          PCIe 5.0 ×16 GPU + ×4 NVMe — future-proof platform
+        </li>
+        <li>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+          Ships with Wraith Prism ARGB cooler included
+        </li>
+      </ul>
+
+      <!-- Key spec chips -->
+      <div class="pdp-spec-chips">
+        <div class="pdp-chip"><span class="chip-label">Architecture</span><span class="chip-val">Zen 5</span></div>
+        <div class="pdp-chip"><span class="chip-label">Socket</span><span class="chip-val">AM6</span></div>
+        <div class="pdp-chip"><span class="chip-label">Cores / Threads</span><span class="chip-val">12C / 24T</span></div>
+        <div class="pdp-chip"><span class="chip-label">Boost Clock</span><span class="chip-val">5.4 GHz</span></div>
+        <div class="pdp-chip"><span class="chip-label">TDP</span><span class="chip-val">105W</span></div>
+        <div class="pdp-chip"><span class="chip-label">Memory</span><span class="chip-val">DDR5-5600</span></div>
+      </div>
+
+      <hr class="pdp-divider" />
+
+      <!-- Qty + Add to Cart -->
+      <div class="pdp-actions">
+        <div class="pdp-qty-row">
+          <span class="pdp-qty-label">Qty</span>
+          <div class="qty">
+            <button onclick="changeQty(-1)">−</button>
+            <span id="qty-val">1</span>
+            <button onclick="changeQty(1)">+</button>
+          </div>
+        </div>
+        <div class="pdp-btn-row">
+          <button class="btn btn-primary btn-lg pdp-cart-btn" onclick="addToCart()">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            Add to Cart
+          </button>
+          <button class="pdp-wish-btn" id="wish-btn" onclick="toggleWishlist()" title="Save to wishlist">
+            <svg id="wish-icon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Delivery strip -->
+      <div class="pdp-delivery-strip">
+        <div class="pdp-delivery-row">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7h13v10H3zM16 10h4l1 3v4h-5M6 20a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 6 20ZM18 20a1.8 1.8 0 1 0 0-3.6A1.8 1.8 0 0 0 18 20Z"/></svg>
+          <div><b>Free Delivery</b> on orders over $99 · Est. 2–4 business days</div>
+        </div>
+        <div class="pdp-delivery-row">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7l-9-5Z"/></svg>
+          <div><b>2-Year Warranty</b> · 30-day hassle-free returns · Free return shipping</div>
+        </div>
+      </div>
+
+      <!-- Trust row -->
+      <div class="pdp-trust-row">
+        <span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12l4 4L19 6"/></svg>
+          Compatibility-checked
+        </span>
+        <span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg>
+          Secure checkout
+        </span>
+        <span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          24/7 support
+        </span>
+      </div>
+
+    </div><!-- /pdp-info -->
+  </div><!-- /pdp -->
+
+  <!-- ══════════════════════════════════════
+       TABS — Specs / Reviews / Q&A
+  ══════════════════════════════════════ -->
+  <div class="pdp-below">
+    <div class="pdp-tabs">
+      <button class="on" id="tab-btn-specs"   onclick="switchTab('specs')">Specifications</button>
+      <button id="tab-btn-reviews" onclick="switchTab('reviews')">Reviews (412)</button>
+      <button id="tab-btn-qa"      onclick="switchTab('qa')">Q&amp;A</button>
+    </div>
+
+    <div class="card pdp-tab-body">
+
+      <!-- Specs -->
+      <div class="tab-panel active" id="tab-specs">
+        <div class="pdp-spec-layout">
+          <div class="pdp-spec-main">
+            <table class="spec-table">
+              <tbody>
+                <tr><td>Architecture</td><td>Zen 5</td></tr>
+                <tr><td>Socket</td><td>AM6</td></tr>
+                <tr><td>Cores</td><td>12</td></tr>
+                <tr><td>Threads</td><td>24</td></tr>
+                <tr><td>Base Clock</td><td>4.7 GHz</td></tr>
+                <tr><td>Boost Clock</td><td>5.4 GHz</td></tr>
+                <tr><td>L2 Cache</td><td>12 MB</td></tr>
+                <tr><td>L3 Cache</td><td>64 MB</td></tr>
+                <tr><td>TDP</td><td>105W</td></tr>
+                <tr><td>Max TDP (PPT)</td><td>142W</td></tr>
+                <tr><td>Process Node</td><td>4nm TSMC</td></tr>
+                <tr><td>Memory Support</td><td>DDR5-5600 (dual channel)</td></tr>
+                <tr><td>Max Memory</td><td>192 GB</td></tr>
+                <tr><td>PCIe Version</td><td>PCIe 5.0</td></tr>
+                <tr><td>PCIe Lanes</td><td>28</td></tr>
+                <tr><td>Integrated Graphics</td><td>Apex Radeon 890M</td></tr>
+                <tr><td>Cooler Included</td><td>Wraith Prism (120mm ARGB)</td></tr>
+                <tr><td>OS Support</td><td>Windows 11, Linux (kernel 6.1+)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pdp-spec-aside">
+            <h3 class="aside-head">Compatibility Notes</h3>
+            <p style="font-size:13.5px;color:var(--text-2);line-height:1.6;margin-bottom:16px;">
+              Requires AM6 socket motherboard with BIOS version 1.2 or later. Not compatible with AM4 or AM5 boards.
+            </p>
+            <h4 style="font-size:13px;font-weight:700;margin-bottom:10px;">Tested Boards</h4>
+            <div class="tested-board">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+              Apex X9 6900 XT (BIOS 1.2+)
+            </div>
+            <div class="tested-board">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+              Surge ProX AM6 ATX
+            </div>
+            <div class="tested-board">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+              Nova Prime AM6 mITX
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviews -->
+      <div class="tab-panel" id="tab-reviews">
+        <div class="pdp-reviews-layout">
+
+          <!-- Summary -->
+          <div class="reviews-summary-col">
+            <div class="rev-big-score">
+              <span class="rev-score-num">4.9</span>
+              <span class="stars" style="font-size:20px;">★★★★★</span>
+              <span class="rev-score-total">412 reviews</span>
+            </div>
+            <div class="rev-dist">
+              <div class="rev-dist-row">
+                <span class="rev-dist-label">5 ★</span>
+                <div class="rev-dist-bar"><div class="rev-dist-fill" style="width:85%"></div></div>
+                <span class="rev-dist-pct">85%</span>
+              </div>
+              <div class="rev-dist-row">
+                <span class="rev-dist-label">4 ★</span>
+                <div class="rev-dist-bar"><div class="rev-dist-fill" style="width:12%"></div></div>
+                <span class="rev-dist-pct">12%</span>
+              </div>
+              <div class="rev-dist-row">
+                <span class="rev-dist-label">3 ★</span>
+                <div class="rev-dist-bar"><div class="rev-dist-fill" style="width:2%"></div></div>
+                <span class="rev-dist-pct">2%</span>
+              </div>
+              <div class="rev-dist-row">
+                <span class="rev-dist-label">2 ★</span>
+                <div class="rev-dist-bar"><div class="rev-dist-fill" style="width:1%"></div></div>
+                <span class="rev-dist-pct">1%</span>
+              </div>
+              <div class="rev-dist-row">
+                <span class="rev-dist-label">1 ★</span>
+                <div class="rev-dist-bar"><div class="rev-dist-fill" style="width:0%"></div></div>
+                <span class="rev-dist-pct">0%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review list -->
+          <div class="reviews-list-col">
+
+            <div class="review-card">
+              <div class="review-card-head">
+                <div class="review-avatar">B</div>
+                <div class="review-meta">
+                  <div class="review-author-row">
+                    <strong class="review-author">BuilderMike</strong>
+                    <span class="verified-chip">✓ Verified Purchase</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="stars" style="font-size:13px;">★★★★★</span>
+                    <span class="review-date">Jul 14, 2026</span>
+                  </div>
+                </div>
+              </div>
+              <p class="review-title">Absolutely demolishes everything I throw at it</p>
+              <p class="review-body">Upgraded from a 5800X and the difference is night and day. Rendering times halved, games run smoother, and the bundled cooler is surprisingly capable at stock speeds.</p>
+              <button class="helpful-btn">👍 Helpful (87)</button>
+            </div>
+
+            <div class="review-card">
+              <div class="review-card-head">
+                <div class="review-avatar">T</div>
+                <div class="review-meta">
+                  <div class="review-author-row">
+                    <strong class="review-author">TechReviewer_J</strong>
+                    <span class="verified-chip">✓ Verified Purchase</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="stars" style="font-size:13px;">★★★★★</span>
+                    <span class="review-date">Jun 29, 2026</span>
+                  </div>
+                </div>
+              </div>
+              <p class="review-title">Best AM6 chip right now, no contest</p>
+              <p class="review-body">Tested against the competition — single-core leads by 9%, multi-core by 12%. Power efficiency is also noticeably better. If you're on AM6, this is the chip to get.</p>
+              <button class="helpful-btn">👍 Helpful (61)</button>
+            </div>
+
+            <div class="review-card">
+              <div class="review-card-head">
+                <div class="review-avatar">Q</div>
+                <div class="review-meta">
+                  <div class="review-author-row">
+                    <strong class="review-author">QuietBuilder</strong>
+                    <span class="verified-chip">✓ Verified Purchase</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="stars" style="font-size:13px;">★★★★☆</span>
+                    <span class="review-date">Jun 10, 2026</span>
+                  </div>
+                </div>
+              </div>
+              <p class="review-title">Great CPU, but runs hot under sustained load</p>
+              <p class="review-body">Stock cooler handles everyday tasks fine, but under long Blender renders it throttles above 95°C. Swapped to a 240mm AIO and now it holds 5.1 GHz all-core stable. CPU itself is fantastic.</p>
+              <button class="helpful-btn">👍 Helpful (43)</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Q&A -->
+      <div class="tab-panel" id="tab-qa">
+        <div class="qa-empty">
+          Have a question about this product?
+          <a href="#" class="qa-link">Ask the community →</a>
+        </div>
+      </div>
+
+    </div><!-- /pdp-tab-body -->
+  </div><!-- /pdp-below -->
+
+  <!-- ══════════════════════════════════════
+       RELATED PRODUCTS
+  ══════════════════════════════════════ -->
+  <div class="pdp-related">
+    <div class="section-head">
+      <h2 class="section-title">Frequently Bought Together</h2>
+      <a href="#" class="link">View all →</a>
+    </div>
+    <div class="product-grid">
+
+      <div class="pcard" onclick="showToast('Viewing product…')">
+        <div class="pcard-img">
+          <img src="https://images.unsplash.com/photo-1555617981-dac3880eac6e?w=400&q=80" alt="Motherboard" />
+        </div>
+        <div class="pcard-body">
+          <span class="pcard-brand">Surge</span>
+          <span class="pcard-name">Surge ProX AM6 ATX Motherboard</span>
+          <span class="pcard-stars">★★★★★</span>
+          <div class="pcard-foot">
+            <span class="price">$279.00</span>
+            <button class="add-btn" onclick="event.stopPropagation();cartAdd()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pcard" onclick="showToast('Viewing product…')">
+        <div class="pcard-img">
+          <img src="https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=400&q=80" alt="RAM" />
+        </div>
+        <div class="pcard-body">
+          <span class="pcard-brand">Volt</span>
+          <span class="pcard-name">Volt 32GB DDR5 6400MHz Kit (2×16)</span>
+          <span class="pcard-stars">★★★★★</span>
+          <div class="pcard-foot">
+            <span class="price">$149.00</span>
+            <button class="add-btn" onclick="event.stopPropagation();cartAdd()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pcard" onclick="showToast('Viewing product…')">
+        <div class="pcard-img">
+          <img src="https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400&q=80" alt="Cooler" />
+        </div>
+        <div class="pcard-body">
+          <span class="pcard-brand">Arctic</span>
+          <span class="pcard-name">Arctic Liquid Freezer III 240mm AIO</span>
+          <span class="pcard-stars">★★★★★</span>
+          <div class="pcard-foot">
+            <span class="price">$89.00</span>
+            <button class="add-btn" onclick="event.stopPropagation();cartAdd()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pcard" onclick="showToast('Viewing product…')">
+        <div class="pcard-img">
+          <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&q=80" alt="SSD" />
+        </div>
+        <div class="pcard-body">
+          <span class="pcard-brand">Nexus</span>
+          <span class="pcard-name">Nexus Ultra 2TB PCIe 5.0 NVMe SSD</span>
+          <span class="pcard-stars">★★★★☆</span>
+          <div class="pcard-foot">
+            <span class="price">$219.00</span>
+            <button class="add-btn" onclick="event.stopPropagation();cartAdd()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /pdp-wrap -->
+
+<!-- ══════════════════════════════════════
+     FOOTER
+══════════════════════════════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">
+      <div class="logo-mark" style="width:28px;height:28px;font-size:13px;">V</div>
+      VERTEX Computers
+    </div>
+    <span class="footer-copy">© 2026 Vertex Computers. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Support</a>
+      <a href="#">Returns</a>
+    </div>
+  </div>
+</footer>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
+<script>
+/* ── State ── */
+let cartCount = 0;
+let wishlistActive = false;
+let qty = 1;
+const images = [
+  'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=900&q=85',
+  'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=900&q=85',
+  'https://images.unsplash.com/photo-1555617981-dac3880eac6e?w=900&q=85',
+  'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=900&q=85',
+];
+
+/* ── Thumbnail switcher ── */
+function switchImg(idx, btn) {
+  document.getElementById('main-img').src = images[idx];
+  document.querySelectorAll('.pdp-thumb').forEach(t => t.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+/* ── Qty controls ── */
+function changeQty(delta) {
+  qty = Math.max(1, qty + delta);
+  document.getElementById('qty-val').textContent = qty;
+}
+
+/* ── Add to cart ── */
+function addToCart() {
+  cartCount += qty;
+  document.getElementById('cart-count').textContent = cartCount;
+  showToast(`Added ${qty}× Apex R9 9800X to cart ✓`);
+}
+
+function cartAdd() {
+  cartCount++;
+  document.getElementById('cart-count').textContent = cartCount;
+  showToast('Added to cart ✓');
+}
+
+/* ── Wishlist toggle ── */
+function toggleWishlist() {
+  wishlistActive = !wishlistActive;
+  const btn  = document.getElementById('wish-btn');
+  const icon = document.getElementById('wish-icon');
+  btn.classList.toggle('active', wishlistActive);
+  icon.setAttribute('fill', wishlistActive ? 'currentColor' : 'none');
+  showToast(wishlistActive ? 'Saved to wishlist ♡' : 'Removed from wishlist');
+}
+
+/* ── Tab switcher ── */
+function switchTab(name) {
+  ['specs','reviews','qa'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('active', t === name);
+    document.getElementById('tab-btn-' + t).classList.toggle('on', t === name);
+  });
+  document.querySelector('.pdp-below').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+/* ── Toast ── */
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+/* ── Dark mode ── */
+function toggleTheme() {
+  const html = document.documentElement;
+  const dark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', dark ? 'light' : 'dark');
+  document.getElementById('theme-icon').innerHTML = dark
+    ? '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>'
+    : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+}
+</script>
+</body>
+</html>

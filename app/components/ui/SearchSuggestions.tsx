@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import {
   getSearchSuggestions,
   TRENDING,
   CATEGORY_SHORTCUTS,
   type SearchSuggestion,
 } from '@/lib/searchKeywords';
+import type { Product } from '@/lib/data';
 
 interface SearchSuggestionsProps {
   /** Current input value */
@@ -17,6 +18,8 @@ interface SearchSuggestionsProps {
   onSubmit: (query: string) => void;
   /** Variant: 'dropdown' for desktop header, 'sheet' for mobile full-screen */
   variant?: 'dropdown' | 'sheet';
+  /** Products list for live name/brand matching */
+  products?: Product[];
 }
 
 export default function SearchSuggestions({
@@ -24,13 +27,18 @@ export default function SearchSuggestions({
   onSelect,
   onSubmit,
   variant = 'dropdown',
+  products = [],
 }: SearchSuggestionsProps) {
   const [activeIndex, setActiveIndex] = useState(-1);
-  const suggestions = getSearchSuggestions(query);
+  const [prevQuery, setPrevQuery] = useState(query);
+  const suggestions = getSearchSuggestions(query, 8, products);
   const listRef = useRef<HTMLUListElement>(null);
 
-  /* reset active index whenever suggestions change */
-  useEffect(() => { setActiveIndex(-1); }, [query]);
+  /* reset active index whenever query changes */
+  if (query !== prevQuery) {
+    setPrevQuery(query);
+    setActiveIndex(-1);
+  }
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -205,16 +213,23 @@ export function useSearchKeyboard({
   onSelect,
   onSubmit,
   onClose,
+  products = [],
 }: {
   query: string;
   onSelect: (label: string) => void;
   onSubmit: (query: string) => void;
   onClose: () => void;
+  products?: Product[];
 }) {
   const [activeIndex, setActiveIndex] = useState(-1);
-  const suggestions = getSearchSuggestions(query);
+  const [prevQuery, setPrevQuery] = useState(query);
+  const suggestions = getSearchSuggestions(query, 8, products);
 
-  useEffect(() => { setActiveIndex(-1); }, [query]);
+  /* reset active index whenever query changes */
+  if (query !== prevQuery) {
+    setPrevQuery(query);
+    setActiveIndex(-1);
+  }
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
