@@ -1,5 +1,5 @@
 /**
- * Next.js Edge Middleware
+ * Next.js Proxy (formerly Middleware — renamed in Next.js 16)
  *
  * Guards:
  *   /checkout/*  — must be logged in (valid iron-session cookie)
@@ -29,7 +29,7 @@ async function getSessionFromRequest(req: NextRequest): Promise<SessionData | nu
   }
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   /* ── Protect /checkout/* ─────────────────────────────────────── */
