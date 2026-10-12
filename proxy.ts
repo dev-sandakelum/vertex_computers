@@ -32,6 +32,24 @@ async function getSessionFromRequest(req: NextRequest): Promise<SessionData | nu
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  /* ── Protect /admin/* (except /admin/login) ──────────────────── */
+  if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
+    const session = await getSessionFromRequest(req);
+    if (!session?.isLoggedIn || session.role !== 'admin') {
+      const loginUrl = new URL('/admin/login', req.url);
+      loginUrl.searchParams.set('next', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  /* ── Redirect logged-in admins away from /admin/login ────────── */
+  if (pathname === '/admin/login') {
+    const session = await getSessionFromRequest(req);
+    if (session?.isLoggedIn && session.role === 'admin') {
+      return NextResponse.redirect(new URL('/admin', req.url));
+    }
+  }
+
   /* ── Protect /checkout/* ─────────────────────────────────────── */
   if (pathname.startsWith('/checkout')) {
     const session = await getSessionFromRequest(req);
@@ -47,7 +65,6 @@ export async function proxy(req: NextRequest) {
   if (pathname === '/account/login' || pathname === '/account/register') {
     const session = await getSessionFromRequest(req);
     if (session?.isLoggedIn) {
-      // Only redirect if no 'next' param — let the form handle that case
       const next = req.nextUrl.searchParams.get('next');
       const destination = next && next.startsWith('/') ? next : '/account';
       return NextResponse.redirect(new URL(destination, req.url));
@@ -59,6 +76,7 @@ export async function proxy(req: NextRequest) {
 
 export const config = {
   matcher: [
+    '/admin/:path*',
     '/checkout/:path*',
     '/account/login',
     '/account/register',

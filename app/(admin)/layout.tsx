@@ -1,19 +1,19 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'DB Push Terminal | Vertex Admin',
+  title: { default: 'Admin — Vertex Computers', template: '%s | Vertex Admin' },
   robots: { index: false, follow: false },
 };
 
 /**
- * Bare admin layout — no header, footer, nav, or providers.
- * Sets the body to dark so the terminal's fixed inset-0 has no flash.
+ * Bare admin layout — no storefront chrome.
+ * The full admin shell (sidebar + topbar) is rendered client-side
+ * inside AdminShell, keeping the layout simple and SSR-friendly.
  */
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      <style>{`html,body{background:#0c0c10!important;overflow:hidden}`}</style>
+    <div style={{ minHeight: '100vh', background: '#F2F5FB' }}>
       {children}
-    </>
+    </div>
   );
 }

@@ -1,0 +1,31 @@
+# dependencies – reinstalled inside the build stage
+node_modules
+
+# Next.js build cache – built fresh inside the image
+.next
+out
+
+# Local env file – inject real secrets at runtime via --env-file or -e flags
+.env*
+.env.local
+.env.*.local
+
+# Version control
+.git
+.gitignore
+
+# Editor / OS noise
+.vscode
+.DS_Store
+*.pem
+
+# Test / coverage artefacts
+coverage
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript incremental build info
+*.tsbuildinfo
