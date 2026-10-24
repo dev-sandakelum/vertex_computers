@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { connectDB } from '@/lib/mongodb';
 import ProductModel from '@/lib/models/Product';
+import { toImageUrl } from '@/lib/data';
 
 async function requireAdmin() {
   const session = await getSession();
@@ -49,7 +50,7 @@ export async function GET(req: NextRequest) {
       stock:      (d as Record<string, unknown>).stock,
       stockCount: (d as Record<string, unknown>).stockCount,
       slug:       (d as Record<string, unknown>).slug,
-      image:      ((d as Record<string, unknown>).images as { url: string }[] | undefined)?.[0]?.url ?? null,
+      image:      toImageUrl(((d as Record<string, unknown>).images as { url: string }[] | undefined)?.[0]?.url ?? ''),
     }));
 
     return NextResponse.json({ products, total, page, limit, pages: Math.ceil(total / limit) });
