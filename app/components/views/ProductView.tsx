@@ -6,7 +6,7 @@ import { useApp } from '@/app/components/providers/AppProvider';
 import {
   fmt, STOCK_MAP, categorySlug,
   productIc, productImg, productOld, productRev,
-  productTag, slugify, type Product, type StockLevel,
+  productTag, slugify, toImageUrl, type Product, type StockLevel,
 } from '@/lib/data';
 
 interface Props { product: Product; allProducts: Product[] }
@@ -28,7 +28,7 @@ export default function ProductView({ product: p, allProducts }: Props) {
   const old       = productOld(p);
   const rev       = productRev(p);
   const tag       = productTag(p);
-  const activeImg = p.images[activeThumb]?.url ?? img;
+  const activeImg = p.images[activeThumb]?.url ? toImageUrl(p.images[activeThumb].url) : img;
   const sku       = p.sku ?? `${p.brand.toUpperCase().slice(0, 2)}-${String(p.id).padStart(3, '0')}`;
   const saveAmt   = old ? old - p.price : 0;
   const savePct   = old ? Math.round((1 - p.price / old) * 100) : 0;
@@ -67,7 +67,7 @@ export default function ProductView({ product: p, allProducts }: Props) {
               <div className="pdp-thumbs-v">
                 {p.images.slice(0, 6).map((image, i) => (
                   <button key={image.id} className={`pdp-thumb${i === activeThumb ? ' on' : ''}`} aria-label={`View image ${i + 1}`} onClick={() => setThumb(i)}>
-                    <img src={image.url} alt={image.alt} onError={(e) => { (e.currentTarget as HTMLImageElement).src = PENDING_IMG; }} />
+                    <img src={toImageUrl(image.url)} alt={image.alt} onError={(e) => { (e.currentTarget as HTMLImageElement).src = PENDING_IMG; }} />
                   </button>
                 ))}
               </div>

@@ -113,13 +113,34 @@ export interface Product {
   metadata?: ProductMetadata;
 }
 
+/* ── Image URL helper ─────────────────────────────────── */
+
+/**
+ * Base URL for product images hosted on GitHub.
+ * Local paths like `/product-images/...` are rewritten to raw GitHub URLs.
+ */
+const PRODUCT_IMAGE_CDN =
+  'https://raw.githubusercontent.com/dev-sandakelum/product-images-for-vertex-computers/main/img';
+
+/**
+ * Resolves a product image URL.
+ * - Local paths starting with `/product-images/` are converted to GitHub raw URLs.
+ * - Absolute URLs (http/https) and other local paths (e.g. /logo.png) are returned as-is.
+ */
+export function toImageUrl(url: string): string {
+  if (!url) return url;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (url.startsWith('/product-images/')) return `${PRODUCT_IMAGE_CDN}${url}`;
+  return url;
+}
+
 /* ── Compatibility shims (used by existing components) ─
    These computed helpers bridge the old short-field names
    to the new rich schema so no component breaks.        */
 
 /** Primary image URL — first image marked primary, fallback to first */
 export function productImg(p: Product): string {
-  return (p.images.find((i) => i.primary) ?? p.images[0])?.url ?? '';
+  return toImageUrl((p.images.find((i) => i.primary) ?? p.images[0])?.url ?? '');
 }
 
 /** Old price (compat shim for `p.old`) */
