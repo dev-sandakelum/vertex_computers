@@ -56,6 +56,15 @@
   --topbar-h:     56px;
   --bottomnav-h:  64px;
   --band-h:       0px;
+
+  /* ── Shared motion system (used site-wide, Task 6) ── */
+  --dur-fast:   .15s;   /* hovers, presses, color swaps */
+  --dur-base:   .25s;   /* dropdowns, sheets, small moves */
+  --dur-slow:   .4s;    /* page/section reveals, drawers */
+  --ease-out:   cubic-bezier(.22, .61, .36, 1);        /* decelerate */
+  --ease-io:    cubic-bezier(.45, 0, .55, 1);          /* shimmer, loops */
+  --ease-smooth:cubic-bezier(.32, .72, .28, 1);        /* drawers, sheets */
+  --ease-spring:cubic-bezier(.34, 1.56, .64, 1);       /* pops, badges, confetti */
 }
 
 @media (max-width: 1023px) {
@@ -64,7 +73,11 @@
 
 /* ============ RESET ============ */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; scrollbar-gutter: stable; overflow-y: auto; }
+/* FIX(nav): scroll anchoring fights the compacting sticky header — when the
+   header shrinks, the browser nudges scrollY to compensate, which the scroll
+   direction detector reads as "scrolled up" → expand → oscillation loop.
+   Disabling anchoring on the root removes the feedback cycle. */
+html { scroll-behavior: smooth; scrollbar-gutter: stable; overflow-y: auto; overflow-anchor: none; }
 html.lock { overflow: hidden; }
 body {
   font-family: var(--fd);
@@ -102,6 +115,99 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 @keyframes authSpin { to { transform: rotate(360deg); } }
 @keyframes tinIn    { from { opacity: 0; transform: translateY(12px); } }
 @keyframes cartPop  { 40% { transform: scale(1.5); } }
+@keyframes shimmer  { 100% { transform: translateX(100%); } }
+
+/* ── Skeleton shimmer blocks (see ui/Skeleton.tsx) ── */
+.skel {
+  position: relative; overflow: hidden;
+  display: block; background: #E4EAF4;
+  flex-shrink: 0; pointer-events: none;
+}
+.skel::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.72), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 1.5s var(--ease-io, ease-in-out) infinite;
+}
+[data-theme="dark"] .skel { background: #1B2440; }
+[data-theme="dark"] .skel::after { background: linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent); }
+@media (prefers-reduced-motion: reduce) { .skel::after { animation: none; } }
+
+/* ============ MOTION SYSTEM (Task 6) ============ */
+/* Every site-wide animation lives here and reuses the shared tokens
+   (--dur-* / --ease-*). Only transform & opacity are animated (the two
+   exceptions are the navbar height collapse and accordions, which are
+   explicitly height-based interactions). */
+
+/* Page transition — (main)/template.tsx remounts per navigation */
+.page-transition { animation: fadeUp var(--dur-slow) var(--ease-out); }
+
+/* Scroll-reveal wrapper (ui/Reveal.tsx) */
+.reveal {
+  opacity: 0; transform: translateY(18px);
+  transition: opacity var(--dur-slow) var(--ease-out),
+              transform var(--dur-slow) var(--ease-out);
+  will-change: opacity, transform;
+}
+.reveal.in { opacity: 1; transform: none; }
+
+/* Card entrance — used by product grids + cart lists */
+@keyframes cardIn { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: none; } }
+.product-grid > *, .pg5 > * { animation: cardIn .38s var(--ease-out) both; }
+.product-grid > *:nth-child(1),  .pg5 > *:nth-child(1)  { animation-delay: 0ms; }
+.product-grid > *:nth-child(2),  .pg5 > *:nth-child(2)  { animation-delay: 45ms; }
+.product-grid > *:nth-child(3),  .pg5 > *:nth-child(3)  { animation-delay: 90ms; }
+.product-grid > *:nth-child(4),  .pg5 > *:nth-child(4)  { animation-delay: 135ms; }
+.product-grid > *:nth-child(5),  .pg5 > *:nth-child(5)  { animation-delay: 180ms; }
+.product-grid > *:nth-child(6),  .pg5 > *:nth-child(6)  { animation-delay: 225ms; }
+.product-grid > *:nth-child(7),  .pg5 > *:nth-child(7)  { animation-delay: 270ms; }
+.product-grid > *:nth-child(8),  .pg5 > *:nth-child(8)  { animation-delay: 315ms; }
+.product-grid > *:nth-child(9),  .pg5 > *:nth-child(9)  { animation-delay: 360ms; }
+.product-grid > *:nth-child(10), .pg5 > *:nth-child(10) { animation-delay: 405ms; }
+.product-grid > *:nth-child(11), .pg5 > *:nth-child(11) { animation-delay: 450ms; }
+.product-grid > *:nth-child(12), .pg5 > *:nth-child(12) { animation-delay: 495ms; }
+/* Cards appended by infinite scroll (or beyond the first 12) animate in
+   immediately — no stagger delay, so batches feel instant. */
+.product-grid > *:nth-child(n+13), .pg5 > *:nth-child(n+13) { animation-delay: 0ms; }
+
+/* Product card image zoom on hover (transform only) */
+.pcard-img img { transition: transform var(--dur-slow) var(--ease-out); }
+.pcard:hover .pcard-img img, .pcard:focus-visible .pcard-img img { transform: scale(1.06); }
+
+/* Button press feedback — everything clickable shrinks a touch */
+.btn:active        { transform: scale(.97); }
+.icon-btn:active   { transform: scale(.92); }
+.add-btn:active    { transform: scale(.9); }
+.hact:active       { transform: scale(.97); }
+.cd-checkout-btn:active { transform: scale(.98); }
+.qty button:active, .cd-qty button:active:not(:disabled) { transform: scale(.85); }
+
+/* Cart badge bounce — the span is keyed by count in Header/BottomNav so it
+   remounts and re-plays this animation on EVERY add-to-cart. */
+.cart-count, .bottomnav .nc { animation: cartPopBounce .45s var(--ease-spring); }
+@keyframes cartPopBounce { 0% { transform: scale(.4); } 55% { transform: scale(1.45); } 100% { transform: scale(1); } }
+
+/* Filter chips pop in as they're added */
+.fchip { animation: chipIn .3s var(--ease-spring) both; }
+@keyframes chipIn { from { opacity: 0; transform: scale(.8); } to { opacity: 1; transform: none; } }
+
+/* PDP tab panel swap */
+.pdp-tab-body { animation: fadeUp .3s var(--ease-out); }
+
+/* Cart drawer — items stagger in when the panel opens */
+.cd-panel.open .cd-item { animation: cardIn .34s var(--ease-out) both; }
+.cd-panel.open .cd-item:nth-child(1) { animation-delay: 60ms; }
+.cd-panel.open .cd-item:nth-child(2) { animation-delay: 105ms; }
+.cd-panel.open .cd-item:nth-child(3) { animation-delay: 150ms; }
+.cd-panel.open .cd-item:nth-child(4) { animation-delay: 195ms; }
+.cd-panel.open .cd-item:nth-child(n+5) { animation-delay: 240ms; }
+
+/* Cart page rows stagger */
+.cart-item, .cart-item-m { animation: cardIn .34s var(--ease-out) both; }
+.cart-item:nth-child(1), .cart-item-m:nth-child(1) { animation-delay: 30ms; }
+.cart-item:nth-child(2), .cart-item-m:nth-child(2) { animation-delay: 75ms; }
+.cart-item:nth-child(3), .cart-item-m:nth-child(3) { animation-delay: 120ms; }
+.cart-item:nth-child(n+4), .cart-item-m:nth-child(n+4) { animation-delay: 165ms; }
 
 /* ============ BUTTONS ============ */
 .btn {
@@ -223,6 +329,39 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
 }
 
+/* ── Compact navbar on scroll (Task 5b) ──
+   Height, logo size, search width and the category row all animate with
+   the shared motion tokens; only transform/opacity/height participate. */
+.header-main {
+  transition: height var(--dur-base) var(--ease-smooth);
+}
+.site-header.compact .header-main { height: 54px; }
+.logo img { transition: width var(--dur-base) var(--ease-smooth), height var(--dur-base) var(--ease-smooth); }
+.site-header.compact .logo img { width: 26px; height: 26px; }
+.logo span { transition: font-size var(--dur-base) var(--ease-smooth); }
+.site-header.compact .logo span { font-size: 15px; }
+.searchbar-wrap {
+  transition: flex-grow var(--dur-base) var(--ease-smooth),
+              max-width var(--dur-base) var(--ease-smooth),
+              opacity var(--dur-fast) ease,
+              visibility 0s;
+}
+.site-header.compact .searchbar-wrap {
+  flex-grow: 0; max-width: 0; opacity: 0;
+  visibility: hidden; pointer-events: none; overflow: hidden;
+  transition: flex-grow var(--dur-base) var(--ease-smooth),
+              max-width var(--dur-base) var(--ease-smooth),
+              opacity var(--dur-fast) ease,
+              visibility 0s var(--dur-base);
+}
+.catnav {
+  max-height: 46px; overflow: hidden;
+  transition: max-height var(--dur-base) var(--ease-smooth), opacity var(--dur-fast) ease;
+}
+.site-header.compact .catnav { max-height: 0; opacity: 0; }
+.hact-search { display: none; }
+.site-header.compact .hact-search { display: flex; }
+
 /* Main header row */
 .header-main {
   display: flex; align-items: center;
@@ -265,7 +404,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 .hgo:hover { background: var(--blue-d); }
 
 /* Header actions */
-.header-actions { display: flex; align-items: center; gap: 6px; margin-left: 0; }
+.header-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
 .hact {
   display: flex; align-items: center; gap: 9px;
   background: none; border: 0; color: var(--ink); cursor: pointer;
@@ -286,14 +425,64 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   background: var(--blue); color: #fff; font-size: 10px; font-weight: 700;
   min-width: 17px; height: 17px; border-radius: 99px; display: grid;
   place-items: center; padding: 0 4px; font-family: var(--fm);
-  animation: cartPop .3s ease;
 }
 .avatar-sm {
   width: 30px; height: 30px; border-radius: 50%;
   background: var(--grad); color: #fff; display: grid;
   place-items: center; font-weight: 800; font-size: 12px;
-  letter-spacing: .02em;
+  letter-spacing: .02em; overflow: hidden; flex-shrink: 0; position: relative;
 }
+/* Profile picture fills the avatar; initials/icon render beneath until loaded */
+.avatar-sm img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; z-index: 1;
+}
+/* Signed-out ghost avatar — outlined, uses theme color */
+.avatar-ghost { background: var(--blue-soft); color: var(--blue); border: 1.5px solid #CBDBFF; }
+
+/* ── Account dropdown (Task 5a) ── */
+.acct-wrap { position: relative; }
+.acct-chev { color: var(--muted); transition: transform var(--dur-base) var(--ease-smooth); flex-shrink: 0; }
+.acct-chev.open { transform: rotate(180deg); }
+@keyframes menuIn {
+  from { opacity: 0; transform: translateY(-6px) scale(.96); }
+  to   { opacity: 1; transform: none; }
+}
+.acct-menu {
+  position: absolute; top: calc(100% + 10px); right: 0;
+  min-width: 224px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: var(--shadow-lg); padding: 6px;
+  z-index: 200;
+  transform-origin: top right;
+  animation: menuIn var(--dur-base) var(--ease-out) both;
+}
+.acct-menu-head {
+  display: flex; align-items: center; gap: 11px;
+  padding: 11px 12px; margin-bottom: 5px;
+  border-bottom: 1px solid var(--line);
+}
+.acct-menu-user { min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.acct-menu-user b { font-size: 13.5px; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acct-menu-user small { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acct-menu-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 12px; border-radius: 9px;
+  font-size: 13.5px; font-weight: 600; color: var(--ink);
+  background: none; border: 0; cursor: pointer; width: 100%;
+  font-family: var(--fd); text-align: left; text-decoration: none;
+  transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+.acct-menu-item svg { color: var(--muted); transition: color var(--dur-fast) ease; }
+.acct-menu-item:hover { background: var(--blue-soft); color: var(--blue-d); }
+.acct-menu-item:hover svg { color: var(--blue); }
+.acct-signout { color: var(--red); margin-top: 4px; border-top: 1px solid var(--line); border-radius: 0 0 9px 9px; }
+.acct-signout svg { color: var(--red); }
+.acct-signout:hover { background: var(--danger-soft); color: var(--red); }
+.acct-signout:hover svg { color: var(--red); }
+/* Compact search icon button gets icon-only spacing */
+.hact-search { padding: 6px; }
+.hact-search .ic { width: 22px; height: 22px; }
 .hamburger { display: none; }
 
 /* Category bar */
@@ -468,6 +657,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 .new-badge { position: absolute; top: 16px; right: 18px; background: var(--grad); color: #fff; font: 800 11px var(--fm); padding: 8px 10px; border-radius: 99px; letter-spacing: .08em; }
 #cdown { display: flex; align-items: center; gap: 6px; margin-top: 14px; font: 600 11px var(--fm); color: #C9B8FF; }
 #cdown b { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.22); border-radius: 8px; padding: 6px 8px; color: #fff; font-size: 15px; }
+#cdown small { font-size: 9px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #C9B8FF; margin-right: 2px; }
 #cdown i { display: none; }
 
 /* ============ HOME — FEATURE STRIP ============ */
@@ -565,6 +755,11 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; }
 .pg5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
 .pg5 .pcard-specs { display: none; }
+/* FIX(ui): grid items must be allowed to shrink below their content's
+   intrinsic size — a broken/late-loading product image (intrinsic ~1254px)
+   otherwise blows out the track and causes page-wide horizontal overflow. */
+.product-grid > * { min-width: 0; }
+.pcard { min-width: 0; }
 
 .pcard {
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
@@ -627,11 +822,42 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 .shop-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
 .shop-toolbar select { padding: 9px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); font-weight: 500; }
 .filter-toggle { display: none; }
-.pagination { display: flex; gap: 6px; justify-content: center; margin-top: 34px; }
-.pagination button { min-width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font-weight: 600; transition: all .15s; }
-.pagination button:hover { border-color: var(--blue); color: var(--blue); }
-.pagination button.on { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+/* ── Infinite scroll (replaces pagination) ───────────────────── */
+/* Sentinel observed by IntersectionObserver (rootMargin 300px) —
+   invisible; it only needs to exist below the grid. */
+.io-sentinel { width: 100%; height: 1px; margin-top: 34px; }
+/* Subtle end-of-list marker */
+.grid-end {
+  margin-top: 28px; text-align: center; font-size: 12.5px; font-weight: 600;
+  color: var(--muted); letter-spacing: .04em;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+}
+.grid-end::before, .grid-end::after {
+  content: ''; height: 1px; width: min(120px, 22vw);
+  background: linear-gradient(90deg, transparent, var(--line));
+}
+.grid-end::after { background: linear-gradient(90deg, var(--line), transparent); }
+/* Failed batch → inline retry (resumes from the same cursor) */
+.grid-more-error {
+  margin-top: 26px; display: flex; align-items: center; justify-content: center; gap: 14px;
+  padding: 14px 16px; border: 1.5px dashed var(--line); border-radius: var(--radius);
+  background: var(--surface); color: var(--muted); font-size: 13px; flex-wrap: wrap;
+}
+/* Visually hidden (screen-reader only) utility — live-region announcements */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+/* Scroll target when filters change — clears the sticky header */
+.shop-results { scroll-margin-top: calc(var(--header-h) + 16px); }
 .shop-toolbar-sticky { display: none; position: sticky; top: var(--topbar-h); z-index: 40; background: rgba(242,245,251,.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); align-items: center; justify-content: space-between; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+/* FIX(ui): at tablet widths (641–1024px) the desktop header is still stuck
+   on top (~118px incl. category row) — the sticky toolbar must sit below it,
+   otherwise it slides underneath and disappears when scrolling. */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .shop-toolbar-sticky { top: 118px; }
+}
 
 /* ============ PRODUCT DETAIL ============ */
 .pdp-page { padding-bottom: 0; }
@@ -858,11 +1084,45 @@ footer.site { background: var(--surface); border-top: 1px solid var(--line); mar
 .ft2 ul { list-style: none; display: grid; gap: 9px; font-size: 13.5px; color: var(--muted); }
 .ft2 a:hover { color: var(--blue); }
 .ft-soc { display: flex; gap: 10px; margin-top: 6px; }
-.ft-soc span { width: 34px; height: 34px; border: 0; display: grid; place-items: center; font: 800 13px var(--fd); color: var(--ink); }
-.apps { display: grid; gap: 10px; }
-.apps a { display: flex; flex-direction: column; background: var(--ink); color: #fff !important; border-radius: 10px; padding: 8px 16px; width: max-content; max-width: 100%; }
-.apps small { font-size: 9px; opacity: .75; }
-.apps b { font-size: 15px; }
+.ft-soc span {
+  width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 9px;
+  display: grid; place-items: center; color: var(--ink);
+  transition: color var(--dur-fast) ease, border-color var(--dur-fast) ease, transform var(--dur-fast) ease;
+  cursor: default;
+}
+.ft-soc span:hover { color: var(--blue); border-color: var(--blue); transform: translateY(-2px); }
+/* ── App store badges (ui/StoreBadge.tsx) ───────────────────── */
+/* Desktop footer column is narrow (~250px) → badges stack vertically. */
+.apps { display: grid; gap: 12px; justify-content: start; }
+.store-badge {
+  display: flex; align-items: center; gap: 12px;
+  width: 168px; height: 52px; padding: 0 16px;
+  background: #0C111D; color: #fff; text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, .16); border-radius: 10px;
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+}
+.store-badge:hover {
+  transform: translateY(-2px);                    /* lift */
+  background: #151D2E;                            /* slightly brighter */
+  border-color: rgba(255, 255, 255, .3);
+  box-shadow: 0 10px 24px rgba(10, 16, 28, .3);   /* soft shadow */
+}
+.store-badge:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.store-badge:active { transform: translateY(0); }
+.sb-icon { display: grid; place-items: center; flex-shrink: 0; }
+.sb-text { display: flex; flex-direction: column; line-height: 1.18; min-width: 0; }
+.sb-text small { font-size: 9px; font-weight: 500; letter-spacing: .05em; opacity: .72; white-space: nowrap; }
+.sb-text b { font-size: 16px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; }
+/* Tablet (641–1024px): footer reflows to 3 columns → app column is wide
+   enough for both badges side by side. */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .apps { grid-template-columns: repeat(2, max-content); gap: 12px; }
+}
+/* Small mobile: full-width, stacked. */
+@media (max-width: 640px) {
+  .apps { grid-template-columns: 1fr; }
+  .store-badge { width: 100%; }
+}
 .ft3 { border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding-top: 18px; padding-bottom: 18px; font-size: 12.5px; color: var(--muted); }
 .ft3 .pay { display: flex; align-items: center; gap: 14px; font: 800 13px var(--fd); letter-spacing: .02em; }
 .ft3 button { background: none; border: 0; color: var(--ink); font: 600 12px var(--fd); cursor: pointer; }
@@ -880,6 +1140,9 @@ footer.site { background: var(--surface); border-top: 1px solid var(--line); mar
 .foot-bottom-m { text-align: center; font-size: 11px; color: var(--muted); margin-top: 18px; }
 .nl-row { display: flex; gap: 8px; margin-top: 12px; }
 .nl-row input { flex: 1; padding: 10px 13px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--paper); color: var(--ink); min-width: 0; }
+/* FIX(ui): newsletter submit should stretch to the input's height instead
+   of a fixed 38px, so the row is visually aligned on mobile. */
+.nl-row .btn { height: auto; min-height: 42px; }
 
 /* ============ TOAST ============ */
 #toasts, .toast-host {
@@ -903,6 +1166,11 @@ footer.site { background: var(--surface); border-top: 1px solid var(--line); mar
 /* ============ DRAWERS ============ */
 .drawer-backdrop { position: fixed; inset: 0; background: rgba(10,14,20,.5); z-index: 70; opacity: 0; pointer-events: none; transition: opacity .25s; }
 .drawer-backdrop.show { opacity: 1; pointer-events: auto; }
+/* Filter drawer backdrop — same visual as .drawer-backdrop but only ever
+   shown when the (mobile) bottom-sheet filter UI is open. Hidden on ≥641px
+   where filters live in the sidebar instead. */
+.fd-backdrop { position: fixed; inset: 0; background: rgba(10,14,20,.5); z-index: 70; opacity: 0; pointer-events: none; transition: opacity var(--dur-base) ease; display: none; }
+.fd-backdrop.show { opacity: 1; pointer-events: auto; }
 .mobile-drawer { position: fixed; top: 0; left: 0; bottom: 0; width: min(320px, 86vw); background: var(--surface); z-index: 80; transform: translateX(-105%); transition: transform .28s ease; padding: 22px; overflow-y: auto; }
 .mobile-drawer.show { transform: none; }
 .mobile-drawer ul { list-style: none; margin-top: 18px; }
@@ -1062,7 +1330,20 @@ main { min-height: 65vh; padding-bottom: 64px; }
   footer.site         { display: none !important; }
   .drawer-backdrop    { display: none !important; }
   .mobile-drawer      { display: none !important; }
-  .filter-drawer      { display: none !important; }
+
+  /* FIX(ui): the REAL filter drawer (from CategoryView) becomes a bottom
+     sheet on mobile — previously a fake hardcoded sheet was shown instead. */
+  .fd-backdrop        { display: block; }
+  .filter-drawer {
+    display: flex; flex-direction: column;
+    top: auto; left: 0; right: 0; bottom: 0;
+    width: 100%; max-height: 82vh;
+    border-radius: 20px 20px 0 0;
+    padding: 10px 18px 16px;
+    transform: translateY(105%);
+    transition: transform var(--dur-base) var(--ease-smooth);
+  }
+  .filter-drawer.show { transform: translateY(0); }
 
   /* Show mobile chrome */
   .topbar-app         { display: flex; }
@@ -1197,14 +1478,20 @@ main { min-height: 65vh; padding-bottom: 64px; }
 }
 
 /* ============================================================
-   REDUCED MOTION
+   REDUCED MOTION — every animation/transition collapses to ~0ms,
+   reveals jump to their end state, and smooth scrolling is off.
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
+    transition-delay: 0ms !important;
   }
+  html { scroll-behavior: auto !important; }
+  .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .page-transition { animation: none !important; }
+  .brand-track { animation: none !important; }
 }
 
 /* ============ CART DRAWER (side panel) ============ */
@@ -1360,7 +1647,7 @@ main { min-height: 65vh; padding-bottom: 64px; }
 .cd-checkout-btn:active { transform: scale(.98); }
 
 /* Note */
-.cd-note { font: 500 11px var(--fm); color: #B0BCDA; text-align: center; letter-spacing: .04em; }
+.cd-note { font: 500 11px var(--fm); color: var(--muted); text-align: center; letter-spacing: .04em; }
 
 /* Mobile */
 @media (max-width: 480px) {
@@ -1369,4 +1656,209 @@ main { min-height: 65vh; padding-bottom: 64px; }
   .cd-thumb { width: 72px; height: 58px; }
   .cd-head  { padding: 16px 16px 14px; }
   .cd-foot  { padding: 12px 16px 18px; }
+}
+
+/* ============================================================
+   PREMIUM PAYMENT RECEIPT (ticket) — Task 3
+   ============================================================ */
+@keyframes rcIn     { from { opacity: 0; transform: translateY(26px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes rcField  { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes rcDash   { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes rcSpark  { 0% { opacity: 0; transform: scale(.2); } 35% { opacity: 1; } 100% { opacity: 0; transform: scale(1.15) translateY(-6px); } }
+
+.receipt-page {
+  position: relative;
+  min-height: calc(100vh - var(--header-h) - 80px);
+  padding: 48px 20px 72px;
+  display: flex; flex-direction: column; align-items: center;
+  background:
+    radial-gradient(900px 420px at 12% -8%, rgba(43, 89, 255, .10), transparent 60%),
+    radial-gradient(800px 420px at 95% 108%, rgba(122, 77, 255, .10), transparent 60%),
+    linear-gradient(180deg, #Eef2fc 0%, #F2F5FB 55%, #EDF1FA 100%);
+  overflow: hidden;
+}
+.receipt-glow { position: absolute; width: 420px; height: 420px; border-radius: 50%; filter: blur(70px); opacity: .35; pointer-events: none; }
+.receipt-glow-a { top: -140px; left: -120px; background: #6E8FFF; }
+.receipt-glow-b { bottom: -160px; right: -120px; background: #9A7CFF; }
+
+/* ── The ticket card ── */
+.receipt-card {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 460px;
+  background: #FFFFFF;
+  border-radius: 22px;
+  padding: 26px 28px 30px;
+  box-shadow: 0 24px 60px rgba(13, 23, 48, .14), 0 3px 10px rgba(13, 23, 48, .06);
+  animation: rcIn .55s var(--ease-out) both;
+}
+/* Side notches at the divider + scalloped bottom edge — real cutouts via a
+   3-layer intersecting mask (notches sit at --notch-y, measured in JS so
+   they line up with the dashed divider at every breakpoint). */
+.receipt-card.notched {
+  --nr: 11px;
+  --sr: 7px;
+  -webkit-mask-image:
+    radial-gradient(circle var(--nr) at 0px var(--notch-y), transparent calc(var(--nr) - .8px), #000 var(--nr)),
+    radial-gradient(circle var(--nr) at 100% var(--notch-y), transparent calc(var(--nr) - .8px), #000 var(--nr)),
+    radial-gradient(circle var(--sr) at var(--sr) 100%, transparent calc(var(--sr) - .8px), #000 var(--sr));
+  mask-image:
+    radial-gradient(circle var(--nr) at 0px var(--notch-y), transparent calc(var(--nr) - .8px), #000 var(--nr)),
+    radial-gradient(circle var(--nr) at 100% var(--notch-y), transparent calc(var(--nr) - .8px), #000 var(--nr)),
+    radial-gradient(circle var(--sr) at var(--sr) 100%, transparent calc(var(--sr) - .8px), #000 var(--sr));
+  -webkit-mask-size: 100% 100%, 100% 100%, calc(var(--sr) * 2) 100%;
+  mask-size: 100% 100%, 100% 100%, calc(var(--sr) * 2) 100%;
+  -webkit-mask-repeat: no-repeat, no-repeat, repeat-x;
+  mask-repeat: no-repeat, no-repeat, repeat-x;
+  -webkit-mask-composite: source-in, source-in, source-in;
+  mask-composite: intersect, intersect, intersect;
+}
+
+/* ── Header ── */
+.rc-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+.rc-brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 16px; letter-spacing: -.01em; color: var(--ink); }
+.rc-brand img { border-radius: 8px; object-fit: contain; flex-shrink: 0; }
+.rc-brand span { display: flex; flex-direction: column; line-height: 1; }
+.rc-brand small { font-size: 7.5px; font-weight: 600; color: var(--muted); letter-spacing: .22em; margin-top: 3px; }
+.rc-chip {
+  font-size: 9.5px; font-weight: 700; letter-spacing: .14em;
+  color: var(--blue-d); background: var(--blue-soft);
+  border: 1px solid #CBDBFF; border-radius: 99px; padding: 5px 10px;
+}
+
+/* ── Celebration ── */
+.rc-celebrate { text-align: center; margin: 6px 0 24px; }
+.rc-celebrate-icon {
+  position: relative; display: inline-grid; place-items: center;
+  width: 92px; height: 92px; border-radius: 50%;
+  background: var(--blue-soft); color: var(--blue);
+  animation: pop .6s var(--ease-spring) .12s both;
+}
+.rc-spark {
+  position: absolute; border-radius: 50%;
+  background: var(--blue-l); opacity: 0;
+  animation: rcSpark .9s var(--ease-out) .45s both;
+}
+.rc-spark-1 { width: 8px; height: 8px; top: 6px; right: 8px; }
+.rc-spark-2 { width: 6px; height: 6px; top: 20px; left: 2px; background: #9A7CFF; animation-delay: .6s; }
+.rc-spark-3 { width: 5px; height: 5px; bottom: 10px; right: 2px; background: var(--red); animation-delay: .72s; }
+.rc-celebrate h1 { font-size: 30px; font-weight: 800; letter-spacing: -.02em; margin-top: 14px; color: var(--ink); }
+.rc-celebrate p { font-size: 13.5px; color: var(--muted); margin-top: 4px; }
+
+/* ── Key fields ── */
+.rc-fields {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+.rc-field {
+  min-width: 0;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 11px 14px;
+  animation: rcField .4s var(--ease-out) both;
+  animation-delay: calc(.24s + var(--i) * 70ms);
+}
+.rc-field-label { display: block; font-size: 9.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.rc-field-value { display: block; font-size: 13.5px; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
+.rc-amount { font-family: var(--fm); font-size: 15px; color: var(--blue-d); }
+
+/* Payment-method field */
+.rc-card { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.rc-card-mark { flex-shrink: 0; display: grid; place-items: center; width: 44px; }
+.rc-card-meta { min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.rc-card-meta b { font-size: 12.5px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rc-card-meta small { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Dashed ticket divider ── */
+.rc-divider { position: relative; height: 26px; margin: 4px -28px; }
+.rc-dash {
+  position: absolute; inset: 12px 28px auto 28px; height: 0;
+  border-top: 2px dashed #C7D2E8;
+  animation: rcDash .5s var(--ease-out) .5s both;
+  transform-origin: center;
+}
+
+/* ── Items ── */
+.rc-items-title {
+  display: flex; align-items: baseline; justify-content: space-between;
+  font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 8px;
+}
+.rc-items-title .mono { font-size: 10px; font-weight: 600; }
+.rc-items ul { list-style: none; margin: 0 0 14px; padding: 0; }
+.rc-items li {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  padding: 7px 0; font-size: 13px; color: var(--ink);
+  border-bottom: 1px solid #EDF1F9;
+  animation: rcField .35s var(--ease-out) both;
+  animation-delay: calc(.42s + var(--i) * 45ms);
+}
+.rc-items li:last-child { border-bottom: 0; }
+.rc-item-name { min-width: 0; overflow-wrap: anywhere; }
+.rc-item-name em { font-style: normal; font-size: 11px; color: var(--muted); }
+.rc-item-price { flex-shrink: 0; font-size: 12.5px; font-weight: 700; }
+
+/* ── Totals ── */
+.rc-totals { margin: 0; padding: 12px 0 0; }
+.rc-totals div { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); padding: 3.5px 0; }
+.rc-totals dt { font-weight: 500; }
+.rc-totals dd { margin: 0; font-family: var(--fm); font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.rc-total-row {
+  margin-top: 8px; padding: 11px 12px 9px !important;
+  background: var(--blue-soft); border: 1px solid #CBDBFF; border-radius: 12px;
+  animation: rcField .4s var(--ease-out) .62s both;
+}
+.rc-total-row dt { font-weight: 800 !important; color: var(--ink) !important; font-size: 13.5px !important; }
+.rc-total-row dd { font-size: 17px !important; font-weight: 800 !important; color: var(--blue-d) !important; }
+
+/* ── Barcode ── */
+.rc-barcode { text-align: center; margin-top: 2px; animation: fadeUp .5s var(--ease-out) .66s both; }
+.rc-barcode svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+.rc-scan-hint { font-size: 9.5px; font-weight: 500; color: var(--muted); letter-spacing: .08em; margin-top: 8px; text-transform: uppercase; }
+.rc-fineprint { text-align: center; font-size: 10.5px; line-height: 1.7; color: var(--muted); margin-top: 18px; }
+
+/* ── Screen-only actions ── */
+.receipt-actions { margin-top: 22px; text-align: center; z-index: 1; }
+.rc-download { min-width: 220px; }
+.rc-download-hint { font-size: 11.5px; color: var(--muted); margin-top: 10px; }
+.receipt-followup { position: relative; z-index: 1; padding-bottom: 48px; }
+
+/* ── Receipt on small screens ── */
+@media (max-width: 480px) {
+  .receipt-page { padding: 24px 14px 56px; }
+  .receipt-card { padding: 22px 18px 26px; border-radius: 18px; }
+  .rc-divider { margin: 4px -18px; }
+  .rc-celebrate h1 { font-size: 26px; }
+  .rc-fields { gap: 10px 10px; }
+}
+
+/* ── Print: "Download receipt" exports this view as a PDF that matches
+      the on-screen ticket 1:1. All animations are forced to their end
+      state so a mid-flight stagger can never print half-faded. ── */
+@media print {
+  @page { size: auto; margin: 10mm; }
+  body { background: #fff !important; }
+  .topbar, .site-header, .topbar-app, footer.site, .footer-m, .bottomnav,
+  .drawer-backdrop, .fd-backdrop, .sheet-backdrop, .search-sheet, .bottom-sheet,
+  .toast-host, #toasts, .cd-backdrop, .cd-panel, .receipt-actions, .receipt-glow,
+  .sticky-buy, .sticky-checkout, .receipt-followup { display: none !important; }
+  main { min-height: 0 !important; padding: 0 !important; }
+  .receipt-page {
+    min-height: 0 !important; padding: 0 !important; margin: 0 !important;
+    background: none !important; overflow: visible !important;
+  }
+  .receipt-card {
+    margin: 0 auto; box-shadow: none !important;
+    border: 1px solid var(--line);
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .receipt-card, .receipt-card * {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .rc-chip, .rc-celebrate-icon, .rc-field, .rc-total-row, .rc-totals dd {
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
 }

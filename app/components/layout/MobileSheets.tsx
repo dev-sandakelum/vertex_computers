@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useApp } from '@/app/components/providers/AppProvider';
 import { CATS, categorySlug } from '@/lib/data';
+import { CloseIcon } from '@/app/components/icons';
 
 /* Icon map: category name → SVG path(s) */
 const CAT_ICONS: Record<string, React.ReactNode> = {
@@ -54,12 +55,16 @@ const CAT_ICONS: Record<string, React.ReactNode> = {
 };
 
 export default function MobileSheets() {
-  const { mobileDrawerOpen, filterDrawerOpen, closeDrawers, cartCount, showToast, accountHref } = useApp();
-  const anyOpen = mobileDrawerOpen || filterDrawerOpen;
+  const { mobileDrawerOpen, closeDrawers, cartCount, accountHref } = useApp();
+
+  /* NOTE: the old "filter" bottom-sheet here was a fake — hardcoded product
+     counts and decorative checkboxes not wired to any state. It has been
+     removed; the real FilterDrawer (CategoryView) now renders as the mobile
+     bottom sheet, so filters actually work on phones. */
 
   return (
     <>
-      <div className={`sheet-backdrop${anyOpen ? ' show' : ''}`} onClick={closeDrawers} aria-hidden="true" />
+      <div className={`sheet-backdrop${mobileDrawerOpen ? ' show' : ''}`} onClick={closeDrawers} aria-hidden="true" />
 
       {/* Nav drawer */}
       <aside className={`bottom-sheet${mobileDrawerOpen ? ' show' : ''}`} aria-label="Menu" aria-hidden={!mobileDrawerOpen}>
@@ -72,9 +77,7 @@ export default function MobileSheets() {
             <span style={{ fontWeight: 800, fontSize: '16px', letterSpacing: '-.01em' }}>VERTEX</span>
           </div>
           <button className="icon-btn" onClick={closeDrawers} aria-label="Close menu">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <path d="M18 6 6 18M6 6l12 12"/>
-            </svg>
+            <CloseIcon size={17} />
           </button>
         </div>
 
@@ -173,17 +176,6 @@ export default function MobileSheets() {
           </li>
         </ul>
       </aside>
-
-      {/* Filter sheet */}
-      <aside className={`bottom-sheet${filterDrawerOpen ? ' show' : ''}`} aria-label="Filters" aria-hidden={!filterDrawerOpen}>
-        <div className="sheet-grip" />
-        <div className="sheet-head">
-          <b style={{ fontSize: '15px' }}>Filters</b>
-          <button className="icon-btn" onClick={closeDrawers} aria-label="Close">✕</button>
-        </div>
-        <FilterContent showToast={showToast} />
-        <button className="btn btn-primary btn-block" style={{ marginTop: '14px' }} onClick={closeDrawers}>Apply filters</button>
-      </aside>
     </>
   );
 }
@@ -208,38 +200,3 @@ const quickIconStyle: React.CSSProperties = {
   placeItems: 'center',
   flexShrink: 0,
 };
-
-function FilterContent({ showToast }: { showToast: (msg: string) => void }) {
-  return (
-    <>
-      <span className="muted" style={{ fontSize: '12px' }}>148 products</span>
-      <div className="fgroup">
-        <b>Category</b>
-        {[['GPUs', '42'], ['CPUs', '28'], ['Motherboards', '25'], ['RAM', '19'], ['PSUs', '34']].map(([n, cnt], i) => (
-          <label key={n} className="fopt">
-            <input type="checkbox" defaultChecked={i === 0} style={{ accentColor: 'var(--accent)' }} />{n}<span className="cnt">{cnt}</span>
-          </label>
-        ))}
-      </div>
-      <div className="fgroup">
-        <b>Brand</b>
-        {[['Nova', '36'], ['Apex', '29'], ['Volt', '18'], ['Surge', '14'], ['Frost', '11']].map(([n, cnt]) => (
-          <label key={n} className="fopt">
-            <input type="checkbox" style={{ accentColor: 'var(--accent)' }} />{n}<span className="cnt">{cnt}</span>
-          </label>
-        ))}
-      </div>
-      <div className="fgroup">
-        <b>Price Range</b>
-        <div className="price-inputs">
-          <input placeholder="$ Min" inputMode="numeric" aria-label="Min price" /> — <input placeholder="$ Max" inputMode="numeric" aria-label="Max price" />
-        </div>
-      </div>
-      <div className="fgroup">
-        <b>Availability</b>
-        <label className="fopt"><input type="checkbox" defaultChecked style={{ accentColor: 'var(--accent)' }} /> In stock only</label>
-        <label className="fopt"><input type="checkbox" style={{ accentColor: 'var(--accent)' }} /> On sale</label>
-      </div>
-    </>
-  );
-}

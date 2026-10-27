@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation';
 import { useApp } from '@/app/components/providers/AppProvider';
 import { fmt, productImg } from '@/lib/data';
 import PayHereButton from '@/app/components/payment/PayHereButton';
+import { LockIcon, CheckIcon } from '@/app/components/icons';
 
 const PENDING_IMG = '/pending.png';
 const SHIPPING_STORAGE_KEY = 'vertex_checkout_shipping';
@@ -76,9 +77,9 @@ function Steps({ s, r, c }: { s: S; r: S; c: S }) {
   const cls = (x: S) => `step${x === 'on' ? ' on' : x === 'done' ? ' done' : ''}`;
   return (
     <div className="steps" role="list" aria-label="Checkout progress">
-      <div className={cls(s)} role="listitem"><span className="dot">{s === 'done' ? '✓' : '1'}</span>Shipping</div>
-      <div className={cls(r)} role="listitem"><span className="dot">{r === 'done' ? '✓' : '2'}</span>Review</div>
-      <div className={cls(c)} role="listitem"><span className="dot">{c === 'done' ? '✓' : '3'}</span>Done</div>
+      <div className={cls(s)} role="listitem"><span className="dot">{s === 'done' ? <CheckIcon size={13} strokeWidth={3} /> : '1'}</span>Shipping</div>
+      <div className={cls(r)} role="listitem"><span className="dot">{r === 'done' ? <CheckIcon size={13} strokeWidth={3} /> : '2'}</span>Review</div>
+      <div className={cls(c)} role="listitem"><span className="dot">{c === 'done' ? <CheckIcon size={13} strokeWidth={3} /> : '3'}</span>Done</div>
     </div>
   );
 }
@@ -123,8 +124,8 @@ function OrderSummaryAside() {
       <div className="sumrow"><span>Shipping</span><span style={{ color: 'var(--green)', fontWeight: 600 }}>FREE</span></div>
       <div className="sumrow"><span>Est. tax</span><span>{fmt(cartTax)}</span></div>
       <div className="sumrow total"><span>Total</span><span>{fmt(cartTotal)}</span></div>
-      <p style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: '12px', textAlign: 'center' }}>
-        🔒 Payments secured by PayHere.
+      <p style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: '12px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+        <LockIcon size={12} style={{ color: 'var(--green)' }} /> Payments secured by PayHere.
       </p>
     </aside>
   );
@@ -140,9 +141,13 @@ export function CheckoutShippingView() {
   const [mounted, setMounted] = useState(false);
   const [form, setForm] = useState<ShippingState>(() => makeDefaultShipping());
 
-  // After mount: hydrate form from sessionStorage / authUser, and mark mounted
+  // After mount: hydrate form from sessionStorage / authUser, and mark mounted.
+  // Reading sessionStorage must happen post-mount to avoid SSR hydration
+  // mismatches — setState inside this effect is intentional.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sessionStorage hydration must run post-mount (SSR mismatch guard)
     setForm(loadShipping(authUser));
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- marks client hydration complete
     setMounted(true);
   }, [authUser]);
 
@@ -289,10 +294,14 @@ export function CheckoutReviewView() {
   const [mounted, setMounted] = useState(false);
   const [shipping, setShipping] = useState<ShippingState | null>(null);
 
-  // Hydrate shipping from sessionStorage after mount, and mark mounted
+  // Hydrate shipping from sessionStorage after mount, and mark mounted.
+  // Reading sessionStorage must happen post-mount to avoid SSR hydration
+  // mismatches — setState inside this effect is intentional.
   useEffect(() => {
     const saved = loadShipping(authUser);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sessionStorage hydration must run post-mount (SSR mismatch guard)
     setShipping(saved);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- marks client hydration complete
     setMounted(true);
   }, [authUser]);
 
@@ -437,8 +446,8 @@ export function CheckoutReviewView() {
           <aside className="summary card" style={{ padding: '22px' }}>
             <h3>Order Summary</h3>
             <MiniCart />
-            <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '14px' }}>
-              🔒 Your payment is secured by PayHere and never stored on our servers.
+            <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '14px', display: 'flex', alignItems: 'center', gap: 5 }}>
+              <LockIcon size={12} style={{ color: 'var(--green)', flexShrink: 0 }} /> Your payment is secured by PayHere and never stored on our servers.
             </p>
           </aside>
         </div>
@@ -473,7 +482,7 @@ export function CheckoutConfirmView() {
             <path d="M4 12.5l5 5L20 6.5"/>
           </svg>
         </div>
-        <h1>Order Confirmed! 🎉</h1>
+        <h1>Order Confirmed!</h1>
         <p style={{ marginTop: '6px', fontSize: '13px', color: 'var(--muted)' }}>
           Confirmation sent to your email.
         </p>

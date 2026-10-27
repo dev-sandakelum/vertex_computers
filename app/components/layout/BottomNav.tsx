@@ -38,7 +38,7 @@ export default function BottomNav() {
           <path d="M2 3h3l2.6 12.5a1.5 1.5 0 0 0 1.5 1.2h8.4a1.5 1.5 0 0 0 1.5-1.2L21 7H6"/>
         </svg>
         Cart
-        {cartCount > 0 && <span className="nc">{cartCount}</span>}
+        {cartCount > 0 && <span className="nc" key={cartCount}>{cartCount}</span>}
       </Link>
 
       <Link href={accountHref} className={isActive(['/account', '/account/login', '/account/register']) ? 'on' : ''} aria-label="Account">

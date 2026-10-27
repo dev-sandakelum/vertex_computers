@@ -45,7 +45,7 @@ export default function MobileTopBar() {
             <path d="M2 3h3l2.6 12.5a1.5 1.5 0 0 0 1.5 1.2h8.4a1.5 1.5 0 0 0 1.5-1.2L21 7H6"/>
           </svg>
           {cartCount > 0 && (
-            <span style={{ position: 'absolute', top: '4px', right: '2px', background: 'var(--red)', color: '#fff', fontSize: '9px', fontWeight: 700, minWidth: '15px', height: '15px', borderRadius: '99px', display: 'grid', placeItems: 'center', padding: '0 3px' }}>
+            <span key={cartCount} style={{ position: 'absolute', top: '4px', right: '2px', background: 'var(--red)', color: '#fff', fontSize: '9px', fontWeight: 700, minWidth: '15px', height: '15px', borderRadius: '99px', display: 'grid', placeItems: 'center', padding: '0 3px', animation: 'cartPopBounce .45s var(--ease-spring)' }}>
               {cartCount}
             </span>
           )}

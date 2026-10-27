@@ -35,6 +35,10 @@ const OrderSchema = new Schema(
     },
     payherePaymentId:  String,
     paymentMethod:     String,
+    // Non-sensitive card snapshot for the receipt (never the full number)
+    cardHolder:        String,
+    cardLast4:         String, // last 4 digits only
+    cardBrand:         String,
     createdAt:         { type: String, required: true },
     updatedAt:         { type: String, required: true },
 

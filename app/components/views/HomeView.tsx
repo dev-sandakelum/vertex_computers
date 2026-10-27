@@ -7,6 +7,8 @@ import type { Brand } from '@/lib/db/brands';
 import ProductCard from '@/app/components/ui/ProductCard';
 import SvgIcon from '@/app/components/ui/SvgIcon';
 import BrandCarousel from '@/app/components/ui/BrandCarousel';
+import { TruckIcon, FlameIcon, CheckIcon, ShieldIcon, ChatIcon } from '@/app/components/icons';
+import Reveal from '@/app/components/ui/Reveal';
 import { useMemo } from 'react';
 
 interface Props {
@@ -53,7 +55,7 @@ export default function HomeView({ products, brands }: Props) {
     <div>
       {/* ── Mobile promo band ── */}
       <div className="promo-band">
-        🚚 <b>Free shipping</b> over $99 · 30-day returns · Live expert chat
+        <TruckIcon size={13} style={{ display: 'inline-block', verticalAlign: '-2px' }} /> <b>Free shipping</b> over $99 · 30-day returns · Live expert chat
       </div>
 
       <div className="container">
@@ -111,14 +113,16 @@ export default function HomeView({ products, brands }: Props) {
             <h2>Shop by Category</h2>
             <Link href="/shop">Browse all →</Link>
           </div>
-          <nav className="tn-cats" aria-label="Product categories">
-            {CATS.map((c) => (
-              <Link key={c.n} href={`/shop/${categorySlug(c.n)}`}>
-                <span className="ci"><SvgIcon id={c.ic} width={36} height={36} /></span>
-                {c.n}
-              </Link>
-            ))}
-          </nav>
+          <Reveal>
+            <nav className="tn-cats" aria-label="Product categories">
+              {CATS.map((c) => (
+                <Link key={c.n} href={`/shop/${categorySlug(c.n)}`}>
+                  <span className="ci"><SvgIcon id={c.ic} width={36} height={36} /></span>
+                  {c.n}
+                </Link>
+              ))}
+            </nav>
+          </Reveal>
         </div>
 
         {/* ══ Category scroll (mobile) ══ */}
@@ -153,6 +157,7 @@ export default function HomeView({ products, brands }: Props) {
         </div>
 
         {/* ══ Promo banners ══ */}
+        <Reveal>
         <div className="tn-promos">
           {/* Flash deals */}
           <div className="promo flash" role="banner">
@@ -164,7 +169,7 @@ export default function HomeView({ products, brands }: Props) {
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
               </Link>
               <div id="cdown" aria-live="polite">
-                Ends in <b>{time.h}</b><i>:</i><b>{time.m}</b><i>:</i><b>{time.s}</b>
+                Ends in <b>{time.h}</b><small>hrs</small><b>{time.m}</b><small>min</small><b>{time.s}</b><small>sec</small>
               </div>
             </div>
             <div className="promo-art" aria-hidden="true">
@@ -200,6 +205,7 @@ export default function HomeView({ products, brands }: Props) {
             </div>
           </div>
         </div>
+        </Reveal>
 
         {/* ══ Recommended ══ */}
         <div className="sec-h">
@@ -214,7 +220,9 @@ export default function HomeView({ products, brands }: Props) {
 
         {/* ══ Hot Deals ══ */}
         <div className="sec-h">
-          <h2>Hot Deals 🔥</h2>
+          <h2 style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            Hot Deals <FlameIcon size={20} style={{ color: 'var(--red)' }} />
+          </h2>
           <Link href="/shop?tag=deal">All →</Link>
         </div>
         <div className="product-grid">
@@ -222,6 +230,7 @@ export default function HomeView({ products, brands }: Props) {
         </div>
 
         {/* ══ Feature strip ══ */}
+        <Reveal>
         <div className="tn-feat" aria-label="Why shop with us">
           <div>
             <span className="fi">
@@ -248,20 +257,23 @@ export default function HomeView({ products, brands }: Props) {
             <span><b>Genuine Products</b><small>100% original &amp; trusted</small></span>
           </div>
         </div>
+        </Reveal>
 
         {/* ══ Newsletter ══ */}
-        <NewsletterSection />
+        <Reveal delay={80}>
+          <NewsletterSection />
+        </Reveal>
       </div>
 
       {/* Mobile promo list */}
       <div className="px promo-list-mobile">
         {[
-          { icon: '✓', title: 'Compatibility Checked', desc: 'Socket & wattage mismatches flagged' },
-          { icon: '🛡', title: '2-Year Warranty',       desc: 'On every component we sell' },
-          { icon: '💬', title: 'Live Expert Chat',      desc: 'Real builders, 7 days a week' },
+          { icon: <CheckIcon size={16} strokeWidth={2.4} />, title: 'Compatibility Checked', desc: 'Socket & wattage mismatches flagged' },
+          { icon: <ShieldIcon size={16} strokeWidth={2} />, title: '2-Year Warranty',       desc: 'On every component we sell' },
+          { icon: <ChatIcon size={16} strokeWidth={2} />,  title: 'Live Expert Chat',      desc: 'Real builders, 7 days a week' },
         ].map((p) => (
           <div key={p.title} className="promo" style={{ borderRadius: '14px', padding: '14px', display: 'flex', gap: '14px', alignItems: 'center', background: 'var(--surface)', border: '1px solid var(--line)' }}>
-            <span style={{ width: '38px', height: '38px', borderRadius: '10px', display: 'grid', placeItems: 'center', background: 'var(--blue-soft)', color: 'var(--blue)', fontSize: '18px', flexShrink: 0 }}>{p.icon}</span>
+            <span style={{ width: '38px', height: '38px', borderRadius: '10px', display: 'grid', placeItems: 'center', background: 'var(--blue-soft)', color: 'var(--blue)', flexShrink: 0 }}>{p.icon}</span>
             <div><b style={{ display: 'block', fontSize: '14px' }}>{p.title}</b><small style={{ color: 'var(--muted)', fontSize: '12.5px' }}>{p.desc}</small></div>
           </div>
         ))}

@@ -25,6 +25,8 @@ export interface AuthUser {
   phone:     string;
   role:      string;
   createdAt: string;
+  /** Optional profile picture URL — null/undefined → initials fallback */
+  picture?:  string | null;
 }
 
 function toAuthUser(raw: Record<string, unknown>): AuthUser {
@@ -40,6 +42,7 @@ function toAuthUser(raw: Record<string, unknown>): AuthUser {
     phone:     String(raw.phone ?? ''),
     role:      String(raw.role ?? 'user'),
     createdAt: String(raw.createdAt ?? ''),
+    picture:   typeof raw.picture === 'string' && raw.picture ? raw.picture : null,
   };
 }
 

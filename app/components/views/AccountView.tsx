@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/app/components/providers/AppProvider';
 import { fmt, productImg, slugify } from '@/lib/data';
+import { UserIcon, OrdersIcon, HomeIcon, HeartIcon, CloseIcon } from '@/app/components/icons';
 
 /* ── Types ── */
 interface Order {
@@ -33,6 +34,17 @@ interface Address {
 
 type Tab = 'profile' | 'orders' | 'addresses' | 'wishlist';
 
+/* `settings` (used by the header account dropdown) maps to the Profile tab,
+   which holds the account settings — name, phone and password. */
+const TAB_ALIAS: Record<string, Tab> = { settings: 'profile' };
+const TABS: Tab[] = ['profile', 'orders', 'addresses', 'wishlist'];
+
+function tabFromParam(param: string | null): Tab | null {
+  if (!param) return null;
+  if (TABS.includes(param as Tab)) return param as Tab;
+  return TAB_ALIAS[param] ?? null;
+}
+
 /* ── Status badge helper ── */
 function statusBadge(status: string) {
   const map: Record<string, string> = {
@@ -51,7 +63,19 @@ function statusBadge(status: string) {
 export default function AccountView() {
   const { authUser, authReady, signOut, showToast } = useApp();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<Tab>('profile');
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+
+  /* Active tab: initialized from ?tab= (header account dropdown links here),
+     then re-synced when the param changes — using the sanctioned
+     "adjust state during render" pattern (no effect needed). */
+  const [activeTab, setActiveTab] = useState<Tab>(() => tabFromParam(tabParam) ?? 'profile');
+  const [prevParam, setPrevParam] = useState(tabParam);
+  if (tabParam !== prevParam) {
+    setPrevParam(tabParam);
+    const nextTab = tabFromParam(tabParam);
+    if (nextTab) setActiveTab(nextTab);
+  }
 
   async function handleLogout() {
     await signOut();
@@ -93,11 +117,11 @@ export default function AccountView() {
     month: 'long', day: 'numeric', year: 'numeric',
   });
 
-  const NAV: { key: Tab; icon: string; label: string }[] = [
-    { key: 'profile',   icon: '👤', label: 'Profile'       },
-    { key: 'orders',    icon: '📦', label: 'Orders'        },
-    { key: 'addresses', icon: '🏠', label: 'Addresses'     },
-    { key: 'wishlist',  icon: '♡',  label: 'Wishlist'      },
+  const NAV: { key: Tab; icon: React.ReactNode; label: string }[] = [
+    { key: 'profile',   icon: <UserIcon size={15} />,  label: 'Profile'   },
+    { key: 'orders',    icon: <OrdersIcon size={15} />, label: 'Orders'    },
+    { key: 'addresses', icon: <HomeIcon size={15} />,   label: 'Addresses' },
+    { key: 'wishlist',  icon: <HeartIcon size={15} />,  label: 'Wishlist'  },
   ];
 
   return (
@@ -225,14 +249,17 @@ function ProfileTab({ mobile = false }: { mobile?: boolean }) {
   const [confirmPass, setConfirmPass] = useState('');
   const [changingPw, setChangingPw] = useState(false);
 
-  // Sync if authUser changes
-  useEffect(() => {
+  // Sync local fields if authUser changes — "adjust state during render"
+  // (sanctioned pattern; avoids a setState-in-effect cascade)
+  const [prevUser, setPrevUser] = useState(authUser);
+  if (authUser !== prevUser) {
+    setPrevUser(authUser);
     if (authUser) {
       setFirstName(authUser.firstName);
       setLastName(authUser.lastName);
       setPhone(authUser.phone);
     }
-  }, [authUser]);
+  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -355,7 +382,7 @@ function OrdersTab() {
   if (orders.length === 0) {
     return (
       <div className="card co-panel" style={{ textAlign: 'center', padding: '40px 24px' }}>
-        <div style={{ fontSize: '40px', marginBottom: '12px' }}>📦</div>
+        <OrdersIcon size={40} style={{ margin: '0 auto 12px', color: 'var(--muted)', display: 'block', strokeWidth: 1.5 }} />
         <h3 style={{ fontWeight: 700, marginBottom: '8px' }}>No orders yet</h3>
         <p className="muted" style={{ marginBottom: '18px' }}>When you place an order, it will appear here.</p>
         <Link href="/shop" className="btn btn-primary" style={{ borderRadius: '10px' }}>Browse Products</Link>
@@ -478,7 +505,7 @@ function AddressesTab() {
       {/* Address list */}
       {addresses.length === 0 && !showForm && (
         <div className="card co-panel" style={{ textAlign: 'center', padding: '36px 24px' }}>
-          <div style={{ fontSize: '36px', marginBottom: '10px' }}>🏠</div>
+          <HomeIcon size={36} style={{ margin: '0 auto 10px', color: 'var(--muted)', display: 'block', strokeWidth: 1.5 }} />
           <h3 style={{ fontWeight: 700, marginBottom: '8px' }}>No saved addresses</h3>
           <p className="muted" style={{ marginBottom: '16px' }}>Add an address to check out faster.</p>
           <button className="btn btn-primary" onClick={() => setShowForm(true)}>Add Address</button>
@@ -603,7 +630,7 @@ function WishlistTab() {
   if (wishlistProducts.length === 0) {
     return (
       <div className="card co-panel" style={{ textAlign: 'center', padding: '40px 24px' }}>
-        <div style={{ fontSize: '40px', marginBottom: '12px' }}>♡</div>
+        <HeartIcon size={40} style={{ margin: '0 auto 12px', color: 'var(--muted)', display: 'block', strokeWidth: 1.5 }} />
         <h3 style={{ fontWeight: 700, marginBottom: '8px' }}>Your wishlist is empty</h3>
         <p className="muted" style={{ marginBottom: '18px' }}>Save products you love and come back to them anytime.</p>
         <Link href="/shop" className="btn btn-primary" style={{ borderRadius: '10px' }}>Browse Products</Link>
@@ -625,8 +652,8 @@ function WishlistTab() {
               <button
                 onClick={() => handleRemove(p.id)}
                 aria-label="Remove from wishlist"
-                style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', fontSize: '16px' }}
-              >✕</button>
+                style={{ position: 'absolute', top: '8px', right: '8px', background: 'var(--surface)', border: '1px solid var(--line)', width: '30px', height: '30px', borderRadius: '8px', display: 'grid', placeItems: 'center', cursor: 'pointer', color: 'var(--danger)' }}
+              ><CloseIcon size={14} /></button>
               <Link href={`/product/${p.id}/${p.slug ?? slugify(p.name)}`}>
                 <div style={{ width: '100%', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-2)', borderRadius: '8px' }}>
                   <img src={img || PENDING_IMG} alt={p.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} onError={(e) => { (e.currentTarget as HTMLImageElement).src = PENDING_IMG; }} />

@@ -43,12 +43,14 @@ import type { Redis as UpstashRedis } from '@upstash/redis';
 
 let _redis: UpstashRedis | null = null;
 
-function getRedis(): UpstashRedis | null {
+/** Lazily creates the Upstash client via dynamic import (keeps it out of
+ *  bundles that never touch Redis and satisfies no-require-imports). */
+async function getRedis(): Promise<UpstashRedis | null> {
   if (_redis) return _redis;
   const url   = process.env.KV_REST_API_URL;
   const token = process.env.KV_REST_API_TOKEN;
   if (!url || !token) return null;
-  const { Redis } = require('@upstash/redis') as typeof import('@upstash/redis');
+  const { Redis } = await import('@upstash/redis');
   _redis = new Redis({ url, token });
   return _redis;
 }
@@ -79,7 +81,7 @@ export async function saveOrder(order: Order): Promise<void> {
   if (process.env.MONGODB_URI) {
     return mongoSave(order);
   }
-  const redis = getRedis();
+  const redis = await getRedis();
   if (redis) {
     await redis.set(orderKey(order.orderId), order, { ex: ORDER_TTL });
     return;
@@ -92,7 +94,7 @@ export async function getOrder(orderId: string): Promise<Order | undefined> {
   if (process.env.MONGODB_URI) {
     return mongoGet(orderId);
   }
-  const redis = getRedis();
+  const redis = await getRedis();
   if (redis) {
     const result = await redis.get<Order>(orderKey(orderId));
     return result ?? undefined;
@@ -125,11 +127,13 @@ export async function updateOrderStatus(
   status: OrderStatus,
   payherePaymentId?: string,
   paymentMethod?: string,
+  cardInfo?: { cardHolder?: string; cardLast4?: string; cardBrand?: string },
 ): Promise<Order | null> {
   return updateOrder(orderId, {
     status,
     ...(payherePaymentId ? { payherePaymentId } : {}),
     ...(paymentMethod    ? { paymentMethod }    : {}),
+    ...(cardInfo         ? { ...cardInfo }      : {}),
   });
 }
 

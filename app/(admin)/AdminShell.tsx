@@ -489,7 +489,7 @@ function ProductsTab() {
     setLoading(false);
   }, [page, search, category]);
 
-  useEffect(() => { fetchData(1, search, category); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchData(1, search, category); }, []); // eslint-disable-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect -- async data fetch on mount; setState runs after await
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -649,7 +649,7 @@ function OrdersTab() {
     setLoading(false);
   }, [page, search, status]);
 
-  useEffect(() => { fetchData(1, '', ''); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchData(1, '', ''); }, []); // eslint-disable-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect -- async data fetch on mount; setState runs after await
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -771,7 +771,7 @@ function UsersTab() {
     setLoading(false);
   }, [page, search]);
 
-  useEffect(() => { fetchData(1, ''); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchData(1, ''); }, []); // eslint-disable-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect -- async data fetch on mount; setState runs after await
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -889,7 +889,7 @@ function LogsTab() {
     setLoading(false);
   }, [page, level, category]);
 
-  useEffect(() => { fetchData(1, '', ''); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchData(1, '', ''); }, []); // eslint-disable-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect -- async data fetch on mount; setState runs after await
 
   async function clearLogs() {
     if (!confirm('Delete all logs? This cannot be undone.')) return;

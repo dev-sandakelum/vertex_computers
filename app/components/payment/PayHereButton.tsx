@@ -16,6 +16,7 @@
 
 import { useState, useCallback } from 'react';
 import type { CartItem } from '@/lib/store';
+import { LockIcon } from '@/app/components/icons';
 
 /* ── PayHere global type (injected by payhere.js script) ── */
 declare global {
@@ -247,9 +248,13 @@ export default function PayHereButton({
           color: 'var(--muted)',
           textAlign: 'center',
           marginTop: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 5,
         }}
       >
-        🔒 Payments secured by{' '}
+        <LockIcon size={12} style={{ color: 'var(--green)' }} /> Payments secured by{' '}
         <span style={{ fontWeight: 600 }}>PayHere</span>
       </p>
     </div>

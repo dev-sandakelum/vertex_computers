@@ -37,6 +37,9 @@ export async function POST(req: NextRequest) {
     const status_code       = get('status_code');
     const md5sig            = get('md5sig');
     const method            = get('method');
+    // Optional card fields sent by PayHere (card_no arrives already masked)
+    const card_holder_name  = get('card_holder_name');
+    const card_no           = get('card_no');
 
     // ── 2. Validate required fields are present ──────────────────
     if (!merchant_id || !order_id || !payhere_amount || !payhere_currency || !status_code || !md5sig) {
@@ -107,7 +110,23 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 10. Update order ─────────────────────────────────────────
-    await updateOrderStatus(order_id, newStatus, payment_id || undefined, method || undefined);
+    // Capture the non-sensitive card snapshot for the receipt (only when
+    // the payment actually succeeded). card_no arrives masked from PayHere —
+    // we keep at most the last 4 digits, never the full number.
+    const cardInfo: { cardHolder?: string; cardLast4?: string; cardBrand?: string } = {};
+    if (newStatus === 'PAID') {
+      if (card_holder_name) cardInfo.cardHolder = card_holder_name.trim().slice(0, 80);
+      const digits = card_no.replace(/\D/g, '');
+      if (digits.length >= 4) cardInfo.cardLast4 = digits.slice(-4);
+      const m = method.toUpperCase();
+      if (m.includes('VISA'))                       cardInfo.cardBrand = 'VISA';
+      else if (m.includes('MASTER'))                cardInfo.cardBrand = 'MASTER';
+      else if (m.includes('AMEX') || m.includes('AMERICAN')) cardInfo.cardBrand = 'AMEX';
+      else if (m.includes('PAYPAL'))                cardInfo.cardBrand = 'PAYPAL';
+      else if (m)                                   cardInfo.cardBrand = m.slice(0, 24);
+    }
+
+    await updateOrderStatus(order_id, newStatus, payment_id || undefined, method || undefined, cardInfo);
 
     await log({
       level: newStatus === 'PAID' ? 'success' : newStatus === 'FAILED' ? 'error' : 'info',

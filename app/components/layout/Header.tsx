@@ -1,14 +1,24 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useApp } from '@/app/components/providers/AppProvider';
 import { CATS, categorySlug } from '@/lib/data';
 import SearchSuggestions, { useSearchKeyboard } from '@/app/components/ui/SearchSuggestions';
+import {
+  TruckIcon, FlameIcon, UserIcon, ChevronDownIcon,
+  SettingsIcon, SignOutIcon, OrdersIcon, SearchIcon,
+} from '@/app/components/icons';
+
+/* Scroll threshold (px) before the header may compact */
+const COMPACT_AFTER = 140;
 
 export default function Header() {
-  const { cartCount, toggleMobileDrawer, toggleCartDrawer, accountHref, authUser } = useApp();
+  const {
+    cartCount, toggleMobileDrawer, toggleCartDrawer, accountHref,
+    authUser, signOut, showToast,
+  } = useApp();
   const router   = useRouter();
   const pathname = usePathname();
 
@@ -16,16 +26,62 @@ export default function Header() {
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapRef  = useRef<HTMLDivElement>(null);
+  const acctRef  = useRef<HTMLDivElement>(null);
 
+  /* ── Account dropdown ── */
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  /* ── Compact navbar on scroll (Task 5b) ── */
+  const [compact, setCompact] = useState(false);
+  const lastY = useRef(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (y > COMPACT_AFTER && y > lastY.current + 4) setCompact(true);
+      else if (y < lastY.current - 4 || y <= COMPACT_AFTER) setCompact(false);
+      lastY.current = y;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const expandHeader = useCallback(() => {
+    setCompact(false);
+    // Wait for the expand transition before focusing the input
+    setTimeout(() => inputRef.current?.focus(), 280);
+  }, []);
+
+  /* Close search suggestions on outside click */
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
         setFocused(false);
       }
+      if (acctRef.current && !acctRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
     }
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
+
+  /* Close the account menu with Escape */
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setMenuOpen(false);
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
+  /* Close menu on route change — "adjust state during render" pattern
+     (setState during render is the sanctioned way to sync to prop changes) */
+  const [prevPath, setPrevPath] = useState(pathname);
+  if (pathname !== prevPath) {
+    setPrevPath(pathname);
+    setMenuOpen(false);
+  }
 
   function handleSelect(label: string) {
     setQuery(label);
@@ -54,14 +110,22 @@ export default function Header() {
     ? `${authUser.firstName.slice(0,1)}${authUser.lastName.slice(0,1)}`.toUpperCase()
     : null;
 
+  async function handleSignOut() {
+    setMenuOpen(false);
+    await signOut();
+    showToast('Signed out. See you soon!');
+    router.push('/');
+  }
+
   return (
     <>
       {/* Promo top bar */}
       <div className="topbar">
-        🚚 <b>Free shipping</b> over $99 &nbsp;·&nbsp; 30-day easy returns &nbsp;·&nbsp; Expert build support 7 days a week
+        <TruckIcon size={14} style={{ display: 'inline-block', verticalAlign: '-2px', color: 'var(--blue)' }} />
+        {' '}<b>Free shipping</b> over $99 &nbsp;·&nbsp; 30-day easy returns &nbsp;·&nbsp; Expert build support 7 days a week
       </div>
 
-      <header className="site-header">
+      <header className={`site-header${compact ? ' compact' : ''}`}>
         {/* ── Main row ── */}
         <div className="container header-main">
           {/* Hamburger (mobile) */}
@@ -77,7 +141,7 @@ export default function Header() {
             <span>VERTEX<small>SMARTER BUILDS.</small></span>
           </Link>
 
-          {/* Search */}
+          {/* Search — collapses smoothly when the header is compact */}
           <div className="searchbar-wrap" ref={wrapRef} role="search">
             <div className="searchbar">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -114,20 +178,82 @@ export default function Header() {
 
           {/* Actions */}
           <div className="header-actions">
-            <Link href={accountHref} className="hact" aria-label="Account">
-              {initials ? (
-                <span className="avatar-sm">{initials}</span>
-              ) : (
-                <svg className="ic" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-5.5 8-5.5S18.5 17 20 21"/>
-                </svg>
-              )}
-              <span>
-                <small>{authUser ? 'Hello' : 'Sign in'}</small>
-                <b>{authUser ? authUser.firstName : 'Account'}</b>
-              </span>
-            </Link>
+            {/* Expand-search button — only visible while compact */}
+            {compact && (
+              <button className="hact hact-search" onClick={expandHeader} aria-label="Expand search">
+                <SearchIcon size={22} />
+              </button>
+            )}
 
+            {/* Account: avatar (picture → initials → icon) + dropdown when signed in */}
+            {authUser ? (
+              <div className="acct-wrap" ref={acctRef}>
+                <button
+                  className="hact"
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                  aria-label={`Account menu for ${authUser.fullName}`}
+                  onClick={() => setMenuOpen(o => !o)}
+                >
+                  <span className="avatar-sm">
+                    {initials ?? <UserIcon size={15} />}
+                    {authUser.picture && (
+                      <img
+                        src={authUser.picture}
+                        alt=""
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    )}
+                  </span>
+                  <span>
+                    <small>Hello</small>
+                    <b>{authUser.firstName}</b>
+                  </span>
+                  <ChevronDownIcon size={13} className={`acct-chev${menuOpen ? ' open' : ''}`} />
+                </button>
+
+                {menuOpen && (
+                  <div className="acct-menu" role="menu" aria-label="Account menu">
+                    <div className="acct-menu-head">
+                      <span className="avatar-sm">
+                        {initials}
+                        {authUser.picture && (
+                          <img src={authUser.picture} alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                        )}
+                      </span>
+                      <span className="acct-menu-user">
+                        <b>{authUser.fullName}</b>
+                        <small>{authUser.email}</small>
+                      </span>
+                    </div>
+                    <Link role="menuitem" href="/account?tab=profile" className="acct-menu-item">
+                      <UserIcon size={15} /> Profile
+                    </Link>
+                    <Link role="menuitem" href="/account?tab=orders" className="acct-menu-item">
+                      <OrdersIcon size={15} /> Orders
+                    </Link>
+                    <Link role="menuitem" href="/account?tab=settings" className="acct-menu-item">
+                      <SettingsIcon size={15} /> Settings
+                    </Link>
+                    <button role="menuitem" className="acct-menu-item acct-signout" onClick={handleSignOut}>
+                      <SignOutIcon size={15} /> Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link href={accountHref} className="hact" aria-label="Sign in to your account">
+                <span className="avatar-sm avatar-ghost">
+                  <UserIcon size={15} />
+                </span>
+                <span>
+                  <small>Sign in</small>
+                  <b>Account</b>
+                </span>
+              </Link>
+            )}
+
+            {/* Cart */}
             <button
               className="hact"
               onClick={toggleCartDrawer}
@@ -136,24 +262,22 @@ export default function Header() {
             >
               <span className="cart-icon-wrap">
                 <svg className="ic" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  {/* cart body */}
                   <path d="M6 2H3a1 1 0 0 0-.98.8L1 6h22l-1.8 9.4A2 2 0 0 1 19.24 17H8.76a2 2 0 0 1-1.96-1.6L5.12 6"/>
-                  {/* wheels */}
                   <circle cx="9" cy="21" r="1.4"/>
                   <circle cx="17" cy="21" r="1.4"/>
                 </svg>
-                {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
+                {cartCount > 0 && <span className="cart-count" key={cartCount}>{cartCount}</span>}
               </span>
               <span>
-                <small>&nbsp;</small>
+                <small>{cartCount > 0 ? `${cartCount} item${cartCount !== 1 ? 's' : ''}` : 'Your'}</small>
                 <b>Cart</b>
               </span>
             </button>
           </div>
         </div>
 
-        {/* ── Category bar ── */}
-        <nav aria-label="Categories">
+        {/* ── Category bar (hides when compact) ── */}
+        <nav className="catnav" aria-label="Categories">
           <div className="container catnav-inner">
             <button className="cb-all" onClick={toggleMobileDrawer}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -171,7 +295,8 @@ export default function Header() {
               </Link>
             ))}
             <Link href="/shop?tag=deal" className="deal">
-              🔥 Deals
+              <FlameIcon size={13} style={{ display: 'inline-block', verticalAlign: '-2px' }} aria-hidden="true" />
+              Deals
             </Link>
           </div>
         </nav>

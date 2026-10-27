@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { SearchXIcon } from '@/app/components/icons';
 
 export default function NotFound() {
   return (
@@ -13,7 +14,7 @@ export default function NotFound() {
           margin: '0 auto',
         }}
       >
-        <div style={{ fontSize: '56px', marginBottom: '12px' }}>🔍</div>
+        <SearchXIcon size={56} style={{ margin: '0 auto 14px', color: 'var(--muted)', display: 'block', strokeWidth: 1.6 }} />
         <h1 style={{ color: 'var(--ink)', fontSize: '28px', fontWeight: 800, marginBottom: '8px' }}>
           Page not found
         </h1>
