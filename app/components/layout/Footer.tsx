@@ -4,6 +4,11 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useApp } from '@/app/components/providers/AppProvider';
 import { categorySlug } from '@/lib/data';
+import StoreBadge from '@/app/components/ui/StoreBadge';
+import {
+  FacebookIcon, InstagramIcon, YoutubeIcon, XIcon,
+  VisaMark, MastercardMark, PayPalMark, LockIcon, ArrowUpIcon, FlameIcon,
+} from '@/app/components/icons';
 
 export default function Footer() {
   const { showToast } = useApp();
@@ -29,10 +34,10 @@ export default function Footer() {
           </Link>
             <p>Independent component specialists. Every part benched, every build compatibility-checked.</p>
             <div className="ft-soc" aria-label="Social links">
-              <span aria-label="Facebook">f</span>
-              <span aria-label="Instagram">ig</span>
-              <span aria-label="YouTube">▶</span>
-              <span aria-label="Twitter/X">𝕏</span>
+              <span aria-label="Facebook"><FacebookIcon size={17} /></span>
+              <span aria-label="Instagram"><InstagramIcon size={17} /></span>
+              <span aria-label="YouTube"><YoutubeIcon size={17} /></span>
+              <span aria-label="Twitter/X"><XIcon size={15} /></span>
             </div>
           </div>
 
@@ -44,7 +49,7 @@ export default function Footer() {
               <li><Link href={`/shop/${categorySlug('GPUs')}`}>Graphics Cards</Link></li>
               <li><Link href={`/shop/${categorySlug('CPUs')}`}>Processors</Link></li>
               <li><Link href={`/shop/${categorySlug('Storage')}`}>Storage</Link></li>
-              <li><Link href="/shop?tag=deal">Deals 🔥</Link></li>
+              <li><Link href="/shop?tag=deal" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>Deals <FlameIcon size={13} style={{ color: 'var(--red)' }} /></Link></li>
             </ul>
           </nav>
 
@@ -75,15 +80,10 @@ export default function Footer() {
           <div>
             <h4>Download Our App</h4>
             <p>Shop on the go</p>
+            {/* Store URLs live in lib/siteConfig.ts — swap them there. */}
             <div className="apps">
-              <a href="#" onClick={(e) => { e.preventDefault(); showToast('Google Play (demo)'); }}>
-                <small>GET IT ON</small>
-                <b>Google Play</b>
-              </a>
-              <a href="#" onClick={(e) => { e.preventDefault(); showToast('App Store (demo)'); }}>
-                <small>Download on the</small>
-                <b>App Store</b>
-              </a>
+              <StoreBadge store="google" />
+              <StoreBadge store="apple" />
             </div>
           </div>
         </div>
@@ -92,15 +92,15 @@ export default function Footer() {
         <div className="ft3">
           <span>© 2026 Vertex Computers. All rights reserved.</span>
           <span className="pay">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-              <rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/>
-            </svg>
+            <LockIcon size={14} style={{ color: 'var(--green)' }} />
             Secure Shopping
-            <i style={{ color: '#1A3FA0' }}>VISA</i>
-            <i style={{ color: '#EB5A28' }}>Mastercard</i>
-            <i style={{ color: '#1E4DB7' }}>PayPal</i>
+            <VisaMark size={30} />
+            <MastercardMark size={24} />
+            <PayPalMark size={30} />
           </span>
-          <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Back to top ↑</button>
+          <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>Back to top <ArrowUpIcon size={12} /></span>
+          </button>
         </div>
       </div>
     </footer>

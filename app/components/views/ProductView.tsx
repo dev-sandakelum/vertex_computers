@@ -8,10 +8,17 @@ import {
   productIc, productImg, productOld, productRev,
   productTag, slugify, toImageUrl, type Product, type StockLevel,
 } from '@/lib/data';
+import { ZoomInIcon, ThumbUpIcon, CheckIcon } from '@/app/components/icons';
 
 interface Props { product: Product; allProducts: Product[] }
 
 const PENDING_IMG = '/pending.png';
+
+/* Star rating display — module-level so it is a stable component identity
+   (defining it inside ProductView remade it every render). */
+function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
+  return <span className="stars" style={{ fontSize: size }}>{'★'.repeat(Math.floor(rating))}{'☆'.repeat(5 - Math.floor(rating))}</span>;
+}
 
 export default function ProductView({ product: p, allProducts }: Props) {
   const { addToCart, showToast } = useApp();
@@ -42,10 +49,6 @@ export default function ProductView({ product: p, allProducts }: Props) {
   function handleAddToCart() { addToCart(p.id, qty); showToast(`Added to cart — ${p.name.split(' ').slice(0, 3).join(' ')} ✓`); }
   function toggleWishlist() { setWishlist(w => !w); showToast(wishlist ? 'Removed from wishlist' : 'Saved to wishlist ♡'); }
 
-  function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
-    return <span className="stars" style={{ fontSize: size }}>{'★'.repeat(Math.floor(rating))}{'☆'.repeat(5 - Math.floor(rating))}</span>;
-  }
-
   return (
     <div className="pdp-page">
       {/* Breadcrumbs */}
@@ -75,7 +78,7 @@ export default function ProductView({ product: p, allProducts }: Props) {
             <div className="pdp-main-img">
               {tag && <span className="pdp-tag">{tag}</span>}
               <img src={activeImg || PENDING_IMG} alt={p.name} onError={(e) => { (e.currentTarget as HTMLImageElement).src = PENDING_IMG; }} />
-              <span className="pdp-zoom-hint">🔍 Hover to zoom</span>
+              <span className="pdp-zoom-hint"><ZoomInIcon size={12} style={{ display: 'inline-block', verticalAlign: '-2px' }} /> Hover to zoom</span>
             </div>
           </div>
 
@@ -201,7 +204,9 @@ export default function ProductView({ product: p, allProducts }: Props) {
             ))}
           </div>
 
-          <div className="pdp-tab-body card">
+          {/* key={activeTab} remounts the panel on tab change so the
+              fadeUp entrance replays (Task 6 tab transitions) */}
+          <div className="pdp-tab-body card" key={activeTab}>
             {activeTab === 'specs' && (
               <div className="pdp-spec-layout">
                 <div className="pdp-spec-main">
@@ -265,7 +270,7 @@ export default function ProductView({ product: p, allProducts }: Props) {
                             <div className="review-meta">
                               <div className="review-author-row">
                                 <strong className="review-author">{review.author}</strong>
-                                {review.verified && <span className="verified-chip">✓ Verified Purchase</span>}
+                                {review.verified && <span className="verified-chip" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><CheckIcon size={10} strokeWidth={2.6} /> Verified Purchase</span>}
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Stars rating={review.rating} size={13} />
@@ -276,7 +281,7 @@ export default function ProductView({ product: p, allProducts }: Props) {
                           <p className="review-title">{review.title}</p>
                           <p className="review-body">{review.body}</p>
                           {review.helpful !== undefined && (
-                            <button className="helpful-btn">👍 Helpful ({review.helpful})</button>
+                            <button className="helpful-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ThumbUpIcon size={13} /> Helpful ({review.helpful})</button>
                           )}
                         </div>
                       ))}

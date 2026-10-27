@@ -5,8 +5,60 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/app/components/providers/AppProvider';
 import { STOCK_MAP, fmt, productIc, productImg, productSpecList, type StockLevel } from '@/lib/data';
+import { CartIcon, LockIcon, TrashIcon } from '@/app/components/icons';
 
 const PENDING_IMG = '/pending.png';
+
+/* ── Module-level components (stable identities — defined inline they were
+   recreated on every render, which eslint rightly flags) ── */
+function EmptyCart() {
+  return (
+    <div className="empty-state">
+      <CartIcon size={56} style={{ margin: '0 auto 14px', color: 'var(--muted)', display: 'block', strokeWidth: 1.5 }} />
+      <h3 style={{ color: 'var(--ink)', marginBottom: '6px' }}>Your cart is empty</h3>
+      <p>Time to spec out something legendary.</p>
+      <Link href="/shop" className="btn btn-primary" style={{ marginTop: '18px', display: 'inline-flex' }}>Start Shopping</Link>
+    </div>
+  );
+}
+
+interface SummaryProps {
+  compact?: boolean;
+  subtotal: number;
+  tax: number;
+  total: number;
+  signedIn: boolean;
+  onCheckout: () => void;
+  onPromo: () => void;
+}
+
+function Summary({ compact = false, subtotal, tax, total, signedIn, onCheckout, onPromo }: SummaryProps) {
+  return (
+    <aside className="summary card">
+      <h3 style={{ fontSize: compact ? '14.5px' : '17px', marginBottom: compact ? '10px' : '16px' }}>Order Summary</h3>
+      <div className="sumrow"><span>Subtotal</span><span>{fmt(subtotal)}</span></div>
+      <div className="sumrow"><span>Shipping</span><span style={{ color: 'var(--green)', fontWeight: 600 }}>FREE</span></div>
+      <div className="sumrow"><span>Est. tax</span><span>{fmt(tax)}</span></div>
+      <div className="promo-row">
+        <input placeholder="Promo code" aria-label="Promo code" />
+        <button className="btn btn-secondary btn-sm" onClick={onPromo}>Apply</button>
+      </div>
+      <div className="sumrow total"><span>Total</span><span>{fmt(total)}</span></div>
+      {!compact && (
+        <button
+          className="btn btn-primary btn-block btn-lg"
+          style={{ marginTop: '16px', borderRadius: '12px' }}
+          onClick={onCheckout}
+        >
+          {signedIn ? 'Proceed to Checkout →' : 'Sign In to Checkout →'}
+        </button>
+      )}
+      <p style={{ fontSize: '12px', textAlign: 'center', marginTop: '10px', color: 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+        <LockIcon size={12} style={{ color: 'var(--green)' }} /> Secure 256-bit encrypted checkout
+      </p>
+    </aside>
+  );
+}
 
 export default function CartView() {
   const { cart, cartSubtotal, cartTax, cartTotal, cartCount, changeQty, removeItem, removeItems, showToast, products, authUser } = useApp();
@@ -47,41 +99,6 @@ export default function CartView() {
     removeItem(i);
     showToast('Item removed');
   }
-
-  const EmptyCart = () => (
-    <div className="empty-state">
-      <div className="big">🛒</div>
-      <h3 style={{ color: 'var(--ink)', marginBottom: '6px' }}>Your cart is empty</h3>
-      <p>Time to spec out something legendary.</p>
-      <Link href="/shop" className="btn btn-primary" style={{ marginTop: '18px', display: 'inline-flex' }}>Start Shopping</Link>
-    </div>
-  );
-
-  const Summary = ({ compact = false }: { compact?: boolean }) => (
-    <aside className={`summary card${compact ? '' : ''}`}>
-      <h3 style={{ fontSize: compact ? '14.5px' : '17px', marginBottom: compact ? '10px' : '16px' }}>Order Summary</h3>
-      <div className="sumrow"><span>Subtotal</span><span>{fmt(cartSubtotal)}</span></div>
-      <div className="sumrow"><span>Shipping</span><span style={{ color: 'var(--green)', fontWeight: 600 }}>FREE</span></div>
-      <div className="sumrow"><span>Est. tax</span><span>{fmt(cartTax)}</span></div>
-      <div className="promo-row">
-        <input placeholder="Promo code" aria-label="Promo code" />
-        <button className="btn btn-secondary btn-sm" onClick={() => showToast('Promo codes coming soon.')}>Apply</button>
-      </div>
-      <div className="sumrow total"><span>Total</span><span>{fmt(cartTotal)}</span></div>
-      {!compact && (
-        <button
-          className="btn btn-primary btn-block btn-lg"
-          style={{ marginTop: '16px', borderRadius: '12px' }}
-          onClick={handleCheckout}
-        >
-          {authUser ? 'Proceed to Checkout →' : 'Sign In to Checkout →'}
-        </button>
-      )}
-      <p style={{ fontSize: '12px', textAlign: 'center', marginTop: '10px', color: 'var(--muted)' }}>
-        🔒 Secure 256-bit encrypted checkout
-      </p>
-    </aside>
-  );
 
   return (
     <div>
@@ -148,7 +165,7 @@ export default function CartView() {
                         <div>
                           <div className="ci-name">{p.name}</div>
                           <div className="ci-meta">{p.brand} · {specs[0]} · <span className={`badge ${badgeClass}`} style={{ fontSize: '10.5px', padding: '2px 8px' }}>{stockLabel}</span></div>
-                          <button className="ci-remove" onClick={() => handleRemoveSingle(i)}>✕ Remove</button>
+                          <button className="ci-remove" onClick={() => handleRemoveSingle(i)} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><TrashIcon size={12} /> Remove</button>
                         </div>
                         <div className="ci-right">
                           <div className="qty">
@@ -164,7 +181,14 @@ export default function CartView() {
                 </>
               )}
             </div>
-            <Summary />
+<Summary
+              subtotal={cartSubtotal}
+              tax={cartTax}
+              total={cartTotal}
+              signedIn={!!authUser}
+              onCheckout={handleCheckout}
+              onPromo={() => showToast('Promo codes coming soon.')}
+            />
           </div>
 
           <div style={{ marginTop: '12px', paddingBottom: '8px' }}>
@@ -239,7 +263,7 @@ export default function CartView() {
                         </div>
                         <span className="price" style={{ fontSize: '14px' }}>{fmt(p.price * item.q)}</span>
                       </div>
-                      <button className="ci-remove" onClick={() => handleRemoveSingle(i)}>✕ Remove</button>
+                      <button className="ci-remove" onClick={() => handleRemoveSingle(i)} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><TrashIcon size={12} /> Remove</button>
                     </div>
                   </div>
                 );
@@ -249,7 +273,15 @@ export default function CartView() {
         </div>
 
         <div className="card px" style={{ margin: '16px 16px 0', padding: '18px' }}>
-          <Summary compact />
+<Summary
+            compact
+            subtotal={cartSubtotal}
+            tax={cartTax}
+            total={cartTotal}
+            signedIn={!!authUser}
+            onCheckout={handleCheckout}
+            onPromo={() => showToast('Promo codes coming soon.')}
+          />
         </div>
 
         <p style={{ fontSize: '12px', textAlign: 'center', margin: '8px 0', color: 'var(--muted)' }}>

@@ -1,70 +1,55 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+/**
+ * CategoryView — shop / category page shell (Issue 1 rework).
+ *
+ * ARCHITECTURE
+ *  Server Component (page.tsx)  fetches + renders the FIRST batch (12) for
+ *                              SEO and fast first paint, plus the total count
+ *                              and sidebar facet counts, and passes them here.
+ *  <ProductGrid /> (client)    receives the first batch as props and loads
+ *                              further batches from /api/products via
+ *                              IntersectionObserver (infinite scroll).
+ *
+ * FILTER STATE LIVES IN THE URL
+ *  Every filter (q, tag, brands, cats, min, max, stock, sale, sort) is a
+ *  searchParam, so any grid state is shareable/bookmarkable. Changing a
+ *  filter navigates (router.replace — no history spam), which re-renders the
+ *  server component with a fresh first batch; <ProductGrid key={query}> then
+ *  REMOUNTS, which resets the list, cursor and observer and aborts any
+ *  in-flight request. The transition is wrapped by React, so the old grid
+ *  stays visible until the new payload arrives (no skeleton flash).
+ *
+ * DELETED (old pagination)
+ *  PAGE_SIZE / pageWindow() / page state / totalPages / safePage / pageItems
+ *  and the entire <nav class="pagination"> markup — see git.patch.
+ */
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useApp } from '@/app/components/providers/AppProvider';
-import { categorySlug, type Product } from '@/lib/data';
-import ProductCard from '@/app/components/ui/ProductCard';
+import { type Product } from '@/lib/data';
+import {
+  type CatalogQuery, type SortKey, type CatalogFacets,
+  catalogQueryToSearchParams,
+} from '@/lib/catalog';
+import ProductGrid from '@/app/components/ui/ProductGrid';
+import { SearchXIcon, FlameIcon } from '@/app/components/icons';
 
-type SortKey = 'pop' | 'lo' | 'hi' | 'new' | 'rating';
-
-const PAGE_SIZE = 12;
-
-export interface FilterState {
-  brands:      Set<string>;
-  categories:  Set<string>;
-  minPrice:    string;
-  maxPrice:    string;
-  inStockOnly: boolean;
-  onSaleOnly:  boolean;
+interface Props {
+  activeCategory?: string;
+  /** Parsed + validated query — authoritative filter state (from the URL). */
+  query: CatalogQuery;
+  /** First batch (BATCH_SIZE items) rendered by the server. */
+  initialProducts: Product[];
+  /** Total products matching the query (server-computed). */
+  total: number;
+  /** Sidebar facet counts (server-computed). */
+  facets: CatalogFacets;
 }
 
-const DEFAULT_FILTERS: FilterState = {
-  brands: new Set(), categories: new Set(),
-  minPrice: '', maxPrice: '',
-  inStockOnly: false, onSaleOnly: false,
-};
-
-function applyFilters(
-  products: Product[],
-  filters: FilterState,
-  activeCategory: string | undefined,
-  query: string,
-  tag: string,
-): Product[] {
-  let r = products;
-  if (activeCategory)          r = r.filter(p => p.category === activeCategory);
-  if (!activeCategory && filters.categories.size > 0) r = r.filter(p => filters.categories.has(p.category));
-  if (filters.brands.size > 0) r = r.filter(p => filters.brands.has(p.brand));
-  const min = parseFloat(filters.minPrice), max = parseFloat(filters.maxPrice);
-  if (!isNaN(min)) r = r.filter(p => p.price >= min);
-  if (!isNaN(max)) r = r.filter(p => p.price <= max);
-  if (filters.inStockOnly) r = r.filter(p => p.stock !== 'out');
-  if (filters.onSaleOnly)  r = r.filter(p => p.oldPrice !== null && p.oldPrice > p.price);
-  if (tag)   r = r.filter(p => p.tags?.some(t => t.toLowerCase().includes(tag.toLowerCase())));
-  if (query.trim()) {
-    const q = query.trim().toLowerCase();
-    r = r.filter(p => {
-      const sv = Object.values(p.specs ?? {}).join(' ').toLowerCase();
-      return p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q) || sv.includes(q) ||
-        p.shortDescription?.toLowerCase().includes(q);
-    });
-  }
-  return r;
-}
-
-function sortProducts(products: Product[], key: SortKey): Product[] {
-  const a = [...products];
-  switch (key) {
-    case 'lo':     return a.sort((a, b) => a.price - b.price);
-    case 'hi':     return a.sort((a, b) => b.price - a.price);
-    case 'new':    return a.sort((a, b) => b.id - a.id);
-    case 'rating': return a.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
-    default:       return a.sort((a, b) => b.reviewCount - a.reviewCount);
-  }
-}
+/* ── Sort select (desktop toolbar + mobile sticky toolbar) ──── */
 
 function SortSelect({ sortKey, onSort, style, className }: {
   sortKey: SortKey; onSort: (k: SortKey) => void;
@@ -87,82 +72,140 @@ function SortSelect({ sortKey, onSort, style, className }: {
   );
 }
 
-interface Props { activeCategory?: string; products: Product[]; }
-
-export default function CategoryView({ activeCategory, products }: Props) {
-  const ALL_BRANDS     = useMemo(() => Array.from(new Set(products.map(p => p.brand))).sort(),     [products]);
-  const ALL_CATEGORIES = useMemo(() => Array.from(new Set(products.map(p => p.category))).sort(), [products]);
+export default function CategoryView({ activeCategory, query, initialProducts, total, facets }: Props) {
   const searchParams = useSearchParams();
   const router       = useRouter();
   const pathname     = usePathname();
-  const urlQuery     = searchParams.get('q') ?? '';
-  const urlTag       = searchParams.get('tag') ?? '';
-
   const { toggleFilterDrawer } = useApp();
-  const [sortKey, setSortKey] = useState<SortKey>('pop');
-  const [page, setPage]       = useState(1);
-  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
 
-  const title = activeCategory ?? (urlTag === 'deal' ? 'Hot Deals 🔥' : 'All Components');
+  const title = activeCategory ?? (query.tag === 'deal'
+    ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>Hot Deals <FlameIcon size={17} style={{ color: 'var(--red)' }} /></span>
+    : 'All Components');
 
-  const resetPage = useCallback(() => setPage(1), []);
+  /* ── URL plumbing ────────────────────────────────────────── */
+
+  /**
+   * Replace the URL query string. `replace` (not `push`) keeps the history
+   * clean — undoing 6 checkbox clicks with one Back press — while the URL
+   * stays fully shareable. `scroll: false` — scroll reset is handled below.
+   */
+  const applyParams = useCallback((next: URLSearchParams) => {
+    const qs = next.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [router, pathname]);
+
+  /** Set / remove a single param (null or '' removes). */
+  const updateParam = useCallback((key: string, value: string | null) => {
+    const p = new URLSearchParams(searchParams.toString());
+    if (value == null || value === '') p.delete(key);
+    else p.set(key, value);
+    applyParams(p);
+  }, [searchParams, applyParams]);
+
+  /** Toggle one value inside a comma-separated list param (brands / cats). */
+  const toggleListParam = useCallback((key: string, value: string) => {
+    const p = new URLSearchParams(searchParams.toString());
+    const list = (p.get(key) ?? '').split(',').map(s => s.trim()).filter(Boolean);
+    const next = list.includes(value) ? list.filter(v => v !== value) : [...list, value];
+    if (next.length) p.set(key, next.join(','));
+    else p.delete(key);
+    applyParams(p);
+  }, [searchParams, applyParams]);
+
+  function handleSort(key: SortKey) {
+    updateParam('sort', key === 'pop' ? null : key); // omit the default → clean URLs
+  }
 
   function clearUrlQuery() {
     const p = new URLSearchParams(searchParams.toString());
     p.delete('q');
-    const qs = p.toString();
-    router.push(qs ? `${pathname}?${qs}` : pathname);
-    resetPage();
+    applyParams(p);
   }
 
   function clearAllFilters() {
-    setFilters(DEFAULT_FILTERS);
-    router.push(pathname);
-    resetPage();
+    router.replace(pathname, { scroll: false }); // strip every param
   }
 
-  const filtered = useMemo(
-    () => applyFilters(products, filters, activeCategory, urlQuery, urlTag),
-    [products, filters, activeCategory, urlQuery, urlTag],
-  );
-  const sorted     = useMemo(() => sortProducts(filtered, sortKey), [filtered, sortKey]);
-  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
-  const safePage   = Math.min(page, totalPages);
-  const pageItems  = sorted.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  /* ── Price inputs: local drafts + debounced URL commit ────── */
 
-  const activeFilterCount =
-    (urlQuery ? 1 : 0) + (urlTag ? 1 : 0) +
-    filters.brands.size + filters.categories.size +
-    (filters.minPrice ? 1 : 0) + (filters.maxPrice ? 1 : 0) +
-    (filters.inStockOnly ? 1 : 0) + (filters.onSaleOnly ? 1 : 0);
+  const [minDraft, setMinDraft] = useState(query.minPrice != null ? String(query.minPrice) : '');
+  const [maxDraft, setMaxDraft] = useState(query.maxPrice != null ? String(query.maxPrice) : '');
 
-  function handleSort(key: SortKey) { setSortKey(key); resetPage(); }
+  /* Re-sync drafts when the URL changes externally (chip removal, clear all).
+     "Adjust state during render" — the React-sanctioned pattern this repo
+     already uses — instead of a setState-in-effect cascade. */
+  const [prevMin, setPrevMin] = useState(query.minPrice);
+  const [prevMax, setPrevMax] = useState(query.maxPrice);
+  if (query.minPrice !== prevMin || query.maxPrice !== prevMax) {
+    setPrevMin(query.minPrice);
+    setPrevMax(query.maxPrice);
+    setMinDraft(query.minPrice != null ? String(query.minPrice) : '');
+    setMaxDraft(query.maxPrice != null ? String(query.maxPrice) : '');
+  }
 
-  /* chips */
-  const chips: { label: string; onRemove: () => void }[] = [];
-  if (urlQuery) chips.push({ label: `"${urlQuery}"`, onRemove: clearUrlQuery });
-  if (urlTag)   chips.push({
-    label: `Tag: ${urlTag}`,
-    onRemove: () => {
+  /* Debounced commit: typing "1", "15", "150" fires one navigation, not three. */
+  useEffect(() => {
+    const min = minDraft.trim();
+    const max = maxDraft.trim();
+    const minOk = min === '' || !Number.isNaN(Number.parseFloat(min));
+    const maxOk = max === '' || !Number.isNaN(Number.parseFloat(max));
+    if (!minOk || !maxOk) return; // wait for a parseable number (or empty)
+    if (min === (query.minPrice != null ? String(query.minPrice) : '') &&
+        max === (query.maxPrice != null ? String(query.maxPrice) : '')) return; // no change
+    const t = window.setTimeout(() => {
       const p = new URLSearchParams(searchParams.toString());
-      p.delete('tag');
-      const qs = p.toString();
-      router.push(qs ? `${pathname}?${qs}` : pathname);
-      resetPage();
-    },
-  });
-  filters.brands.forEach(b => chips.push({ label: b, onRemove: () => { setFilters(f => { const s = new Set(f.brands); s.delete(b); return { ...f, brands: s }; }); resetPage(); } }));
-  filters.categories.forEach(c => chips.push({ label: c, onRemove: () => { setFilters(f => { const s = new Set(f.categories); s.delete(c); return { ...f, categories: s }; }); resetPage(); } }));
-  if (filters.inStockOnly) chips.push({ label: 'In Stock', onRemove: () => { setFilters(f => ({ ...f, inStockOnly: false })); resetPage(); } });
-  if (filters.onSaleOnly)  chips.push({ label: 'On Sale',  onRemove: () => { setFilters(f => ({ ...f, onSaleOnly: false }));  resetPage(); } });
-  if (filters.minPrice || filters.maxPrice) chips.push({ label: `$${filters.minPrice || '0'}–$${filters.maxPrice || '∞'}`, onRemove: () => { setFilters(f => ({ ...f, minPrice: '', maxPrice: '' })); resetPage(); } });
+      if (min) p.set('min', min); else p.delete('min');
+      if (max) p.set('max', max); else p.delete('max');
+      applyParams(p);
+    }, 600);
+    return () => window.clearTimeout(t);
+  }, [minDraft, maxDraft, query.minPrice, query.maxPrice, searchParams, applyParams]);
+
+  /* ── Scroll reset on query change (skip initial mount) ────── */
+
+  const resultsRef = useRef<HTMLDivElement | null>(null);
+  const firstRenderRef = useRef(true);
+  const queryStr = useMemo(() => catalogQueryToSearchParams(query).toString(), [query]);
+  useEffect(() => {
+    if (firstRenderRef.current) { firstRenderRef.current = false; return; }
+    resultsRef.current?.scrollIntoView({ block: 'start', behavior: 'auto' });
+  }, [queryStr]);
+
+  /* ── Active filter summary (chips + count badge) ─────────── */
+
+  const chips: { label: string; onRemove: () => void }[] = [];
+  if (query.q) chips.push({ label: `"${query.q}"`, onRemove: clearUrlQuery });
+  if (query.tag) chips.push({ label: `Tag: ${query.tag}`, onRemove: () => updateParam('tag', null) });
+  query.brands.forEach(b => chips.push({ label: b, onRemove: () => toggleListParam('brands', b) }));
+  query.cats.forEach(c => chips.push({ label: c, onRemove: () => toggleListParam('cats', c) }));
+  if (query.inStockOnly) chips.push({ label: 'In Stock', onRemove: () => updateParam('stock', null) });
+  if (query.onSaleOnly)  chips.push({ label: 'On Sale',  onRemove: () => updateParam('sale', null) });
+  if (query.minPrice != null || query.maxPrice != null) {
+    chips.push({
+      label: `$${query.minPrice ?? '0'}–$${query.maxPrice ?? '∞'}`,
+      onRemove: () => {
+        const p = new URLSearchParams(searchParams.toString());
+        p.delete('min'); p.delete('max');
+        applyParams(p);
+      },
+    });
+  }
+
+  const activeFilterCount = chips.length;
+
+  const filterControls = {
+    toggleBrand: useCallback((brand: string) => toggleListParam('brands', brand), [toggleListParam]),
+    toggleCat: useCallback((cat: string) => toggleListParam('cats', cat), [toggleListParam]),
+    setStock: useCallback((on: boolean) => updateParam('stock', on ? '1' : null), [updateParam]),
+    setSale: useCallback((on: boolean) => updateParam('sale', on ? '1' : null), [updateParam]),
+  };
 
   return (
     <div>
       {/* ── Mobile sticky toolbar ── */}
       <div className="shop-toolbar-sticky">
         <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
-          <b style={{ color: 'var(--ink)' }}>{sorted.length}</b> result{sorted.length !== 1 ? 's' : ''}
+          <b style={{ color: 'var(--ink)' }}>{total}</b> result{total !== 1 ? 's' : ''}
         </span>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
@@ -181,7 +224,7 @@ export default function CategoryView({ activeCategory, products }: Props) {
             )}
           </button>
           <SortSelect
-            sortKey={sortKey}
+            sortKey={query.sort}
             onSort={handleSort}
             style={{ padding: '8px 10px', border: '1px solid var(--line)', borderRadius: 'var(--radius-sm)', background: 'var(--surface)', color: 'var(--ink)', fontSize: '12.5px', fontWeight: 500 }}
           />
@@ -204,7 +247,7 @@ export default function CategoryView({ activeCategory, products }: Props) {
               <div className="side-top">
                 <h3>Filters</h3>
                 <span style={{ marginLeft: 'auto', fontFamily: 'var(--fm)', fontSize: '12px', color: 'var(--muted)' }}>
-                  {sorted.length} results
+                  {total} results
                 </span>
                 {activeFilterCount > 0 && (
                   <button className="clear-btn" onClick={clearAllFilters}>Clear all</button>
@@ -212,29 +255,31 @@ export default function CategoryView({ activeCategory, products }: Props) {
               </div>
               <div className="side-scroll">
                 <FilterGroups
-                  filters={filters}
-                  setFilters={setFilters}
-                  resetPage={resetPage}
+                  query={query}
+                  facets={facets}
                   activeCategory={activeCategory}
-                  products={products}
-                  allBrands={ALL_BRANDS}
-                  allCategories={ALL_CATEGORIES}
+                  minDraft={minDraft}
+                  maxDraft={maxDraft}
+                  setMinDraft={setMinDraft}
+                  setMaxDraft={setMaxDraft}
+                  {...filterControls}
                 />
               </div>
             </div>
           </aside>
 
           {/* ── Results ── */}
-          <div>
+          <div ref={resultsRef} className="shop-results">
             {/* Desktop toolbar */}
             <div className="shop-toolbar">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '13.5px', color: 'var(--muted)' }}>
-                  <b style={{ color: 'var(--ink)' }}>{sorted.length}</b> result{sorted.length !== 1 ? 's' : ''}
+                  <b style={{ color: 'var(--ink)' }}>{total}</b> result{total !== 1 ? 's' : ''}
                 </span>
                 {chips.map((chip) => (
                   <span
                     key={chip.label}
+                    className="fchip"
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: '4px',
                       background: 'var(--blue-soft)', color: 'var(--blue-d)',
@@ -252,13 +297,16 @@ export default function CategoryView({ activeCategory, products }: Props) {
                   </span>
                 ))}
               </div>
-              <SortSelect sortKey={sortKey} onSort={handleSort} />
+              <SortSelect sortKey={query.sort} onSort={handleSort} />
             </div>
 
-            {/* Grid */}
-            {pageItems.length === 0 ? (
+            {/* Grid — infinite scroll (server first batch + client batches).
+                key = canonical query string → ANY filter/sort/category change
+                remounts the grid: list, cursor and observer reset to batch 1
+                and in-flight requests are aborted. */}
+            {total === 0 ? (
               <div className="empty-state" style={{ border: '1.5px dashed var(--line)', borderRadius: 'var(--radius)', background: 'var(--surface)' }}>
-                <div className="big">🔍</div>
+                <SearchXIcon size={52} style={{ margin: '0 auto 14px', color: 'var(--muted)', display: 'block', strokeWidth: 1.6 }} />
                 <h3 style={{ color: 'var(--ink)', fontWeight: 800, marginBottom: '8px' }}>No products found</h3>
                 <p>Try adjusting your filters or search query.</p>
                 <button className="btn btn-primary" style={{ marginTop: '16px' }} onClick={clearAllFilters}>
@@ -266,34 +314,12 @@ export default function CategoryView({ activeCategory, products }: Props) {
                 </button>
               </div>
             ) : (
-              <div className="product-grid">
-                {pageItems.map((p) => <ProductCard key={p.id} product={p} />)}
-              </div>
-            )}
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <nav className="pagination" aria-label="Pagination">
-                <button
-                  aria-label="Previous"
-                  disabled={safePage === 1}
-                  onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                >‹</button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
-                  <button
-                    key={n}
-                    className={n === safePage ? 'on' : ''}
-                    aria-label={`Page ${n}`}
-                    aria-current={n === safePage ? 'page' : undefined}
-                    onClick={() => { setPage(n); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                  >{n}</button>
-                ))}
-                <button
-                  aria-label="Next"
-                  disabled={safePage === totalPages}
-                  onClick={() => { setPage(p => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                >›</button>
-              </nav>
+              <ProductGrid
+                key={queryStr}
+                initialProducts={initialProducts}
+                total={total}
+                apiQuery={queryStr}
+              />
             )}
           </div>
         </div>
@@ -301,65 +327,56 @@ export default function CategoryView({ activeCategory, products }: Props) {
 
       {/* Mobile filter drawer */}
       <FilterDrawer
-        filters={filters}
-        setFilters={setFilters}
-        resetPage={resetPage}
+        query={query}
+        facets={facets}
         activeCategory={activeCategory}
-        resultCount={sorted.length}
+        resultCount={total}
         onClearAll={clearAllFilters}
-        products={products}
-        allBrands={ALL_BRANDS}
-        allCategories={ALL_CATEGORIES}
+        minDraft={minDraft}
+        maxDraft={maxDraft}
+        setMinDraft={setMinDraft}
+        setMaxDraft={setMaxDraft}
+        {...filterControls}
       />
     </div>
   );
 }
 
-/* ── Filter groups ── */
+/* ── Filter groups (sidebar content, shared with the mobile drawer) ── */
+
 interface FilterGroupsProps {
-  filters:       FilterState;
-  setFilters:    React.Dispatch<React.SetStateAction<FilterState>>;
-  resetPage:     () => void;
+  query:        CatalogQuery;
+  facets:       CatalogFacets;
   activeCategory?: string;
-  products:      Product[];
-  allBrands:     string[];
-  allCategories: string[];
+  toggleBrand:  (brand: string) => void;
+  toggleCat:    (cat: string) => void;
+  setStock:     (on: boolean) => void;
+  setSale:      (on: boolean) => void;
+  minDraft:     string;
+  maxDraft:     string;
+  setMinDraft:  (v: string) => void;
+  setMaxDraft:  (v: string) => void;
 }
 
-function FilterGroups({ filters, setFilters, resetPage, activeCategory, products, allBrands, allCategories }: FilterGroupsProps) {
-  function toggleBrand(brand: string) {
-    setFilters(f => { const s = new Set(f.brands); s.has(brand) ? s.delete(brand) : s.add(brand); return { ...f, brands: s }; });
-    resetPage();
-  }
-  function toggleCategory(cat: string) {
-    setFilters(f => { const s = new Set(f.categories); s.has(cat) ? s.delete(cat) : s.add(cat); return { ...f, categories: s }; });
-    resetPage();
-  }
-
-  const scopedProducts = useMemo(
-    () => activeCategory ? products.filter(p => p.category === activeCategory) : products,
-    [activeCategory, products],
-  );
-  const brandCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    allBrands.forEach(b => { counts[b] = scopedProducts.filter(p => p.brand === b).length; });
-    return counts;
-  }, [scopedProducts, allBrands]);
-  const catCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    allCategories.forEach(c => { counts[c] = products.filter(p => p.category === c).length; });
-    return counts;
-  }, [products, allCategories]);
-
+function FilterGroups({
+  query, facets, activeCategory,
+  toggleBrand, toggleCat, setStock, setSale,
+  minDraft, maxDraft, setMinDraft, setMaxDraft,
+}: FilterGroupsProps) {
   return (
     <>
       {!activeCategory && (
         <fieldset className="fgroup">
           <legend>Category</legend>
-          {allCategories.map(cat => (
-            <label key={cat} className="fopt">
-              <input type="checkbox" checked={filters.categories.has(cat)} onChange={() => toggleCategory(cat)} style={{ accentColor: 'var(--blue)' }} />
-              {cat}<span className="cnt">{catCounts[cat]}</span>
+          {facets.categories.map(cat => (
+            <label key={cat.name} className="fopt">
+              <input
+                type="checkbox"
+                checked={query.cats.includes(cat.name)}
+                onChange={() => toggleCat(cat.name)}
+                style={{ accentColor: 'var(--blue)' }}
+              />
+              {cat.name}<span className="cnt">{cat.count}</span>
             </label>
           ))}
         </fieldset>
@@ -367,10 +384,15 @@ function FilterGroups({ filters, setFilters, resetPage, activeCategory, products
 
       <fieldset className="fgroup">
         <legend>Brand</legend>
-        {allBrands.filter(b => (brandCounts[b] ?? 0) > 0).map(brand => (
-          <label key={brand} className="fopt">
-            <input type="checkbox" checked={filters.brands.has(brand)} onChange={() => toggleBrand(brand)} style={{ accentColor: 'var(--blue)' }} />
-            {brand}<span className="cnt">{brandCounts[brand]}</span>
+        {facets.brands.map(brand => (
+          <label key={brand.name} className="fopt">
+            <input
+              type="checkbox"
+              checked={query.brands.includes(brand.name)}
+              onChange={() => toggleBrand(brand.name)}
+              style={{ accentColor: 'var(--blue)' }}
+            />
+            {brand.name}<span className="cnt">{brand.count}</span>
           </label>
         ))}
       </fieldset>
@@ -382,16 +404,16 @@ function FilterGroups({ filters, setFilters, resetPage, activeCategory, products
             placeholder="$ Min"
             inputMode="numeric"
             aria-label="Min price"
-            value={filters.minPrice}
-            onChange={e => { setFilters(f => ({ ...f, minPrice: e.target.value })); resetPage(); }}
+            value={minDraft}
+            onChange={e => setMinDraft(e.target.value)}
           />
           —
           <input
             placeholder="$ Max"
             inputMode="numeric"
             aria-label="Max price"
-            value={filters.maxPrice}
-            onChange={e => { setFilters(f => ({ ...f, maxPrice: e.target.value })); resetPage(); }}
+            value={maxDraft}
+            onChange={e => setMaxDraft(e.target.value)}
           />
         </div>
       </fieldset>
@@ -399,11 +421,21 @@ function FilterGroups({ filters, setFilters, resetPage, activeCategory, products
       <fieldset className="fgroup">
         <legend>Availability</legend>
         <label className="fopt">
-          <input type="checkbox" checked={filters.inStockOnly} onChange={e => { setFilters(f => ({ ...f, inStockOnly: e.target.checked })); resetPage(); }} style={{ accentColor: 'var(--blue)' }} />
+          <input
+            type="checkbox"
+            checked={query.inStockOnly}
+            onChange={e => setStock(e.target.checked)}
+            style={{ accentColor: 'var(--blue)' }}
+          />
           In stock only
         </label>
         <label className="fopt">
-          <input type="checkbox" checked={filters.onSaleOnly} onChange={e => { setFilters(f => ({ ...f, onSaleOnly: e.target.checked })); resetPage(); }} style={{ accentColor: 'var(--blue)' }} />
+          <input
+            type="checkbox"
+            checked={query.onSaleOnly}
+            onChange={e => setSale(e.target.checked)}
+            style={{ accentColor: 'var(--blue)' }}
+          />
           On sale
         </label>
       </fieldset>
@@ -412,16 +444,21 @@ function FilterGroups({ filters, setFilters, resetPage, activeCategory, products
 }
 
 /* ── Mobile filter drawer ── */
+
 interface FilterDrawerProps extends FilterGroupsProps {
   resultCount: number;
   onClearAll: () => void;
 }
 
-function FilterDrawer({ filters, setFilters, resetPage, activeCategory, resultCount, onClearAll, products, allBrands, allCategories }: FilterDrawerProps) {
+function FilterDrawer({
+  query, facets, activeCategory, resultCount, onClearAll,
+  toggleBrand, toggleCat, setStock, setSale,
+  minDraft, maxDraft, setMinDraft, setMaxDraft,
+}: FilterDrawerProps) {
   const { filterDrawerOpen, closeDrawers } = useApp();
   return (
     <>
-      <div className={`drawer-backdrop${filterDrawerOpen ? ' show' : ''}`} onClick={closeDrawers} aria-hidden="true" />
+      <div className={`fd-backdrop${filterDrawerOpen ? ' show' : ''}`} onClick={closeDrawers} aria-hidden="true" />
       <aside
         className={`filter-drawer${filterDrawerOpen ? ' show' : ''}`}
         aria-label="Filters"
@@ -442,7 +479,19 @@ function FilterDrawer({ filters, setFilters, resetPage, activeCategory, resultCo
           </button>
         </div>
         <div style={{ overflowY: 'auto', flex: 1, paddingBottom: '16px' }}>
-          <FilterGroups filters={filters} setFilters={setFilters} resetPage={resetPage} activeCategory={activeCategory} products={products} allBrands={allBrands} allCategories={allCategories} />
+          <FilterGroups
+            query={query}
+            facets={facets}
+            activeCategory={activeCategory}
+            toggleBrand={toggleBrand}
+            toggleCat={toggleCat}
+            setStock={setStock}
+            setSale={setSale}
+            minDraft={minDraft}
+            maxDraft={maxDraft}
+            setMinDraft={setMinDraft}
+            setMaxDraft={setMaxDraft}
+          />
         </div>
         <div style={{ borderTop: '1px solid var(--line)', paddingTop: '12px', display: 'flex', gap: '8px' }}>
           <button className="btn btn-secondary btn-sm" style={{ flex: 1 }} onClick={onClearAll}>Clear all</button>

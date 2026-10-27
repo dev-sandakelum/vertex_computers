@@ -44,6 +44,15 @@ export interface Order {
   createdAt: string;      // ISO timestamp
   updatedAt: string;      // ISO timestamp
 
+  /**
+   * Payment card snapshot (optional — only present when the gateway's IPN
+   * supplied it). ALWAYS non-sensitive: masked last 4 digits + holder name.
+   * The full card number is never stored.
+   */
+  cardHolder?: string;    // cardholder name from the gateway notification
+  cardLast4?: string;     // last 4 digits only, e.g. "4242"
+  cardBrand?: string;     // normalized brand, e.g. "VISA"
+
   // Shipping snapshot
   firstName: string;
   lastName: string;

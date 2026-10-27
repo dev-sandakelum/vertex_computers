@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { SignOutIcon } from '@/app/components/icons';
 
 export const metadata: Metadata = {
   title: 'Payment Cancelled — Vertex Computers',
@@ -11,7 +12,9 @@ export default function PaymentCancelPage() {
     <div className="container" style={{ maxWidth: '520px', paddingTop: '60px', paddingBottom: '60px', textAlign: 'center' }}>
       <div className="card co-panel" style={{ padding: '36px 28px' }}>
 
-        <div style={{ fontSize: '48px', marginBottom: '12px' }}>↩️</div>
+        <span className="check-ring" style={{ background: 'var(--surface-2)', color: 'var(--muted)', marginBottom: '16px' }} aria-hidden="true">
+          <SignOutIcon size={30} />
+        </span>
 
         <h1 style={{ fontSize: '22px', fontWeight: 700, marginBottom: '8px' }}>
           Payment Cancelled

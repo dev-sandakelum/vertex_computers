@@ -6,6 +6,9 @@
  * IMPORTANT: This page polls /api/payhere/status/[orderId] for the REAL
  * payment status. It never trusts URL params to show "Payment Successful".
  *
+ * When the order is PAID, a premium ticket-style receipt is shown
+ * (see ReceiptTicket) rendered entirely from real order data.
+ *
  * The page also clears the cart on confirmed PAID status.
  */
 
@@ -15,18 +18,15 @@ import Link from 'next/link';
 import { useApp } from '@/app/components/providers/AppProvider';
 import { saveOrderLocally } from '@/lib/orderStorage';
 import { fmt } from '@/lib/data';
+import ReceiptTicket, { type ReceiptOrder } from '@/app/components/payment/ReceiptTicket';
+import {
+  RefreshIcon, CloseIcon, SignOutIcon, PackageXIcon,
+} from '@/app/components/icons';
 
 type ServerStatus = 'PENDING' | 'PAID' | 'FAILED' | 'CANCELLED' | 'REFUNDED';
 
-interface OrderData {
-  orderId: string;
+interface OrderData extends ReceiptOrder {
   status: ServerStatus;
-  total: number;
-  currency: string;
-  firstName: string;
-  itemCount: number;
-  paymentMethod?: string;
-  updatedAt: string;
 }
 
 const MAX_POLLS = 12;       // poll up to 12 times
@@ -43,12 +43,6 @@ export default function PaymentSuccessView() {
   const [pollCount, setPollCount] = useState(0);
 
   const fetchStatus = useCallback(async () => {
-    if (!orderId) {
-      setError('No order ID found in the URL.');
-      setLoading(false);
-      return;
-    }
-
     try {
       const res = await fetch(`/api/payhere/status/${orderId}`);
       if (res.status === 404) {
@@ -89,9 +83,16 @@ export default function PaymentSuccessView() {
     }
   }, [orderId, clearCart, showToast]);
 
-  // Initial fetch
+  /* ── Render ── */
+
+  /* Missing orderId is knowable at render time — but the early return must
+     sit BELOW all hooks (Rules of Hooks), so it lives after the effects. */
+
+  // Initial fetch — async polling of the payment status API; setState only
+  // runs after the fetch resolves, which is the intended data-fetch pattern.
   useEffect(() => {
-    fetchStatus();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async fetch on mount; setState runs after await
+    if (orderId) fetchStatus();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -109,6 +110,20 @@ export default function PaymentSuccessView() {
 
   /* ── Render ── */
 
+  if (!orderId) {
+    return (
+      <div className="container" style={{ maxWidth: '520px', paddingTop: '60px', textAlign: 'center' }}>
+        <div className="card co-panel" style={{ padding: '32px' }}>
+          <PackageXIcon size={44} style={{ margin: '0 auto 12px', color: 'var(--red)', display: 'block' }} />
+          <h1 style={{ fontSize: '20px', marginBottom: '8px' }}>No Order ID</h1>
+          <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '20px' }}>
+            No order ID found in the URL. If you just paid, check your email for the receipt link.
+          </p>
+          <Link href="/" className="btn btn-primary btn-block" style={{ borderRadius: '12px' }}>Back to Home</Link>
+        </div>
+      </div>
+    );
+  }
   if (loading) {
     return (
       <div className="container" style={{ textAlign: 'center', paddingTop: '60px' }}>
@@ -122,7 +137,7 @@ export default function PaymentSuccessView() {
     return (
       <div className="container" style={{ maxWidth: '520px', paddingTop: '60px', textAlign: 'center' }}>
         <div className="card co-panel" style={{ padding: '32px' }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}>⚠️</div>
+          <PackageXIcon size={44} style={{ margin: '0 auto 12px', color: 'var(--red)', display: 'block' }} />
           <h1 style={{ fontSize: '20px', marginBottom: '8px' }}>Status Unavailable</h1>
           <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '20px' }}>{error}</p>
           <Link href="/" className="btn btn-primary btn-block" style={{ borderRadius: '12px' }}>Back to Home</Link>
@@ -138,28 +153,32 @@ export default function PaymentSuccessView() {
   const isCancelled  = order.status === 'CANCELLED';
   const isPending    = order.status === 'PENDING';
 
+  /* ── PAID: the premium ticket receipt (all real order data) ── */
+  if (isPaid) {
+    return (
+      <>
+        <ReceiptTicket order={order} />
+        <div className="container receipt-followup">
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link href="/account" className="btn btn-secondary">View Order Details</Link>
+            <Link href="/shop" className="btn btn-ghost">Continue Shopping</Link>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  /* ── Non-paid statuses ── */
   return (
     <div className="container" style={{ maxWidth: '560px', paddingTop: '40px', paddingBottom: '40px' }}>
 
       {/* Status header */}
       <div className="confirm-hero" style={{ marginBottom: '20px' }}>
-        {isPaid && (
-          <>
-            <div className="check-ring" aria-hidden="true">
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 12.5l5 5L20 6.5"/>
-              </svg>
-            </div>
-            <h1>Payment Confirmed! 🎉</h1>
-            <p style={{ color: 'var(--muted)', fontSize: '13px', marginTop: '4px' }}>
-              Thank you, <b style={{ color: 'var(--ink)' }}>{order.firstName}</b>.
-            </p>
-          </>
-        )}
-
         {isPending && (
           <>
-            <div style={{ fontSize: '44px', marginBottom: '8px' }}>⏳</div>
+            <div className="check-ring" style={{ background: 'var(--warning-soft)', color: 'var(--warning)' }} aria-hidden="true">
+              <RefreshIcon size={32} />
+            </div>
             <h1>Payment Pending</h1>
             <p style={{ color: 'var(--muted)', fontSize: '13px', marginTop: '4px' }}>
               Your payment is being processed. This page updates automatically.
@@ -172,7 +191,9 @@ export default function PaymentSuccessView() {
 
         {isFailed && (
           <>
-            <div style={{ fontSize: '44px', marginBottom: '8px' }}>❌</div>
+            <div className="check-ring" style={{ background: 'var(--danger-soft)', color: 'var(--red)' }} aria-hidden="true">
+              <CloseIcon size={32} />
+            </div>
             <h1>Payment Failed</h1>
             <p style={{ color: 'var(--muted)', fontSize: '13px', marginTop: '4px' }}>
               Your payment could not be processed.
@@ -182,7 +203,9 @@ export default function PaymentSuccessView() {
 
         {isCancelled && (
           <>
-            <div style={{ fontSize: '44px', marginBottom: '8px' }}>↩️</div>
+            <div className="check-ring" style={{ background: 'var(--surface-2)', color: 'var(--muted)' }} aria-hidden="true">
+              <SignOutIcon size={32} />
+            </div>
             <h1>Payment Cancelled</h1>
             <p style={{ color: 'var(--muted)', fontSize: '13px', marginTop: '4px' }}>
               Your payment was cancelled. Nothing was charged.
@@ -210,7 +233,6 @@ export default function PaymentSuccessView() {
           <span>
             <span
               className={`badge ${
-                isPaid      ? 'badge-success' :
                 isPending   ? 'badge-warning'  :
                 'badge-danger'
               }`}
@@ -229,17 +251,6 @@ export default function PaymentSuccessView() {
 
       {/* Actions */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {isPaid && (
-          <>
-            <Link href="/account" className="btn btn-primary btn-block" style={{ borderRadius: '12px' }}>
-              View Order Details
-            </Link>
-            <Link href="/shop" className="btn btn-secondary btn-block" style={{ borderRadius: '12px' }}>
-              Continue Shopping
-            </Link>
-          </>
-        )}
-
         {(isFailed || isCancelled) && (
           <>
             <Link href="/checkout/review" className="btn btn-primary btn-block" style={{ borderRadius: '12px' }}>
@@ -258,6 +269,7 @@ export default function PaymentSuccessView() {
             style={{ borderRadius: '12px' }}
             onClick={fetchStatus}
           >
+            <RefreshIcon size={15} />
             Refresh Status
           </button>
         )}
