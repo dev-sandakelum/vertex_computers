@@ -32,7 +32,11 @@ async function mongoGet(orderId: string): Promise<Order | undefined> {
   await connectDB();
   const doc = await OrderModel.findOne({ orderId }).lean();
   if (!doc) return undefined;
-  return JSON.parse(JSON.stringify(doc)) as Order;
+  // Strip Mongo bookkeeping fields so a later saveOrder() never tries to
+  // $set the immutable _id (which would make the status update fail silently).
+  const { _id: _ignoredId, __v: _ignoredV, ...plain } = JSON.parse(JSON.stringify(doc));
+  void _ignoredId; void _ignoredV;
+  return plain as Order;
 }
 
 /* ═══════════════════════════════════════════════════════════

@@ -12,6 +12,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrder } from '@/lib/orderStore';
+import { reconcileOrderWithPayHere } from '@/lib/payhere/retrieval';
 
 interface Props {
   params: Promise<{ orderId: string }>;
@@ -25,10 +26,17 @@ export async function GET(_req: NextRequest, { params }: Props) {
       return NextResponse.json({ error: 'Missing orderId.' }, { status: 400 });
     }
 
-    const order = await getOrder(orderId);
+    let order = await getOrder(orderId);
 
     if (!order) {
       return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
+    }
+
+    // If the IPN (notify_url) hasn't reached us yet — common on localhost or
+    // when the public URL is misconfigured — ask PayHere directly via the
+    // Retrieval API. No-op unless PAYHERE_APP_ID / PAYHERE_APP_SECRET are set.
+    if (order.status === 'PENDING') {
+      order = await reconcileOrderWithPayHere(order);
     }
 
     // Return only safe, non-sensitive fields to the client

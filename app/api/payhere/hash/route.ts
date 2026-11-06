@@ -125,7 +125,10 @@ export async function POST(req: NextRequest) {
         ? `${orderItems[0].name} ×${orderItems[0].quantity}`
         : `${orderItems.length} items from Vertex Computers`;
 
-    const appUrl = getAppUrl();
+    // Derived from NEXT_PUBLIC_APP_URL, or from this request's host when the
+    // env var is unset / still a placeholder — so return_url and notify_url
+    // always point at the host the customer is actually using.
+    const appUrl = getAppUrl(req);
 
     const response: CreateOrderResponse & {
       returnUrl: string;

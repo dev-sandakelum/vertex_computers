@@ -42,7 +42,14 @@ export async function connectDB(): Promise<typeof mongoose> {
       'Example: MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/vertex_computers?retryWrites=true&w=majority',
     );
   }
-  if (cache.conn) return cache.conn;
+  // Reuse the live connection. If the socket dropped (laptop sleep, network
+  // change, Atlas failover) fall through and reconnect instead of returning a
+  // dead handle. readyState: 0 = disconnected, 1 = connected, 2 = connecting.
+  if (cache.conn && mongoose.connection.readyState === 1) return cache.conn;
+  if (cache.conn && mongoose.connection.readyState === 0) {
+    cache.conn = null;
+    cache.promise = null;
+  }
 
   if (!cache.promise) {
     cache.promise = mongoose
@@ -54,6 +61,15 @@ export async function connectDB(): Promise<typeof mongoose> {
       .then((m) => {
         console.log('[MongoDB] Connected to Atlas');
         return m;
+      })
+      .catch((err) => {
+        // IMPORTANT: drop the rejected promise so the next request retries.
+        // Without this, one transient failure (e.g. IP not yet whitelisted,
+        // brief network outage) poisons every later request until restart —
+        // which showed up as admin login permanently returning "Server error".
+        cache.promise = null;
+        cache.conn = null;
+        throw err;
       });
   }
 

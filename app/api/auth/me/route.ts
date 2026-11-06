@@ -32,7 +32,21 @@ export async function GET() {
         ...rest,
       },
     });
-  } catch {
-    return NextResponse.json({ user: null });
+  } catch (err) {
+    // DB unreachable (transient Atlas/network issue). The iron-session cookie
+    // is cryptographically sealed, so its contents are trustworthy — answer
+    // from it instead of reporting "logged out", which would bounce an admin
+    // straight back to /admin/login in a loop.
+    console.warn('[auth/me] DB lookup failed, answering from session:', err instanceof Error ? err.message : err);
+    return NextResponse.json({
+      user: {
+        userId:    session.userId,
+        email:     session.email,
+        firstName: session.firstName,
+        lastName:  session.lastName,
+        role:      session.role ?? 'user',
+      },
+      degraded: true,
+    });
   }
 }
