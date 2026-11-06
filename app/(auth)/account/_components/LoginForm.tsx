@@ -89,9 +89,9 @@ export default function LoginForm() {
         <div className="auth-field">
           <div className="auth-field-header">
             <label htmlFor="password">Password</label>
-            <a href="#" className="auth-forgot" onClick={(e) => { e.preventDefault(); showToast('Password reset — please contact support.'); }}>
+            <Link href="/account/forgot-password" className="auth-forgot">
               Forgot password?
-            </a>
+            </Link>
           </div>
           <div className="auth-input-wrap">
             <input

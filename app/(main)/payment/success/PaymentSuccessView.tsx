@@ -29,7 +29,7 @@ interface OrderData extends ReceiptOrder {
   status: ServerStatus;
 }
 
-const MAX_POLLS = 12;       // poll up to 12 times
+const MAX_POLLS = 40;       // poll up to 40 times (~2 minutes) — PayHere's IPN can lag
 const POLL_INTERVAL = 3000; // every 3 seconds
 
 export default function PaymentSuccessView() {
@@ -267,7 +267,7 @@ export default function PaymentSuccessView() {
             type="button"
             className="btn btn-secondary btn-block"
             style={{ borderRadius: '12px' }}
-            onClick={fetchStatus}
+            onClick={() => { setPollCount(0); fetchStatus(); }}
           >
             <RefreshIcon size={15} />
             Refresh Status

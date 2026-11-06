@@ -20,6 +20,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyNotificationHash, formatAmount } from '@/lib/payhere/hash';
 import { getMerchantId, getMerchantSecret } from '@/lib/payhere/config';
 import { getOrder, updateOrderStatus } from '@/lib/orderStore';
+import { buildCardInfo } from '@/lib/payhere/card';
 import { log } from '@/lib/logger';
 import { PAYHERE_STATUS, type PayHereStatusCode } from '@/lib/payhere/types';
 
@@ -112,19 +113,10 @@ export async function POST(req: NextRequest) {
     // ── 10. Update order ─────────────────────────────────────────
     // Capture the non-sensitive card snapshot for the receipt (only when
     // the payment actually succeeded). card_no arrives masked from PayHere —
-    // we keep at most the last 4 digits, never the full number.
-    const cardInfo: { cardHolder?: string; cardLast4?: string; cardBrand?: string } = {};
-    if (newStatus === 'PAID') {
-      if (card_holder_name) cardInfo.cardHolder = card_holder_name.trim().slice(0, 80);
-      const digits = card_no.replace(/\D/g, '');
-      if (digits.length >= 4) cardInfo.cardLast4 = digits.slice(-4);
-      const m = method.toUpperCase();
-      if (m.includes('VISA'))                       cardInfo.cardBrand = 'VISA';
-      else if (m.includes('MASTER'))                cardInfo.cardBrand = 'MASTER';
-      else if (m.includes('AMEX') || m.includes('AMERICAN')) cardInfo.cardBrand = 'AMEX';
-      else if (m.includes('PAYPAL'))                cardInfo.cardBrand = 'PAYPAL';
-      else if (m)                                   cardInfo.cardBrand = m.slice(0, 24);
-    }
+    // buildCardInfo keeps at most the last 4 digits, never the full number.
+    const cardInfo = newStatus === 'PAID'
+      ? buildCardInfo(method, card_holder_name, card_no)
+      : undefined;
 
     await updateOrderStatus(order_id, newStatus, payment_id || undefined, method || undefined, cardInfo);
 

@@ -36,6 +36,11 @@ const UserSchema = new Schema(
     role:          { type: String, enum: ['user', 'admin'], default: 'user' },
     addresses:     { type: [AddressSchema], default: [] },
     wishlist:      { type: [Number], default: [] }, // product IDs
+
+    // Password reset (forgot-password flow). Only the SHA-256 hash of the
+    // one-time token is stored — the raw token exists solely in the email link.
+    resetPasswordTokenHash: { type: String, index: true },
+    resetPasswordExpires:   { type: String }, // ISO timestamp
   },
   { timestamps: false, collection: 'users' },
 );
