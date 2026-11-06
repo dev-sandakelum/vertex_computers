@@ -99,14 +99,14 @@ export default function AccountView() {
           <span className="bc-sep">/</span>
           <b className="bc-cur">My Account</b>
         </div>
-        <div className="card co-panel" style={{ maxWidth: '480px', margin: '32px auto' }}>
+        <div className="card co-panel" style={{ maxWidth: '480px', margin: '32px auto', position: 'relative', zIndex: 1 }}>
           <h2 style={{ fontSize: '20px', marginBottom: '8px' }}>Sign in to your account</h2>
           <p className="muted" style={{ marginBottom: '22px' }}>
             Track orders, manage addresses, and update your profile.
           </p>
-          <div className="field-row">
-            <Link href="/account/login" className="btn btn-primary btn-block">Log In</Link>
-            <Link href="/account/register" className="btn btn-secondary btn-block">Create Account</Link>
+          <div className="field-row" style={{ position: 'relative', zIndex: 2 }}>
+            <Link href="/account/login" className="btn btn-primary btn-block" style={{ position: 'relative', zIndex: 3 }}>Log In</Link>
+            <Link href="/account/register" className="btn btn-secondary btn-block" style={{ position: 'relative', zIndex: 3 }}>Create Account</Link>
           </div>
         </div>
       </div>

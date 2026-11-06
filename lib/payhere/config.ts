@@ -55,17 +55,23 @@ export function getRetrievalCredentials(): { appId: string; appSecret: string } 
   return { appId, appSecret };
 }
 
-/** True when NEXT_PUBLIC_APP_URL is unset or still holds a template placeholder. */
-function isPlaceholderUrl(value: string | undefined): boolean {
-  if (!value) return true;
-  const v = value.trim();
-  if (!v) return true;
-  if (/YOUR_|example\.com|<.*>/i.test(v)) return true;
+/**
+ * Normalise NEXT_PUBLIC_APP_URL to a bare origin (scheme + host + port).
+ * Tolerates stray quotes, whitespace, trailing slashes or paths that end up
+ * in .env files (e.g. `"https://site.com/"'` → `https://site.com`).
+ * Returns null when the value is unset, a template placeholder, or unparsable.
+ */
+function normaliseAppUrl(value: string | undefined): string | null {
+  if (!value) return null;
+  const v = value.trim().replace(/^['"]+|['"]+$/g, '').trim();
+  if (!v) return null;
+  if (/YOUR_|example\.com|<.*>/i.test(v)) return null;
   try {
     const u = new URL(v);
-    return !(u.protocol === 'http:' || u.protocol === 'https:');
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+    return u.origin;
   } catch {
-    return true;
+    return null;
   }
 }
 
@@ -84,10 +90,8 @@ function isPlaceholderUrl(value: string | undefined): boolean {
  * the PayHere Retrieval API when PAYHERE_APP_ID / PAYHERE_APP_SECRET are set.
  */
 export function getAppUrl(req?: Request): string {
-  const envUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (!isPlaceholderUrl(envUrl)) {
-    return envUrl!.trim().replace(/\/+$/, '');
-  }
+  const envUrl = normaliseAppUrl(process.env.NEXT_PUBLIC_APP_URL);
+  if (envUrl) return envUrl;
 
   if (req) {
     const h = req.headers;

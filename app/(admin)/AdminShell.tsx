@@ -15,6 +15,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import AddProductModal from './_components/AddProductModal';
 
 /* ─── Types ──────────────────────────────────────────────────────── */
 
@@ -479,6 +480,7 @@ function ProductsTab() {
   const [editing, setEditing] = useState<{ id: number; stock: string; price: number } | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
+  const [adding, setAdding] = useState(false);
 
   const fetchData = useCallback(async (p = page, s = search, c = category) => {
     setLoading(true);
@@ -538,8 +540,27 @@ function ProductsTab() {
           {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
         <button type="submit" className="btn btn-primary btn-sm" style={{ borderRadius: 10 }}>Search</button>
-        {saveMsg && <span style={{ padding: '9px 0', fontSize: 13, color: saveMsg === 'Saved!' ? 'var(--green)' : 'var(--red)' }}>{saveMsg}</span>}
+        <button type="button" className="btn btn-secondary btn-sm" style={{ borderRadius: 10 }} onClick={() => setAdding(true)}>
+          + Add product
+        </button>
+        {saveMsg && <span style={{ padding: '9px 0', fontSize: 13, color: saveMsg.startsWith('Save failed') ? 'var(--red)' : 'var(--green)' }}>{saveMsg}</span>}
       </form>
+
+      {adding && <AddProductModal
+        onClose={() => setAdding(false)}
+        onCreated={async (id, name) => {
+          setAdding(false);
+          setSaveMsg(`Added #${id} ${name}`);
+          setTimeout(() => setSaveMsg(''), 4000);
+          // New products sort last by id — clear filters and jump to the last
+          // page so the new row is visible.
+          setSearch(''); setCategory('');
+          const json = await fetch('/api/admin/products?page=1&limit=20').then((r) => r.json()).catch(() => ({}));
+          const last = Math.max(1, Number(json?.pages) || 1);
+          setPage(last);
+          fetchData(last, '', '');
+        }}
+      />}
 
       {/* Total */}
       <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 10 }}>{data.total} products</div>
@@ -559,9 +580,14 @@ function ProductsTab() {
               </tr>
             </thead>
             <tbody>
-              {data.data.map((p) => (
-                <tr key={p.id} style={{ background: editing?.id === p.id ? 'var(--blue-soft)' : undefined }}>
-                  <td style={{ ...TD, fontFamily: 'var(--fm)', fontSize: 12 }}>#{p.id}</td>
+              {data.data.map((p, idx) => {
+                // Strict: a product with no numeric id must never match a null
+                // `editing` (undefined === undefined would be true and crash).
+                const hasId     = typeof p.id === 'number';
+                const isEditing = editing !== null && hasId && editing.id === p.id;
+                return (
+                <tr key={hasId ? p.id : `noid-${p.slug ?? idx}`} style={{ background: isEditing ? 'var(--blue-soft)' : undefined }}>
+                  <td style={{ ...TD, fontFamily: 'var(--fm)', fontSize: 12 }}>{hasId ? `#${p.id}` : <span title="This product has no numeric id and cannot be edited here" style={{ color: 'var(--red)' }}>no id</span>}</td>
                   <td style={TD}>
                     {p.image
                       ? <img src={p.image} alt={p.name} style={{ width: 44, height: 44, objectFit: 'contain', borderRadius: 8, background: 'var(--paper)' }} />
@@ -574,7 +600,7 @@ function ProductsTab() {
                   </td>
                   <td style={{ ...TD, color: 'var(--muted)', fontSize: 12 }}>{p.category}</td>
                   <td style={TD}>
-                    {editing?.id === p.id
+                    {isEditing
                       ? <input
                           type="number"
                           value={editing.price}
@@ -585,7 +611,7 @@ function ProductsTab() {
                     }
                   </td>
                   <td style={TD}>
-                    {editing?.id === p.id
+                    {isEditing
                       ? <select
                           value={editing.stock}
                           onChange={(e) => setEditing({ ...editing, stock: e.target.value })}
@@ -597,7 +623,7 @@ function ProductsTab() {
                     }
                   </td>
                   <td style={TD}>
-                    {editing?.id === p.id
+                    {isEditing
                       ? <div style={{ display: 'flex', gap: 6 }}>
                           <button className="btn btn-primary btn-sm" style={{ borderRadius: 8 }} onClick={saveEdit} disabled={saving}>
                             {saving ? '…' : 'Save'}
@@ -607,6 +633,8 @@ function ProductsTab() {
                       : <button
                           className="btn btn-secondary btn-sm"
                           style={{ borderRadius: 8 }}
+                          disabled={!hasId}
+                          title={hasId ? undefined : 'Cannot edit: product has no numeric id'}
                           onClick={() => setEditing({ id: p.id, stock: p.stock, price: p.price })}
                         >
                           Edit
@@ -614,7 +642,8 @@ function ProductsTab() {
                     }
                   </td>
                 </tr>
-              ))}
+                );
+              })}
               {data.data.length === 0 && (
                 <tr><td colSpan={7} style={{ ...TD, textAlign: 'center', color: 'var(--muted)' }}>No products found</td></tr>
               )}
